@@ -1,0 +1,14 @@
+san_eng_zone_seed_san_a ansible_connection=local fos_ip_addr=10.38.18.116
+
+[switches]
+fc_switch_1 ansible_connection=local fos_ip_addr=10.38.18.116
+
+[hosts]
+host_eng_cc port_a=11:22:33:44:55:66:77:dd port_b=11:22:33:44:55:66:77:bb
+host_eng_sqa port_a=22:22:33:44:55:66:77:aa port_b=22:22:33:44:55:66:77:bb
+host_eng_dev port_a=33:22:33:44:55:66:77:aa port_b=33:22:33:44:55:66:77:bb
+host_eng_backup port_a=44:22:33:44:55:66:77:aa port_b=44:22:33:44:55:66:77:bb
+
+[targets]
+target_200 port_a=99:22:33:44:55:66:77:aa port_b=99:22:33:44:55:66:77:bb
+target_300 port_a=aa:22:33:44:55:66:77:aa port_b=aa:22:33:44:55:66:77:bb

@@ -1,0 +1,149 @@
+---
+
+# Copyright 2018 Brocade Communications Systems LLC.  All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may also obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- hosts: fc_switch_1
+  gather_facts: False
+
+  vars_files:
+    - ../vars/fos_password.yml
+
+  vars:
+    vfid: -1
+    port_name: "0/0"
+    port_user_friendly_name: "port47_connect_to_target200"
+    port_speed: "0"
+    port_g_port_locked_mode: "False"
+    port_e_port_disable_mode: "False"
+    port_persistently_disable_mode: "False"
+    port_qos_enabled_mode: "False"
+    port_compression_configured_mode: "False"
+    port_target_driven_zoning_enable_mode: "False"
+    port_op_enable_mode: "True"
+
+    # to be added in 8.2.0a
+    #octet-speed-combo
+    #trunk-port
+    #long-distance
+    #vc-link-init
+    #isl-ready-mode
+    #rscn-disabled
+    #los-tov-mode
+    #npiv-pp-limit
+    #npiv-flogi-logout
+    #ex-port
+    #mirror-port
+    #sim-port
+    #credit-recovery
+    #f-port-buffers
+    #e-port-credit
+    #csctl-mode
+    #tdz-mode
+    #fault-delay
+    #fec-10g-16g
+    #via-tts-16g-fec
+    #npiv-capable
+    #port-auto-disable
+    #rate-limit
+    #non-dfe-8g
+
+  tasks:
+  - name: set the user friendly name for port "{{port_name}}" - "{{port_user_friendly_name}}"
+    m_port_cfg_user_friendly_name:
+        switch_ip: "{{fos_ip_addr}}"
+        user: "{{fos_user}}"
+        password: "{{fos_password}}"
+        checkmode: "{{ansible_check_mode}}"
+        vfid: "{{vfid}}"
+        name: "{{port_name}}"
+        user_friendly_name: "{{port_user_friendly_name}}"
+  - name: persistently disable port "{{port_name}}" - "{{port_persistently_disable_mode}}"
+    m_port_cfg_persistently_disable:
+        switch_ip: "{{fos_ip_addr}}"
+        user: "{{fos_user}}"
+        password: "{{fos_password}}"
+        checkmode: "{{ansible_check_mode}}"
+        vfid: "{{vfid}}"
+        name: "{{port_name}}"
+        mode: "{{port_persistently_disable_mode}}"
+#  - name: toggle a port if online
+#    m_port_op_toggle:
+#        switch_ip: "{{fos_ip_addr}}"
+#        user: "{{fos_user}}"
+#        password: "{{fos_password}}"
+#        checkmode: "{{ansible_check_mode}}"
+#        name: "0/0"
+  - name: set speed of port "{{port_name}}" - "{{port_speed}}"
+    m_port_cfg_speed:
+        switch_ip: "{{fos_ip_addr}}"
+        user: "{{fos_user}}"
+        password: "{{fos_password}}"
+        checkmode: "{{ansible_check_mode}}"
+        vfid: "{{vfid}}"
+        name: "{{port_name}}"
+        speed: "{{port_speed}}"
+  - name: set E-Port disable mode on port "{{port_name}}" - "{{port_e_port_disable_mode}}"
+    m_port_cfg_eport_disable:
+        switch_ip: "{{fos_ip_addr}}"
+        user: "{{fos_user}}"
+        password: "{{fos_password}}"
+        checkmode: "{{ansible_check_mode}}"
+        vfid: "{{vfid}}"
+        name: "{{port_name}}"
+        mode: "{{port_e_port_disable_mode}}"
+  - name: set G-Port locked mode on port "{{port_name}}" - "{{port_g_port_locked_mode}}"
+    m_port_cfg_gport_locked:
+        switch_ip: "{{fos_ip_addr}}"
+        user: "{{fos_user}}"
+        password: "{{fos_password}}"
+        checkmode: "{{ansible_check_mode}}"
+        vfid: "{{vfid}}"
+        name: "{{port_name}}"
+        mode: "{{port_g_port_locked_mode}}"
+  - name: enable QoS on port "{{port_name}}" - "{{port_qos_enabled_mode}}"
+    m_port_cfg_qos_enabled:
+        switch_ip: "{{fos_ip_addr}}"
+        user: "{{fos_user}}"
+        password: "{{fos_password}}"
+        checkmode: "{{ansible_check_mode}}"
+        vfid: "{{vfid}}"
+        name: "{{port_name}}"
+        mode: "{{port_qos_enabled_mode}}"
+  - name: enable Compression on port "{{port_name}}" - "{{port_compression_configured_mode}}"
+    m_port_cfg_compression_configured:
+        switch_ip: "{{fos_ip_addr}}"
+        user: "{{fos_user}}"
+        password: "{{fos_password}}"
+        checkmode: "{{ansible_check_mode}}"
+        vfid: "{{vfid}}"
+        name: "{{port_name}}"
+        mode: "{{port_compression_configured_mode}}"
+  - name: enable Target driver zone on port "{{port_name}}" - "{{port_target_driven_zoning_enable_mode}}"
+    m_port_cfg_target_driven_zoning_enable:
+        switch_ip: "{{fos_ip_addr}}"
+        user: "{{fos_user}}"
+        password: "{{fos_password}}"
+        checkmode: "{{ansible_check_mode}}"
+        vfid: "{{vfid}}"
+        name: "{{port_name}}"
+        mode: "{{port_target_driven_zoning_enable_mode}}"
+  - name: enable port "{{port_name}}" - "{{port_op_enable_mode}}"
+    m_port_op_enable:
+        switch_ip: "{{fos_ip_addr}}"
+        user: "{{fos_user}}"
+        password: "{{fos_password}}"
+        checkmode: "{{ansible_check_mode}}"
+        vfid: "{{vfid}}"
+        name: "{{port_name}}"
+        mode: "{{port_op_enable_mode}}"

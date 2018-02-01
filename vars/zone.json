@@ -1,0 +1,22 @@
+{
+    "access_pairs": [
+        {
+            "host_name": "host1",
+            "host_port": "11:22:33:44:55:66:77:88",
+            "target_name": "target1",
+            "target_port": "22:33:44:55:66:77:88:99"
+        },
+        {
+            "host_name": "host2",
+            "host_port": "88:77:66:55:44:33:22:11",
+            "target_name": "target1",
+            "target_port": "22:33:44:55:66:77:88:99"
+        },
+        {
+            "host_name": "host3",
+            "host_port": "33:33:33:33:44:44:44:44",
+            "target_name": "target2",
+            "target_port": "22:22:22:22:33:33:33:33"
+        }
+    ]
+}
