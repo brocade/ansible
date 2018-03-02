@@ -1,7 +1,10 @@
-###	Contributing	###
+###	Contributor Assignment Agreement (“CAA”)	###
 
-	Contributions to this project require the submission of a Contributor Assignment Agreement (“CAA”). 
-	The CAA transfers the copyright to your contribution from you (or your employer) to Broadcom, and 
-	in return Broadcom grants back a license to use your Contribution. This ensures Broadcom has the 
-	flexibility to license the project under an appropriate license. For more information on 
-	contributing see CONTRIBUTING.md.
+	Contributors must sign and submit a CAA before a contribution can be accepted. 
+	Two CAAs are available, one for individual contributions and one for contributions 
+	made on behalf of an entity, e.g., an employer. Copies of the CAAs can be found here [URL].
+
+	Instructions for submitting a CAA
+		1. Download and print out the appropriate CAA (individual or entity).
+		2. Sign the CAA.
+		3. Send an electronic copy of the signed CAA as an attachment to an email sent to [CAA email address].
