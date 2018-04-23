@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import pyfos.pyfos_auth as pyfos_auth
-import pyfos.pyfos_zone as pyfos_zone
+import pyfos.pyfos_brocade_zone as pyfos_zone
 import pyfos.pyfos_util as pyfos_util
 import random
 import getpass
@@ -89,7 +89,6 @@ def main(argv):
         pyfos_auth.vfid_set(session, vfid)
 
     prezone_effective = pyfos_zone.effective_configuration.get(session)
-    time.sleep(1)
     if pyfos_util.is_failed_resp(prezone_effective):
         print (json.dumps({"changed": False,
             "line": inspect.currentframe().f_lineno,
@@ -97,7 +96,6 @@ def main(argv):
         sys.exit()
 
     prezone_defined = pyfos_zone.defined_configuration.get(session)
-    time.sleep(1)
     if pyfos_util.is_failed_resp(prezone_defined):
         print (json.dumps({"changed": False,
             "line": inspect.currentframe().f_lineno,
@@ -121,7 +119,6 @@ def main(argv):
                     new_defined = pyfos_zone.defined_configuration()
                     new_defined.set_zone(zones)
                     result = new_defined.delete(session)
-                    time.sleep(1)
                     if pyfos_util.is_failed_resp(result):
                         print (json.dumps({"changed": False,
                             "line": inspect.currentframe().f_lineno,
@@ -135,7 +132,6 @@ def main(argv):
                 new_effective.set_cfg_action(pyfos_zone.CFG_ACTION_SAVE)
                 new_effective.set_checksum(prezone_effective.peek_checksum())
                 result = new_effective.patch(session)
-                time.sleep(1)
                 if pyfos_util.is_failed_resp(result):
                     print (json.dumps({"changed": False,
                         "line": inspect.currentframe().f_lineno,
@@ -155,7 +151,6 @@ def main(argv):
                     new_defined = pyfos_zone.defined_configuration()
                     new_defined.set_cfg(cfgs)
                     result = new_defined.delete(session)
-                    time.sleep(1)
                     if pyfos_util.is_failed_resp(result):
                         print (json.dumps({"changed": False,
                             "line": inspect.currentframe().f_lineno,
@@ -179,7 +174,6 @@ def main(argv):
                     new_defined = pyfos_zone.defined_configuration()
                     new_defined.set_cfg(cfgs)
                     result = new_defined.delete(session)
-                    time.sleep(1)
                     if pyfos_util.is_failed_resp(result):
                         print (json.dumps({"changed": False,
                             "line": inspect.currentframe().f_lineno,
@@ -190,7 +184,6 @@ def main(argv):
                     new_effective.set_cfg_name(prezone_effective.peek_cfg_name())
                     new_effective.set_checksum(prezone_effective.peek_checksum())
                     result = new_effective.patch(session)
-                    time.sleep(1)
                     if pyfos_util.is_failed_resp(result):
                         print (json.dumps({"changed": False,
                             "line": inspect.currentframe().f_lineno,

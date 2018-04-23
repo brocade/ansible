@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import pyfos.pyfos_auth as pyfos_auth
-import pyfos.pyfos_zone as pyfos_zone
+import pyfos.pyfos_brocade_zone as pyfos_zone
 import pyfos.pyfos_util as pyfos_util
 from pyfos.utils.zoning.zone_allow_pair_to_peer import zone_allow_pair_to_peer
 import random

@@ -14,7 +14,7 @@
 # limitations under the License.
 
 import pyfos.pyfos_auth as pyfos_auth
-import pyfos.pyfos_switchfcport as pyfos_switchfcport
+import pyfos.pyfos_brocade_fibrechannel as pyfos_switchfcport
 import pyfos.pyfos_util as pyfos_util
 import random
 import getpass
@@ -84,7 +84,6 @@ def main(argv):
 
     changed = False
     result = pyfos_switchfcport.fibrechannel.get(session, name)
-    time.sleep(1)
     if pyfos_util.is_failed_resp(result):
         print (json.dumps({"changed": False,
             "line": inspect.currentframe().f_lineno,
@@ -104,7 +103,6 @@ def main(argv):
             else:             
                 port.set_enabled_state(pyfos_switchfcport.ENABLED_STATE_TYPE.OFFLINE)
             result = port.patch(session)
-            time.sleep(1)
             if pyfos_util.is_failed_resp(result):
                 print ((json.dumps({"changed": False,
                     "line": inspect.currentframe().f_lineno,

@@ -14,7 +14,8 @@
 # limitations under the License.
 
 import pyfos.pyfos_auth as pyfos_auth
-import pyfos.pyfos_switchfcport as pyfos_switchfcport
+import pyfos.pyfos_brocade_fibrechannel as pyfos_switchfcport
+import pyfos.pyfos_brocade_fibrechannel_diagnostics as pyfos_diag
 import pyfos.pyfos_util as pyfos_util
 import random
 import getpass
@@ -87,7 +88,6 @@ def main(argv):
     changed = False
 
     current_port_info = pyfos_switchfcport.fibrechannel.get(session, name)
-    time.sleep(1)
     if pyfos_util.is_failed_resp(current_port_info):
         print (json.dumps({"changed": False,
             "line": inspect.currentframe().f_lineno,
@@ -98,9 +98,8 @@ def main(argv):
     port.set_name(name)
     port.set_enabled_state(pyfos_switchfcport.ENABLED_STATE_TYPE.OFFLINE)
     result = port.patch(session)
-    time.sleep(1)
     if pyfos_util.is_failed_resp(result):
-        if same_config_error not in result['errors']['error']['error-message']:
+        if same_config_error not in result['client-errors']['errors']['error']['error-message']:
             print ((json.dumps({"changed": False,
                 "line": inspect.currentframe().f_lineno,
                 "error": result})))
@@ -110,9 +109,8 @@ def main(argv):
     port.set_name(name)
     port.set_d_port_enable(0)
     result = port.patch(session)
-    time.sleep(1)
     if pyfos_util.is_failed_resp(result):
-        if same_config_error not in result['errors']['error']['error-message']:
+        if same_config_error not in result['client-errors']['errors']['error']['error-message']:
             print ((json.dumps({"changed": False,
                 "line": inspect.currentframe().f_lineno,
                 "error": result})))
@@ -122,9 +120,8 @@ def main(argv):
     port.set_name(name)
     port.set_d_port_enable(1)
     result = port.patch(session)
-    time.sleep(1)
     if pyfos_util.is_failed_resp(result):
-        if same_config_error not in result['errors']['error']['error-message']:
+        if same_config_error not in result['client-errors']['errors']['error']['error-message']:
             print ((json.dumps({"changed": False,
                 "line": inspect.currentframe().f_lineno,
                 "error": result})))
@@ -134,16 +131,22 @@ def main(argv):
     port.set_name(name)
     port.set_enabled_state(pyfos_switchfcport.ENABLED_STATE_TYPE.ONLINE)
     result = port.patch(session)
-    time.sleep(1)
     if pyfos_util.is_failed_resp(result):
-        if same_config_error not in result['errors']['error']['error-message']:
+        if same_config_error not in result['client-errors']['errors']['error']['error-message']:
             print ((json.dumps({"changed": False,
                 "line": inspect.currentframe().f_lineno,
                 "error": result})))
             sys.exit()
 
     count = 0
-    diag_info = pyfos_switchfcport.fibrechannel_diagnostics.get(session, name)
+    diag_info = pyfos_diag.brocade_fibrechannel_diagnostics.get(session, name)
+    if pyfos_util.is_failed_resp(diag_info):
+        print ((json.dumps({"changed": False,
+            "line": inspect.currentframe().f_lineno,
+            "d_port_result": "NOT STARTED",
+            "error": result})))
+        sys.exit()
+
     time.sleep(10)
     diag_state = diag_info.peek_state()
     while "IN PROGRESS" in diag_state or "NOT STARTED" in diag_state or "RESPONDER" in diag_state or "STOPPED" in diag_state:
@@ -152,10 +155,10 @@ def main(argv):
             break
         time.sleep(10)
 
-        diag_info = pyfos_switchfcport.fibrechannel_diagnostics.get(session, name)
+        diag_info = pyfos_diag.brocade_fibrechannel_diagnostics.get(session, name)
         diag_state = diag_info.peek_state()
 
-    diag_info = pyfos_switchfcport.fibrechannel_diagnostics.get(session, name)
+    diag_info = pyfos_diag.brocade_fibrechannel_diagnostics.get(session, name)
     diag_state = diag_info.peek_state()
 
     # if dport was disabled to begin with. turn back.
@@ -164,7 +167,6 @@ def main(argv):
         port.set_name(name)
         port.set_enabled_state(pyfos_switchfcport.ENABLED_STATE_TYPE.OFFLINE)
         result = port.patch(session)
-        time.sleep(1)
         if pyfos_util.is_failed_resp(result):
             print ((json.dumps({"changed": False,
                 "line": inspect.currentframe().f_lineno,
@@ -175,7 +177,6 @@ def main(argv):
         port.set_name(name)
         port.set_d_port_enable(0)
         result = port.patch(session)
-        time.sleep(1)
         if pyfos_util.is_failed_resp(result):
             print ((json.dumps({"changed": False,
                 "line": inspect.currentframe().f_lineno,
@@ -187,7 +188,6 @@ def main(argv):
         port.set_name(name)
         port.set_enabled_state(pyfos_switchfcport.ENABLED_STATE_TYPE.ONLINE)
         result = port.patch(session)
-        time.sleep(1)
         if pyfos_util.is_failed_resp(result):
             print ((json.dumps({"changed": False,
                 "line": inspect.currentframe().f_lineno,

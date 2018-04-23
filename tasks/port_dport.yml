@@ -26,6 +26,6 @@
         user: "{{fos_user}}"
         password: "{{fos_password}}"
         vfid: -1
-        name: "0/19"
+        name: "0/17"
     register: d_port_result
   - debug: var=d_port_result

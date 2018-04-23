@@ -21,12 +21,13 @@
 
   vars:
     vfid: -1
-    port_name: "0/19"
+    port_name: "0/17"
     port_user_friendly_name: "port1_connect_to_target200"
     port_speed: "0"
     port_qos_mode: "False"
     host_name_on_port: host_eng_cc
     host_port_on_port: "{{hostvars.host_eng_cc.port_a}}"
+    target_name_to_talk: target_200
     target_port_to_talk: "{{hostvars.target_200.port_a}}"
     auto_zone_prefix: "az__"
     auto_zone_postfix: "1"
@@ -81,6 +82,7 @@
         vfid: "{{vfid}}"
         zone_prefix: "{{auto_zone_prefix}}"
         host_name: "{{host_name_on_port}}"
+        target_name: "{{target_name_to_talk}}"
         zone_postfix: "{{auto_zone_postfix}}"
         host_port: "{{host_port_on_port}}"
         target_port: "{{target_port_to_talk}}"
@@ -93,4 +95,5 @@
         checkmode: "{{ansible_check_mode}}"
         vfid: "{{vfid}}"
         name: "{{port_name}}"
+        mode: "True"
     when: d_port_result["d_port_result"] == "PASSED"
