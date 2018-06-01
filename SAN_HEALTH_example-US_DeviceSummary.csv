@@ -1,0 +1,6 @@
+Port Name,Attached Device Port WWN,Attached Device Node WWN,Attached Device Type,Attached Device Desc,Attached Device Model Num,Attached Device Driver Version,Attached Device Firmware
+myhost1,50:06:0e:80:bb:27:aa:01,50:06:0e:80:bb:27:cc:01,DISK,AAA Storage,,,
+myhost2,20:04:00:11:bb:04:aa:85,10:00:00:11:bb:04:cc:85,GATEWAY,BBB Library,,,
+myhost3,21:00:00:24:bb:06:aa:d3,20:00:00:24:bb:06:cc:d3,FCHOST,MMMlogic HBA,MMMLEM2460,8.04.01.08.06.5,5.08.01
+mytarget1,50:06:0e:80:bb:27:aa:21,50:06:0e:80:bb:27:cc:21,DISK,AAA Storage,,,
+mytarget2,21:00:00:24:bb:8c:aa:c3,20:00:00:24:bb:8c:cc:c3,FCHOST,MMMlogic HBA,MMMLEM2562,8.07.00.25.Trunk,8.04.01
