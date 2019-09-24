@@ -17,7 +17,7 @@ to manage Fibre Channel switches running FOS 8.2.x.
 
     bash example:
 
-        if the repository is cloned under /home/myaccount/ansible-fos,
+        if the repository is cloned under /home/myaccount/ansible,
 
         export PYTHONPATH="/home/myaccount/ansible/library/ansible/module_utils/storage/brocade"
         export ANSIBLE_LIBRARY="/home/myaccount/ansible/library/ansible/modules/storage/brocade"
