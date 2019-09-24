@@ -1,7 +1,4 @@
-san_eng_zone_seed_san_a ansible_connection=local fos_ip_addr=10.38.18.81
-
-[switches]
-fc_switch_1 ansible_connection=local fos_ip_addr=10.38.18.81
+san_eng_zone_seed_san_a ansible_connection=local fos_ip_addr=10.155.107.74
 
 [hosts]
 host_eng_cc port_a=11:22:33:44:55:66:77:dd port_b=11:22:33:44:55:66:77:bb

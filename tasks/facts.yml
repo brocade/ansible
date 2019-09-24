@@ -1,0 +1,49 @@
+---
+
+# Copyright 2018 Brocade Communications Systems LLC.  All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may also obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: admin
+      fos_password: fibranne
+      https: False
+
+  tasks:
+
+  - name: gather facts
+    brocade_facts:
+      credential: "{{credential}}"
+      vfid: -1
+      gather_subset:
+        - brocade_zoning
+        - brocade_interface_fibrechannel
+        - brocade_chassis
+        - brocade_fibrechannel_configuration_fabric
+        - brocade_fibrechannel_configuration_port_configuration
+        - brocade_fibrechannel_switch
+        - brocade_time_clock_server
+        - brocade_time_time_zone
+        - brocade_logging_syslog_server
+        - brocade_logging_audit
+        - brocade_snmp_system
+        - brocade_security_ipfilter_rule
+        - brocade_security_ipfilter_policy
+
+  - name: print ansible_facts gathered
+    debug:
+      var: ansible_facts

@@ -1,0 +1,172 @@
+---
+
+# Copyright 2018 Brocade Communications Systems LLC.  All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may also obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: admin
+      fos_password: fibranne
+      https: False
+
+  tasks:
+
+  - name: disable switch
+    brocade_fibrechannel_switch:
+      credential: "{{credential}}"
+      vfid: -1
+      switch:
+        enabled_state: False
+
+  - name: change all switch configuration
+    brocade_fibrechannel_switch:
+      credential: "{{credential}}"
+      vfid: -1
+      switch:
+        user_friendly_name: "new_switch_name"
+        fabric_user_friendly_name: "new_fabric_name"
+        domain_id: 2
+        banner: "MORE AUTHORIZED USERS ONLY!"
+        dynamic_load_sharing: "disabled"
+        domain_name: "google.com"
+        dns_servers:
+          dns_server:
+            - "9.8.8.8"
+
+  - name: change all fabric configuration
+    brocade_fibrechannel_configuration_fabric:
+      credential: "{{credential}}"
+      vfid: -1
+      fabric:
+        insistent_domain_id_enabled: False
+        in_order_delivery_enabled: True
+        fabric_principal_enabled: False
+        fabric_principal_priority: "0"
+    register: result
+
+  - debug: var=result
+
+  - name: change all port configuration
+    brocade_fibrechannel_configuration_port_configuration:
+      credential: "{{credential}}"
+      vfid: -1
+      port_configuration:
+        dynamic_portname_format: "T.A.R"
+        portname_mode: "off"
+        credit_recovery_mode: "off"
+
+  - name: enable switch
+    brocade_fibrechannel_switch:
+      credential: "{{credential}}"
+      vfid: -1
+      switch:
+        enabled_state: True
+
+  - name: change all chassis configuration
+    brocade_chassis:
+      credential: "{{credential}}"
+      vfid: -1
+      chassis:
+        chassis_user_friendly_name: "new_chassis_name"
+        telnet_timeout: 60
+
+  - name: Configure ports
+    brocade_interface_fibrechannel:
+      credential: "{{credential}}"
+      vfid: -1
+      ports:
+        - name: "0/0"
+          enabled_state: True 
+          npiv_pp_limit: 126
+        - name: "0/1"
+          persistent_disable: False
+
+  - name: change all zoning configuration
+    brocade_zoning_default_zone:
+      credential: "{{credential}}"
+      vfid: -1
+      default_zone_access: noaccess
+
+  - name: change all clock server configuration
+    brocade_time_clock_server:
+      credential: "{{credential}}"
+      vfid: -1
+      clock_server:
+        ntp_server_address:
+          server_address:
+            - "10.38.2.80"
+            - "10.38.2.81"
+
+  - name: change all time zone configuration
+    brocade_time_time_zone:
+      credential: "{{credential}}"
+      vfid: -1
+      time_zone:
+        name: "America/Los_Angeles"
+
+  - name: change all audit configuration
+    brocade_logging_audit:
+      credential: "{{credential}}"
+      vfid: -1
+      audit:
+        audit_enabled: False
+        filter_class_list:
+          filter_class:
+          - "zone"
+          - "security"
+          - "configuration"
+          - "firmware"
+          - "fabric"
+          - "ls"
+        severity_level: "warning"
+
+  - name: change all syslog configuration
+    brocade_logging_syslog_server:
+      credential: "{{credential}}"
+      vfid: -1
+      syslog_servers:
+        - port: 514
+          secure_mode: False
+          server: "10.155.2.152"
+
+  - name: change all snmp system configuration
+    brocade_snmp_system:
+      credential: "{{credential}}"
+      vfid: -1
+      snmp_system:
+        audit_interval: 60
+        contact: "more Field Support."
+        description: "more DemoSwitch"
+        encryption_enabled: True
+        informs_enabled: True
+        location: "more San Jose"
+        security_get_level: 0
+        security_set_level: 3
+        snmpv1_enabled: False
+
+  - name: activate default ipv4 before deleting previously created custom policy
+    brocade_security_ipfilter_policy:
+      credential: "{{credential}}"
+      vfid: -1
+      active_policy: "default_ipv4"
+
+  - name: delete custom policy
+    brocade_security_ipfilter_policy:
+      credential: "{{credential}}"
+      vfid: -1
+      delete_policies:
+        - name: "ipv4_telnet_http"

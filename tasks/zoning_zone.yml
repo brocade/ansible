@@ -1,0 +1,105 @@
+---
+
+# Copyright 2018 Brocade Communications Systems LLC.  All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may also obtain a copy of the License at
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: admin
+      fos_password: fibranne
+      https: False
+    aliases:
+      - name: Host1
+        members:
+          - 11:22:33:44:55:66:77:88
+      - name: Target1
+        members:
+          - 22:22:33:44:55:66:77:99      
+      - name: Target2
+        members:
+          - 22:22:33:44:55:66:77:aa
+      - name: Target3
+        members:
+          - 22:22:33:44:55:66:77:bb
+    aliases_to_delete:
+      - name: Target1
+      - name: Target2
+      - name: Target3
+    zones:
+      - name: NewZoneName
+        members:
+          - Host1
+          - Target1
+          - Target2
+      - name: NewZoneName2
+        members:
+          - Host1
+          - Target2
+      - name: NewZoneNameP
+        members:
+          - 11:22:33:44:55:66:77:88
+        principal_members:
+          - 22:22:33:44:55:66:77:88
+    zones_to_delete:
+      - name: NewZoneNameP
+      - name: NewZoneName2
+    cfgs:
+      - name: newcfg1
+        members:
+          - NewZoneName
+          - NewZoneName2
+      - name: newcfg2
+        members:
+          - NewZoneName
+          - NewZoneName2
+      - name: newcfg3
+        members:
+          - NewZoneName
+          - NewZoneName2
+    cfgs_to_delete:
+      - name: newcfg2
+      - name: newcfg3
+
+  tasks:
+
+  - name: Create aliases
+    brocade_zoning_alias:
+      credential: "{{credential}}"
+      vfid: -1
+      aliases: "{{aliases}}"
+#      aliases_to_delete: "{{aliases_to_delete}}"
+
+  - name: Create zones
+    brocade_zoning_zone:
+      credential: "{{credential}}"
+      vfid: -1
+      zones: "{{zones}}"
+#      zones_to_delete: "{{zones_to_delete}}"
+
+  - name: Create cfgs
+    brocade_zoning_cfg:
+      credential: "{{credential}}"
+      vfid: -1
+      cfgs: "{{cfgs}}"
+#      cfgs_to_delete: "{{cfgs_to_delete}}"
+      active_cfg: newcfg2
+
+  - name: Default zoning
+    brocade_zoning_default_zone:
+      credential: "{{credential}}"
+      vfid: -1
+      default_zone_access: allaccess
