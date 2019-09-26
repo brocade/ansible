@@ -1,6 +1,8 @@
-# Copyright: (c) 2019, Broadcom
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
 
 from __future__ import (absolute_import, division, print_function)
 from brocade_url import url_post, url_patch, url_get_to_dict, url_delete,\
