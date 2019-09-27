@@ -51,7 +51,7 @@
         fabric_principal_priority: "0"
     register: result
 
-  - debug: var=result
+#  - debug: var=result
 
   - name: change all port configuration
     brocade_fibrechannel_configuration_port_configuration:
@@ -163,3 +163,21 @@
       vfid: -1
       delete_policies:
         - name: "ipv4_telnet_http"
+
+  - name: enable root & user
+    brocade_security_user_config:
+      credential: "{{credential}}"
+      vfid: -1
+      user_configs:
+        - name: "user"
+          account_enabled: True
+        - name: "root"
+          account_enabled: True
+
+  - name: delete accounts
+    brocade_security_user_config:
+      credential: "{{credential}}"
+      vfid: -1
+      delete_user_configs:
+        - name: "myaccount"
+        - name: "youraccount"
