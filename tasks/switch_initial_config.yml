@@ -52,7 +52,7 @@
         fabric_principal_priority: "0x3"
     register: result
 
-  - debug: var=result
+#  - debug: var=result
 
   - name: port configuration
     brocade_fibrechannel_configuration_port_configuration:
