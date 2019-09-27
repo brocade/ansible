@@ -19,6 +19,14 @@ def yang_to_human(attributes):
             for k1, v1 in v.items():
                 dict_v[k1.replace("-", "_")] = v1
             yang_attributes[k.replace("-", "_")] = dict_v
+        elif isinstance(v, list):
+            new_list = []
+            for entry in v:
+                new_dict = {}
+                for k1, v1 in entry.items():
+                    new_dict[k1.replace("-", "_")] = v1
+                new_list.append(new_dict)
+            yang_attributes[k.replace("-", "_")] = new_list
         else:
             yang_attributes[k.replace("-", "_")] = v
 
@@ -35,6 +43,14 @@ def human_to_yang(attributes):
             for k1, v1 in v.items():
                 dict_v[k1.replace("_", "-")] = v1
             human_attributes[k.replace("_", "-")] = dict_v
+        elif isinstance(v, list):
+            new_list = []
+            for entry in v:
+                new_dict = {}
+                for k1, v1 in entry.items():
+                    new_dict[k1.replace("_", "-")] = v1
+                new_list.append(new_dict)
+            human_attributes[k.replace("_", "-")] = new_list
         else:
             human_attributes[k.replace("_", "-")] = v
 

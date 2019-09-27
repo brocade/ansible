@@ -271,3 +271,29 @@
       credential: "{{credential}}"
       vfid: -1
       active_policy: "ipv4_telnet_http"
+
+  - name: disable root & user
+    brocade_security_user_config:
+      credential: "{{credential}}"
+      vfid: -1
+      user_configs:
+        - name: "user"
+          account_enabled: False
+        - name: "root"
+          account_enabled: False
+
+  - name: add new account
+    brocade_security_user_config:
+      credential: "{{credential}}"
+      vfid: -1
+      user_configs:
+        - name: "myaccount"
+          password: "bXlwYXNzd29yZA=="
+          virtual_fabric_role_id_list:
+            - role_id: "admin=1-128"
+          chassis_access_role: "admin"
+        - name: "youraccount"
+          password: "bXlwYXNzd29yZA=="
+          virtual_fabric_role_id_list:
+            - role_id: "admin=1-128"
+          chassis_access_role: "admin"

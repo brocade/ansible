@@ -21,7 +21,7 @@ short_description: Brocade security ipfilter policy Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update secuirty ipfilter policy configuration
+- Update security ipfilter policy configuration
 
 options:
 
@@ -57,7 +57,7 @@ options:
           This shoud come after policies are created and
           filled with rules
         required: false
-    delete_policy:
+    delete_policies:
         description:
         - name of the policy to be deleted. mutually exclusive
           with ipfilter_policies and active_policy.

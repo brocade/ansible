@@ -43,6 +43,7 @@
         - brocade_snmp_system
         - brocade_security_ipfilter_rule
         - brocade_security_ipfilter_policy
+        - brocade_security_user_config
 
   - name: print ansible_facts gathered
     debug:

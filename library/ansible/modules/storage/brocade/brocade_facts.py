@@ -83,6 +83,7 @@ EXAMPLES = """
         - brocade_snmp_system
         - brocade_security_ipfilter_rule
         - brocade_security_ipfilter_policy
+        - brocade_security_user_config
 
   - name: print ansible_facts gathered
     debug:
@@ -117,7 +118,7 @@ from brocade_time import time_zone_get, to_human_time_zone
 from brocade_logging import syslog_server_get, to_human_syslog_server
 from brocade_logging import audit_get, to_human_audit
 from brocade_snmp import system_get, to_human_system
-from brocade_security import ipfilter_rule_get, to_human_ipfilter_rule, ipfilter_policy_get, to_human_ipfilter_policy
+from brocade_security import ipfilter_rule_get, to_human_ipfilter_rule, ipfilter_policy_get, to_human_ipfilter_policy, user_config_get, to_human_user_config
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -135,6 +136,7 @@ valid_areas = [
     "brocade_snmp_system",
     "brocade_security_ipfilter_rule",
     "brocade_security_ipfilter_policy",
+    "brocade_security_user_config",
     ]
 
 
@@ -349,6 +351,17 @@ def main():
                     to_human_ipfilter_policy(rule)
 
                 facts[area] = response["Response"]["ipfilter-policy"]
+
+            if area == "brocade_security_user_config":
+                ret_code, response = user_config_get(
+                    fos_ip_addr, https, auth, vfid, result)
+                if ret_code != 0:
+                    exit_after_login(fos_ip_addr, https, auth, result, module)
+
+                for rule in response["Response"]["user-config"]:
+                    to_human_user_config(rule)
+
+                facts[area] = response["Response"]["user-config"]
 
     result["ansible_facts"] = facts
 
