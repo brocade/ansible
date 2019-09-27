@@ -1,16 +1,19 @@
-Brocade Ansible reference example Modules and Playbooks - Prototype code
+Brocade Ansible reference example Modules and Playbooks
 =======
 
 This repository provides reference example Modules & Playbooks for Ansible
-to manage Fibre Channel switches running FOS 8.2.x.
+to manage Fibre Channel switches running FOS 8.2.x. Tested with Ansible
+2.7.5 running Python 3.5.2.
 
-### dependency ###
+### Installation ###
 
-    Paramiko and xmltodict. Brocade Ansible modules do not require PyFOS.
+Step1: clone the repository
 
-### env ###
+    HTTPS example:
 
-    Add library path to PYTHONPATH and ANSIBLE_LIBRARY variable
+        git clone https://github.com/brocade/ansible
+
+Step2: Add library path to PYTHONPATH and ANSIBLE_LIBRARY variable
 
     bash example:
 

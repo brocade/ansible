@@ -1,3 +1,9 @@
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
 import paramiko
 
 def ssh_and_configure(login, password, ipaddr, hostkeymust, cmdstr, expected):
