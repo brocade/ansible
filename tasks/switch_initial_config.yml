@@ -35,11 +35,17 @@
         domain_id: 1
         banner: "AUTHORIZED USERS ONLY!"
         dynamic_load_sharing: "lossless-dls"
-        domain_name: "yahoo.com"
         dns_servers:
           dns_server:
             - "8.8.8.8"
             - "8.8.4.4"
+
+  - name: switch configuration
+    brocade_fibrechannel_switch:
+      credential: "{{credential}}"
+      vfid: -1
+      switch:
+        domain_name: "yahoo.com"
 
   - name: fabric configuration
     brocade_fibrechannel_configuration_fabric:
