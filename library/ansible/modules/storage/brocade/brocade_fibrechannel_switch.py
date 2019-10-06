@@ -171,11 +171,12 @@ def main():
 
     to_human_switch(resp_switch)
    
-    if "dns_servers" in resp_switch and "dns_server" in resp_switch["dns_servers"]:
-        if not isinstance(resp_switch["dns_servers"]["dns_server"], list):
-            new_list = []
-            new_list.append(resp_switch["dns_servers"]["dns_server"])
-            resp_switch["dns_servers"]["dns_server"] = new_list
+    if "dns_servers" in resp_switch:
+        if resp_switch["dns_servers"] is not None and "dns_server" in resp_switch["dns_servers"]:
+            if not isinstance(resp_switch["dns_servers"]["dns_server"], list):
+                new_list = []
+                new_list.append(resp_switch["dns_servers"]["dns_server"])
+                resp_switch["dns_servers"]["dns_server"] = new_list
 
     diff_attributes = generate_diff(result, resp_switch, switch)
 

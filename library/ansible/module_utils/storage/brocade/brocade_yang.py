@@ -62,7 +62,7 @@ def human_to_yang(attributes):
 
 
 def find_diff(result, yang_key, new_value, c_config, diff_attributes):
-    if yang_key in c_config:
+    if c_config is not None and yang_key in c_config:
         if isinstance(new_value, bool):
             # first convert the string to real boolean
             # then you can compare to new value to see if 
