@@ -102,9 +102,9 @@ Brocade Fibre Channel snmp system Configuration
 """
 
 
-from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
-from ansible.module_utils.brocade_snmp import system_patch, system_get, to_human_system, to_fos_system
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import generate_diff
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_snmp import system_patch, system_get, to_human_system, to_fos_system
 from ansible.module_utils.basic import AnsibleModule
 
 

@@ -112,9 +112,9 @@ Brocade Fibre Channel ipfilter policy Configuration
 """
 
 
-from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
-from ansible.module_utils.brocade_security import ipfilter_policy_patch, ipfilter_policy_post, ipfilter_policy_delete, ipfilter_policy_get, to_human_ipfilter_policy, to_fos_ipfilter_policy
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import generate_diff
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_security import ipfilter_policy_patch, ipfilter_policy_post, ipfilter_policy_delete, ipfilter_policy_get, to_human_ipfilter_policy, to_fos_ipfilter_policy
 from ansible.module_utils.basic import AnsibleModule
 
 
