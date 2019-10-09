@@ -5,10 +5,10 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-from ansible.module_utils.brocade_url import url_post, url_patch, url_get_to_dict, url_delete,\
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_url import url_post, url_patch, url_get_to_dict, url_delete,\
     HTTP, HTTPS, url_patch_single_object
-from ansible.module_utils.brocade_connection import exit_after_login
-from ansible.module_utils.brocade_yang import yang_to_human, human_to_yang
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import exit_after_login
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import yang_to_human, human_to_yang
 
 __metaclass__ = type
 

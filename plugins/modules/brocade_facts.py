@@ -108,18 +108,18 @@ Brocade Fibre Channel Port Configuration
 """
 
 
-from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_interface import fc_port_get, fc_port_stats_get, to_human_fc
-from ansible.module_utils.brocade_zoning import defined_get, effective_get, to_human_zoning
-from ansible.module_utils.brocade_chassis import chassis_get, to_human_chassis
-from ansible.module_utils.brocade_fibrechannel_configuration import fabric_get, to_human_fabric, port_configuration_get, to_human_port_configuration
-from ansible.module_utils.brocade_fibrechannel_switch import fc_switch_get, to_human_switch
-from ansible.module_utils.brocade_time import clock_server_get, to_human_clock_server
-from ansible.module_utils.brocade_time import time_zone_get, to_human_time_zone
-from ansible.module_utils.brocade_logging import syslog_server_get, to_human_syslog_server
-from ansible.module_utils.brocade_logging import audit_get, to_human_audit
-from ansible.module_utils.brocade_snmp import system_get, to_human_system
-from ansible.module_utils.brocade_security import ipfilter_rule_get, to_human_ipfilter_rule, ipfilter_policy_get, to_human_ipfilter_policy, user_config_get, to_human_user_config
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_interface import fc_port_get, fc_port_stats_get, to_human_fc
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_zoning import defined_get, effective_get, to_human_zoning
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_chassis import chassis_get, to_human_chassis
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_fibrechannel_configuration import fabric_get, to_human_fabric, port_configuration_get, to_human_port_configuration
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_fibrechannel_switch import fc_switch_get, to_human_switch
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_time import clock_server_get, to_human_clock_server
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_time import time_zone_get, to_human_time_zone
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_logging import syslog_server_get, to_human_syslog_server
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_logging import audit_get, to_human_audit
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_snmp import system_get, to_human_system
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_security import ipfilter_rule_get, to_human_ipfilter_rule, ipfilter_policy_get, to_human_ipfilter_policy, user_config_get, to_human_user_config
 from ansible.module_utils.basic import AnsibleModule
 
 

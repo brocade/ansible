@@ -95,9 +95,9 @@ Brocade Fibre Channel syslog server Configuration
 """
 
 
-from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
-from ansible.module_utils.brocade_logging import syslog_server_patch, syslog_server_post, syslog_server_delete, syslog_server_get, to_human_syslog_server, to_fos_syslog_server
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import generate_diff
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_logging import syslog_server_patch, syslog_server_post, syslog_server_delete, syslog_server_get, to_human_syslog_server, to_fos_syslog_server
 from ansible.module_utils.basic import AnsibleModule
 
 

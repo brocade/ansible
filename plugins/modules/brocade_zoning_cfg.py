@@ -127,8 +127,8 @@ Brocade Zoning Cfgs
 
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_zoning import zoning_common, cfg_post, cfg_delete, cfg_get, process_member_diff
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_zoning import zoning_common, cfg_post, cfg_delete, cfg_get, process_member_diff
 
 
 def cfg_process_diff(result, cfgs, c_cfgs):

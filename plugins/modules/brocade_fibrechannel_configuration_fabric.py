@@ -100,9 +100,9 @@ Brocade Fibre Channel switch Configuration
 """
 
 
-from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
-from ansible.module_utils.brocade_fibrechannel_configuration import fabric_patch, fabric_get, to_human_fabric, to_fos_fabric
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import generate_diff
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_fibrechannel_configuration import fabric_patch, fabric_get, to_human_fabric, to_fos_fabric
 from ansible.module_utils.basic import AnsibleModule
 
 

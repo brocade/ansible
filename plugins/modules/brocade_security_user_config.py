@@ -124,9 +124,9 @@ Brocade Fibre Channel user config Configuration
 """
 
 
-from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
-from ansible.module_utils.brocade_security import user_config_patch, user_config_post, user_config_delete, user_config_get, to_human_user_config, to_fos_user_config
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import generate_diff
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_security import user_config_patch, user_config_post, user_config_delete, user_config_get, to_human_user_config, to_fos_user_config
 from ansible.module_utils.basic import AnsibleModule
 
 

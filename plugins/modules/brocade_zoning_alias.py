@@ -125,8 +125,8 @@ Brocade Zoning Alias
 
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_zoning import zoning_common, alias_post, alias_delete, alias_get,\
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_zoning import zoning_common, alias_post, alias_delete, alias_get,\
     process_member_diff
 
 
