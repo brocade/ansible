@@ -1,0 +1,17 @@
+namespace: brocade
+name: fos
+version: 1.0.0
+readme: README.md
+authors:
+  - Brocade Automation Team <Automation.BSN@broadcom.com>
+description: Collection of modules to manage Brocade FOS FC switches
+license:
+  - GPL-2.0-or-later
+tags:
+  - brocade
+  - fos
+  - storage
+dependencies: {}
+repository: https://github.com/daniel-chung-broadcom/ansible-1
+documentation: https://github.com/daniel-chung-broadcom/ansible-1
+issues: https://github.com/daniel-chung-broadcom/ansible-1/issues
