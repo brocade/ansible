@@ -24,8 +24,10 @@ author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
 - Create, detroy, or update Cfgs. The whole of cfgs and
   cfgs_to_delete are applied to FOS within a single login session
-  to termininate after the completion
-
+  to termininate after the completion. If no active cfg is found,
+  cfgsave is executed before the completion of the session. If an
+  active cfg is found, cfgenable of the existing cfg is executed
+  to apply any potential changes before the completion of the session.
 
 options:
 

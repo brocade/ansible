@@ -615,12 +615,22 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
         if active_cfg is None:
             if need_to_save:
                 if not module.check_mode:
-                    ret_code = cfg_save(fos_ip_addr, https, auth, vfid,
+                    # if something changed and there is already an active cfg
+                    # reenable that cfg
+                    ret_code = 0
+                    failed_msg = ""
+                    if cfgname is not None:
+                        failed_msg = "CFG ENABLE failed"
+                        ret_code = cfg_enable(fos_ip_addr, https, auth, vfid,
+                                            result, checksum, cfgname)
+                    else:
+                        failed_msg = "CFG SAVE failed"
+                        ret_code = cfg_save(fos_ip_addr, https, auth, vfid,
                                         result, checksum)
                     if ret_code != 0:
                         ret_code = cfg_abort(fos_ip_addr, https,
                                              auth, vfid, result)
-                        result['msg'] = "CFG SAVE failed"
+                        result['msg'] = failed_msg
                         result["failed"] = True
                         exit_after_login(fos_ip_addr, https, auth,
                                          result, module)
@@ -657,13 +667,21 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
         if active_cfg is None:
             if need_to_save:
                 if not module.check_mode:
-                    ret_code = cfg_save(fos_ip_addr, https, auth, vfid,
+                    ret_code = 0
+                    failed_msg = ""
+                    if cfgname is not None:
+                        failed_msg = "CFG ENABLE failed"
+                        ret_code = cfg_enable(fos_ip_addr, https, auth, vfid,
+                                            result, checksum, cfgname)
+                    else:
+                        failed_msg = "CFG SAVE failed"
+                        ret_code = cfg_save(fos_ip_addr, https, auth, vfid,
                                         result, checksum)
                     if ret_code != 0:
                         ret_code = cfg_abort(fos_ip_addr, https, auth,
                                              vfid, result)
                         result["failed"] = True
-                        result['msg'] = "CFG SAVE failed"
+                        result['msg'] = failed_msg
                         exit_after_login(fos_ip_addr, https, auth,
                                          result, module)
 
