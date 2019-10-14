@@ -465,6 +465,13 @@ def cfg_get(fos_ip_addr, is_https, auth, vfid, result):
                            vfid, result, full_defined_url)
 
 
+def is_wwn(member):
+    octets = member.split(":")
+    if len(octets) == 8:
+        return True
+    else:
+        return False
+
 def process_member_diff(result, members, current_members):
     a_members = []
     r_members = []
@@ -475,6 +482,9 @@ def process_member_diff(result, members, current_members):
         c_members = [current_members]
 
     for member in members:
+        if is_wwn(member):
+            member = member.lower()
+
         found = False
         for c_member in c_members:
             if member == c_member:
@@ -486,6 +496,9 @@ def process_member_diff(result, members, current_members):
     for c_member in c_members:
         found = False
         for member in members:
+            if is_wwn(member):
+                member = member.lower()
+
             if member == c_member:
                 found = True
                 continue
