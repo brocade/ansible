@@ -5,7 +5,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-from ansible.module_utils.brocade_url import url_get_to_dict, url_patch, HTTP, HTTPS, url_patch_single_object
+from ansible.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object
 from ansible.module_utils.brocade_ssh import ssh_and_configure
 from ansible.module_utils.brocade_yang import yang_to_human, human_to_yang
 
@@ -59,8 +59,9 @@ def system_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, 
         :return: dict of switch configurations
         :rtype: dict
     """
-    full_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_SNMP_SYSTEM
+    full_url, validate_certs = full_url_get(is_https,
+                                            fos_ip_addr,
+                                            REST_SNMP_SYSTEM)
 
     rtype, rdict = url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
                            result, full_url)
@@ -159,8 +160,9 @@ def system_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
 #    if len(l_diffs) <= 1:
 #        return 0
 
-    full_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_SNMP_SYSTEM
+    full_url, validate_certs = full_url_get(is_https,
+                                            fos_ip_addr,
+                                            REST_SNMP_SYSTEM)
 
     return (url_patch_single_object(fos_ip_addr, is_https, auth,
                                     vfid, result, full_url,

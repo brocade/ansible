@@ -32,7 +32,7 @@ options:
           fos_ip_addr: ip address of the FOS switch
           fos_user_name: login name of FOS switch REST API
           fos_password: password of FOS switch REST API
-          https: indicate if HTTPS or HTTP should be used to connect to FOS
+          https: True for HTTPS, self for self-signed HTTPS, or False for HTTP
         type: dict
         required: true
     vfid:
@@ -177,6 +177,20 @@ def main():
                 new_list = []
                 new_list.append(resp_switch["dns_servers"]["dns_server"])
                 resp_switch["dns_servers"]["dns_server"] = new_list
+
+    if "ip_address" in resp_switch:
+        if resp_switch["ip_address"] is not None and "ip_address" in resp_switch["ip_address"]:
+            if not isinstance(resp_switch["ip_address"]["ip_address"], list):
+                new_list = []
+                new_list.append(resp_switch["ip_address"]["ip_address"])
+                resp_switch["ip_address"]["ip_address"] = new_list
+
+    if "ip_static_gateway_list" in resp_switch:
+        if resp_switch["ip_static_gateway_list"] is not None and "ip_static_gateway" in resp_switch["ip_static_gateway_list"]:
+            if not isinstance(resp_switch["ip_static_gateway_list"]["ip_static_gateway"], list):
+                new_list = []
+                new_list.append(resp_switch["ip_static_gateway_list"]["ip_static_gateway"])
+                resp_switch["ip_static_gateway_list"]["ip_static_gateway"] = new_list
 
     diff_attributes = generate_diff(result, resp_switch, switch)
 
