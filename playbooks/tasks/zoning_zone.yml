@@ -1,35 +1,11 @@
-# Brocade FOS FC Collection
+---
 
-The Brocade FOS collection consists of the latest versions of the FOS modules.
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-## Modules
 
-- brocade_chassis - Brocade chassis Configuration
-- brocade_facts - Brocade facts gathering
-- brocade_fibrechannel_configuration_fabric - Brocade Fibre Channel fabric Configuration
-- brocade_fibrechannel_configuration_port_configuration - Brocade Fibre Channel port Configuration
-- brocade_fibrechannel_switch - Brocade Fibre Channel Switch Configuration
-- brocade_interface_fibrechannel - Brocade Fibre Channel Port Configuration
-- brocade_logging_audit - Brocade loggig audit Configuration
-- brocade_logging_syslog_server - Brocade loggig syslog server Configuration
-- brocade_security_ipfilter_policy - Brocade security ipfilter policy Configuration
-- brocade_security_ipfilter_rule - Brocade security ipfilter rule Configuration
-- brocade_security_user_config - Brocade security user config Configuration
-- brocade_snmp_system - Brocade snmp system Configuration
-- brocade_time_clock_server - Brocade time clock server Configuration
-- brocade_time_time_zone - Brocade time time zone Configuration
-- brocade_zoning_alias - Brocade Zoning Alias
-- brocade_zoning_cfg - Brocade Zoning Cfgs
-- brocade_zoning_default_zone - Brocade Zoning Default Zone Configuration
-- brocade_zoning_zone - Brocade Zoning Zones
-
-## Requirements
-
-- Ansible 2.9 or later
-- FOS running 8.2.1c or later
-
-## Example Playbook
-```yaml
 - hosts: san_eng_zone_seed_san_a
   gather_facts: False
   collections:
@@ -50,7 +26,7 @@ The Brocade FOS collection consists of the latest versions of the FOS modules.
           - 22:22:33:44:55:66:77:99      
       - name: Target2
         members:
-          - 22:22:33:44:55:66:77:aa
+          - 22:22:33:44:55:66:77:AA
       - name: Target3
         members:
           - 22:22:33:44:55:66:77:bb
@@ -122,12 +98,3 @@ The Brocade FOS collection consists of the latest versions of the FOS modules.
       credential: "{{credential}}"
       vfid: -1
       default_zone_access: allaccess
-```
-
-## License
-
-[BSD-2-Clause](https://directory.fsf.org/wiki?title=License:FreeBSD)
-
-## Author
-
-This collection was created in 2019 by Brocade Automation Team
