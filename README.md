@@ -25,7 +25,7 @@ The Brocade FOS collection consists of the latest versions of the FOS modules.
 
 ## Requirements
 
-- Ansible 2.8 or later
+- Ansible 2.9 or later
 - FOS running 8.2.1c or later
 
 ## Example Playbook
