@@ -19,7 +19,7 @@ Step2: Add library path ANSIBLE_LIBRARY variable
 
         if the repository is cloned under /home/myaccount/ansible,
 
-        export ANSIBLE_LIBRARY="/home/myaccount/ansible/library/ansible/modules/storage/brocade"
+        export ANSIBLE_LIBRARY="/home/myaccount/ansible/library"
 
 Step3: update ansible.cfg to point to utils directory for module_utils
 
