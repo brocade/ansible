@@ -6,7 +6,7 @@
 
 from __future__ import (absolute_import, division, print_function)
 from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_url import url_post, url_patch, url_get_to_dict, url_delete,\
-    HTTP, HTTPS, url_patch_single_object
+    full_url_get, url_patch_single_object
 from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import exit_after_login
 from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import yang_to_human, human_to_yang
 
@@ -79,8 +79,9 @@ def cfgname_checksum_get(fos_ip_addr, is_https, auth, vfid, result):
         :return: returns checksum or 0 if failure
         :rtype: str
     """
-    full_effective_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_EFFECTIVE
+    full_effective_url, validate_certs = full_url_get(is_https,
+                                                      fos_ip_addr,
+                                                      REST_EFFECTIVE)
 
     ret_code, effective_resp = url_get_to_dict(fos_ip_addr, is_https,
                                                auth, vfid, result,
@@ -117,8 +118,9 @@ def cfg_save(fos_ip_addr, is_https, auth, vfid, result, checksum):
         :return: code to indicate failure or success
         :rtype: int
     """
-    full_effective_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_EFFECTIVE
+    full_effective_url, validate_certs = full_url_get(is_https,
+                                                      fos_ip_addr,
+                                                      REST_EFFECTIVE)
 
     save_str = "<effective-configuration><checksum>" + checksum +\
         "</checksum><cfg-action>1</cfg-action></effective-configuration>"
@@ -146,8 +148,9 @@ def cfg_enable(fos_ip_addr, is_https, auth, vfid,
         :return: code to indicate failure or success
         :rtype: int
     """
-    full_effective_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_EFFECTIVE
+    full_effective_url, validate_certs = full_url_get(is_https,
+                                                      fos_ip_addr,
+                                                      REST_EFFECTIVE)
 
     save_str = "<effective-configuration><checksum>" + checksum +\
         "</checksum><cfg-name>" + active_cfg +\
@@ -171,8 +174,9 @@ def cfg_abort(fos_ip_addr, is_https, auth, vfid, result):
         :return: code to indicate failure or success
         :rtype: int
     """
-    full_effective_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_EFFECTIVE
+    full_effective_url, validate_certs = full_url_get(is_https,
+                                                      fos_ip_addr,
+                                                      REST_EFFECTIVE)
 
     abort_str = "<effective-configuration><cfg-action>"\
         "4</cfg-action></effective-configuration>"
@@ -211,8 +215,9 @@ def zone_set(fos_ip_addr, is_https, auth, vfid, result, zones, method):
         :return: code to indicate failure or success
         :rtype: int
     """
-    full_defined_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_DEFINED
+    full_defined_url, validate_certs = full_url_get(is_https,
+                                                    fos_ip_addr,
+                                                    REST_DEFINED)
 
     zone_str = "<defined-configuration>"
 
@@ -273,8 +278,9 @@ def zone_get(fos_ip_addr, is_https, auth, vfid, result):
         :return: dict of zone content
         :rtype: dict
     """
-    full_defined_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_DEFINED + "/zone"
+    full_defined_url, validate_certs = full_url_get(is_https,
+                                                    fos_ip_addr,
+                                                    REST_DEFINED + "/zone")
 
     return url_get_to_dict(fos_ip_addr, is_https, auth,
                            vfid, result, full_defined_url)
@@ -314,8 +320,9 @@ def alias_set(fos_ip_addr, is_https, auth, vfid, result, aliases, method):
         :return: code to indicate failure or success
         :rtype: int
     """
-    full_defined_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_DEFINED
+    full_defined_url, validate_certs = full_url_get(is_https,
+                                                    fos_ip_addr,
+                                                    REST_DEFINED)
 
     alias_str = "<defined-configuration>"
 
@@ -368,8 +375,9 @@ def alias_get(fos_ip_addr, is_https, auth, vfid, result):
         :return: dict of alias content
         :rtype: dict
     """
-    full_defined_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_DEFINED + "/alias"
+    full_defined_url, validate_certs = full_url_get(is_https,
+                                                    fos_ip_addr,
+                                                    REST_DEFINED + "/alias")
 
     return url_get_to_dict(fos_ip_addr, is_https, auth,
                            vfid, result, full_defined_url)
@@ -406,8 +414,9 @@ def cfg_set(fos_ip_addr, is_https, auth, vfid, result, cfgs, method):
         :return: code to indicate failure or success
         :rtype: int
     """
-    full_defined_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_DEFINED
+    full_defined_url, validate_certs = full_url_get(is_https,
+                                                    fos_ip_addr,
+                                                    REST_DEFINED)
 
     cfg_str = "<defined-configuration>"
 
@@ -458,8 +467,9 @@ def cfg_get(fos_ip_addr, is_https, auth, vfid, result):
         :return: dict of cfg content
         :rtype: dict
     """
-    full_defined_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_DEFINED + "/cfg"
+    full_defined_url, validate_certs = full_url_get(is_https,
+                                                    fos_ip_addr,
+                                                    REST_DEFINED + "/cfg")
 
     return url_get_to_dict(fos_ip_addr, is_https, auth,
                            vfid, result, full_defined_url)
@@ -719,8 +729,9 @@ def defined_get(fos_ip_addr, is_https, auth, vfid, result):
         :return: dict of full defined Zone DB content
         :rtype: dict
     """
-    full_defined_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_DEFINED
+    full_defined_url, validate_certs = full_url_get(is_https,
+                                                    fos_ip_addr,
+                                                    REST_DEFINED)
 
     return url_get_to_dict(fos_ip_addr, is_https, auth,
                            vfid, result, full_defined_url)
@@ -743,8 +754,9 @@ def effective_get(fos_ip_addr, is_https, auth, vfid, result):
         :return: dict of full effective Zone DB content
         :rtype: dict
     """
-    full_effective_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_EFFECTIVE
+    full_effective_url, validate_certs = full_url_get(is_https,
+                                                      fos_ip_addr,
+                                                      REST_EFFECTIVE)
 
     return url_get_to_dict(fos_ip_addr, is_https, auth,
                            vfid, result, full_effective_url)
@@ -770,8 +782,9 @@ def effective_patch(fos_ip_addr, is_https, auth,
         :return: dict of effective configurations
         :rtype: dict
     """
-    full_effective_url = (HTTPS if is_https else HTTP) + \
-        fos_ip_addr + REST_EFFECTIVE
+    full_effective_url, validate_certs = full_url_get(is_https,
+                                                      fos_ip_addr,
+                                                      REST_EFFECTIVE)
 
     return (url_patch_single_object(fos_ip_addr, is_https, auth,
             vfid, result, full_effective_url,

@@ -5,7 +5,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_url import url_get_to_dict, url_patch, HTTP, HTTPS, url_patch_single_object
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object
 from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_ssh import ssh_and_configure
 from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import yang_to_human, human_to_yang
 
@@ -86,7 +86,9 @@ def fabric_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, 
         :return: dict of fabric configurations
         :rtype: dict
     """
-    full_fabric_url = (HTTPS if is_https else HTTP) + fos_ip_addr + REST_FABRIC
+    full_fabric_url, validate_certs = full_url_get(is_https,
+                                                   fos_ip_addr,
+                                                   REST_FABRIC)
 
     rtype, rdict = url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
                                    result, full_fabric_url)
@@ -220,8 +222,9 @@ def fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid
     if len(l_diffs) == 0:
         return 0
 
-    full_fabric_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_FABRIC
+    full_fabric_url, validate_certs = full_url_get(is_https,
+                                                   fos_ip_addr,
+                                                   REST_FABRIC)
 
     return (url_patch_single_object(fos_ip_addr, is_https, auth,
                                     vfid, result, full_fabric_url,
@@ -268,7 +271,9 @@ def port_configuration_get(login, password, fos_ip_addr, fos_version, is_https, 
         :return: dict of fabric configurations
         :rtype: dict
     """
-    full_port_config_url = (HTTPS if is_https else HTTP) + fos_ip_addr + REST_PORT_CONFIGURATION
+    full_port_config_url, validate_certs = full_url_get(is_https,
+                                                        fos_ip_addr,
+                                                        REST_PORT_CONFIGURATION)
 
     rtype, rdict = url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
                                    result, full_port_config_url)
@@ -345,8 +350,9 @@ def port_configuration_patch(login, password, fos_ip_addr, fos_version, is_https
     if len(l_diffs) == 0:
         return 0
 
-    full_port_config_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_PORT_CONFIGURATION
+    full_port_config_url, validate_certs = full_url_get(is_https,
+                                                        fos_ip_addr,
+                                                        REST_PORT_CONFIGURATION)
 
     return (url_patch_single_object(fos_ip_addr, is_https, auth,
                                     vfid, result, full_port_config_url,

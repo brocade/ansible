@@ -10,7 +10,7 @@ import time
 import ansible.module_utils.urls as ansible_urls
 import ansible.module_utils.six.moves.urllib.error as urllib_error
 from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_xml import bsn_xmltodict
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_url import url_post, HTTP, HTTPS, url_get_to_dict
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_url import url_post, full_url_get, url_get_to_dict
 
 
 __metaclass__ = type
@@ -43,7 +43,9 @@ def login(fos_ip_addr, fos_user_name, fos_password, is_https, throttle, result):
         :return: returned header, None if not successfully logged in
         :rtype: dict
     """
-    full_login_url = (HTTPS if is_https else HTTP) + fos_ip_addr + REST_LOGIN
+    full_login_url, validate_certs = full_url_get(is_https,
+                                                  fos_ip_addr,
+                                                  REST_LOGIN)
     logininfo = fos_user_name + ":" + fos_password
     login_encoded = base64.b64encode(logininfo.encode())
 
@@ -51,17 +53,20 @@ def login(fos_ip_addr, fos_user_name, fos_password, is_https, throttle, result):
                   "User-Agent": "Rest-Conf"}
     try:
         login_resp = ansible_urls.open_url(full_login_url, headers=credential,
-                                           method="POST")
+                                           method="POST", validate_certs=validate_certs)
     except urllib_error.HTTPError as e:
         result["login_resp_code"] = e.code
         result["login_resp_reason"] = e.reason
+        result["full_login_Url"] = full_login_url
         ret_code, root_dict = bsn_xmltodict(result, e.read())
         result["login_resp_data"] = root_dict
         result["failed"] = True
         result["msg"] = "failed to login"
         return -1, None, None
 
-    full_switch_url = (HTTPS if is_https else HTTP) + fos_ip_addr + REST_SWITCH
+    full_switch_url, validate_certs = full_url_get(is_https,
+                                                   fos_ip_addr,
+                                                   REST_SWITCH)
 
     auth = {}
     auth["auth"] = login_resp.info()["Authorization"]
@@ -97,8 +102,9 @@ def logout(fos_ip_addr, is_https, auth, result):
         :return: 0 for success or -1 for failure
         :rtype: int
     """
-    full_logout_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_LOGOUT
+    full_logout_url, validate_certs = full_url_get(is_https,
+                                                   fos_ip_addr,
+                                                   REST_LOGOUT)
 
     return url_post(fos_ip_addr, is_https, auth, None,
                     result, full_logout_url, None)

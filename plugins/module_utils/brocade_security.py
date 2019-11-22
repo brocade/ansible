@@ -5,7 +5,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_url import url_get_to_dict, url_patch, HTTP, HTTPS, url_patch_single_object, url_post, url_delete
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object, url_post, url_delete
 from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import yang_to_human, human_to_yang
 from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_ssh import ssh_and_configure
 
@@ -61,8 +61,9 @@ def ipfilter_rule_get(fos_ip_addr, is_https, auth, vfid, result):
         :return: dict of ipfilter rule configurations
         :rtype: dict
     """
-    full_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_IPFILTER_RULE
+    full_url, validate_certs = full_url_get(is_https,
+                                            fos_ip_addr,
+                                            REST_IPFILTER_RULE)
 
     return (url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
                               result, full_url))
@@ -107,8 +108,9 @@ def ipfilter_rule_patch(fos_ip_addr, is_https, auth,
         :return: list of dict of chassis configurations
         :rtype: list
     """
-    full_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_IPFILTER_RULE
+    full_url, validate_certs = full_url_get(is_https,
+                                            fos_ip_addr,
+                                            REST_IPFILTER_RULE)
 
     xml_str = ipfilter_rule_xml_str(result, rules)
 
@@ -138,8 +140,9 @@ def ipfilter_rule_post(fos_ip_addr, is_https, auth,
         :return: list of dict of chassis configurations
         :rtype: list
     """
-    full_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_IPFILTER_RULE
+    full_url, validate_certs = full_url_get(is_https,
+                                            fos_ip_addr,
+                                            REST_IPFILTER_RULE)
 
     xml_str = ipfilter_rule_xml_str(result, rules)
 
@@ -169,8 +172,9 @@ def ipfilter_rule_delete(fos_ip_addr, is_https, auth,
         :return: list of dict of chassis configurations
         :rtype: list
     """
-    full_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_IPFILTER_RULE
+    full_url, validate_certs = full_url_get(is_https,
+                                            fos_ip_addr,
+                                            REST_IPFILTER_RULE)
 
     xml_str = ipfilter_rule_xml_str(result, rules)
 
@@ -219,8 +223,9 @@ def ipfilter_policy_get(fos_ip_addr, is_https, auth, vfid, result):
         :return: dict of ipfilter policy configurations
         :rtype: dict
     """
-    full_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_IPFILTER_POLICY
+    full_url, validate_certs = full_url_get(is_https,
+                                            fos_ip_addr,
+                                            REST_IPFILTER_POLICY)
 
     return (url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
                               result, full_url))
@@ -265,8 +270,9 @@ def ipfilter_policy_patch(fos_ip_addr, is_https, auth,
         :return: list of dict of chassis configurations
         :rtype: list
     """
-    full_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_IPFILTER_POLICY
+    full_url, validate_certs = full_url_get(is_https,
+                                            fos_ip_addr,
+                                            REST_IPFILTER_POLICY)
 
     xml_str = ipfilter_policy_xml_str(result, policies)
 
@@ -296,8 +302,9 @@ def ipfilter_policy_post(fos_ip_addr, is_https, auth,
         :return: list of dict of chassis configurations
         :rtype: list
     """
-    full_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_IPFILTER_POLICY
+    full_url, validate_certs = full_url_get(is_https,
+                                            fos_ip_addr,
+                                            REST_IPFILTER_POLICY)
 
     xml_str = ipfilter_policy_xml_str(result, policies)
 
@@ -327,8 +334,9 @@ def ipfilter_policy_delete(fos_ip_addr, is_https, auth,
         :return: list of dict of chassis configurations
         :rtype: list
     """
-    full_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_IPFILTER_POLICY
+    full_url, validate_certs = full_url_get(is_https,
+                                            fos_ip_addr,
+                                            REST_IPFILTER_POLICY)
 
     xml_str = ipfilter_policy_xml_str(result, policies)
 
@@ -378,8 +386,9 @@ def user_config_get(fos_ip_addr, is_https, auth, vfid, result):
         :return: dict of ipfilter policy configurations
         :rtype: dict
     """
-    full_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_USER_CONFIG
+    full_url, validate_certs = full_url_get(is_https,
+                                            fos_ip_addr,
+                                            REST_USER_CONFIG)
 
     return (url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
                               result, full_url))
@@ -467,8 +476,9 @@ def user_config_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
     if len(rest_users) == 0:
         return 0
 
-    full_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_USER_CONFIG
+    full_url, validate_certs = full_url_get(is_https,
+                                            fos_ip_addr,
+                                            REST_USER_CONFIG)
 
     xml_str = user_config_xml_str(result, rest_users)
 
@@ -498,8 +508,9 @@ def user_config_post(fos_ip_addr, is_https, auth,
         :return: list of dict of chassis configurations
         :rtype: list
     """
-    full_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_USER_CONFIG
+    full_url, validate_certs = full_url_get(is_https,
+                                            fos_ip_addr,
+                                            REST_USER_CONFIG)
 
     xml_str = user_config_xml_str(result, users)
 
@@ -529,8 +540,9 @@ def user_config_delete(fos_ip_addr, is_https, auth,
         :return: list of dict of chassis configurations
         :rtype: list
     """
-    full_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_USER_CONFIG
+    full_url, validate_certs = full_url_get(is_https,
+                                            fos_ip_addr,
+                                            REST_USER_CONFIG)
 
     xml_str = user_config_xml_str(result, users)
 

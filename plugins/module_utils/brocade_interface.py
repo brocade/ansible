@@ -5,7 +5,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_url import url_get_to_dict, url_patch, HTTP, HTTPS
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get
 from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import yang_to_human, human_to_yang
 
 __metaclass__ = type
@@ -229,7 +229,9 @@ def fc_port_get(fos_ip_addr, is_https, auth, vfid, result):
         :return: list of dict of port configurations
         :rtype: list
     """
-    full_fc_port_url = (HTTPS if is_https else HTTP) + fos_ip_addr + REST_FC
+    full_fc_port_url, validate_certs = full_url_get(is_https,
+                                                    fos_ip_addr,
+                                                    REST_FC)
 
     return url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
                            result, full_fc_port_url)
@@ -254,7 +256,9 @@ def fc_port_patch(fos_ip_addr, is_https, auth, vfid, result, ports):
         :return: list of dict of port configurations
         :rtype: list
     """
-    full_fc_port_url = (HTTPS if is_https else HTTP) + fos_ip_addr + REST_FC
+    full_fc_port_url, validate_certs = full_url_get(is_https,
+                                                    fos_ip_addr,
+                                                    REST_FC)
 
     fc_port_str = ""
 
@@ -294,8 +298,9 @@ def fc_port_stats_get(fos_ip_addr, is_https, auth, vfid, result):
         :return: list of dict of port stats
         :rtype: list
     """
-    full_fc_port_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_FC_STATS
+    full_fc_port_url, validate_certs = full_url_get(is_https,
+                                                    fos_ip_addr,
+                                                    REST_FC_STATS)
 
     return url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
                            result, full_fc_port_url)

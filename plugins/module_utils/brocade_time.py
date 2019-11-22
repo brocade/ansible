@@ -5,7 +5,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_url import url_get_to_dict, url_patch, HTTP, HTTPS, url_patch_single_object
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object
 from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import yang_to_human, human_to_yang
 
 __metaclass__ = type
@@ -59,8 +59,9 @@ def clock_server_get(fos_ip_addr, is_https, auth, vfid, result):
         :return: dict of clock server configurations
         :rtype: dict
     """
-    full_cs_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_CLOCK_SERVER
+    full_cs_url, validate_certs = full_url_get(is_https,
+                                               fos_ip_addr,
+                                               REST_CLOCK_SERVER)
 
     return url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
                            result, full_cs_url)
@@ -86,8 +87,9 @@ def clock_server_patch(fos_ip_addr, is_https, auth,
         :return: list of dict of chassis configurations
         :rtype: list
     """
-    full_cs_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_CLOCK_SERVER
+    full_cs_url, validate_certs = full_url_get(is_https,
+                                               fos_ip_addr,
+                                               REST_CLOCK_SERVER)
 
     return (url_patch_single_object(fos_ip_addr, is_https, auth,
                                     vfid, result, full_cs_url,
@@ -133,8 +135,9 @@ def time_zone_get(fos_ip_addr, is_https, auth, vfid, result):
         :return: dict of clock server configurations
         :rtype: dict
     """
-    full_cs_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_TIME_ZONE
+    full_cs_url, validate_certs = full_url_get(is_https,
+                                               fos_ip_addr,
+                                               REST_TIME_ZONE)
 
     return url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
                            result, full_cs_url)
@@ -160,8 +163,9 @@ def time_zone_patch(fos_ip_addr, is_https, auth,
         :return: list of dict of chassis configurations
         :rtype: list
     """
-    full_cs_url = (HTTPS if is_https else HTTP) +\
-        fos_ip_addr + REST_TIME_ZONE
+    full_cs_url, validate_certs = full_url_get(is_https,
+                                               fos_ip_addr,
+                                               REST_TIME_ZONE)
 
     return (url_patch_single_object(fos_ip_addr, is_https, auth,
                                     vfid, result, full_cs_url,

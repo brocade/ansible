@@ -22,6 +22,20 @@ Brocade Connections utils
 VF_ID = "?vf-id="
 HTTP = "http://"
 HTTPS = "https://"
+SELF_SIGNED = "self"
+
+
+def full_url_get(is_https, fos_ip_addr, path):
+    if isinstance(is_https, bool):
+        if is_https:
+            return HTTPS + fos_ip_addr + path, True
+        else:
+            return HTTP + fos_ip_addr + path, False
+    elif is_https == SELF_SIGNED:
+        return HTTPS + fos_ip_addr + path, False
+    else:
+        # by default, return HTTP
+        return HTTP + fos_ip_addr + path, False
 
 
 def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body):
@@ -43,6 +57,8 @@ def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body):
         :return: 0 for success or -1 for failure
         :rtype: int
     """
+    not_used, validate_certs = full_url_get(is_https, "", "")
+
     if vfid is not None and vfid != -1:
         url = url + VF_ID + str(vfid)
 
@@ -52,7 +68,7 @@ def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body):
                                          "Authorization": auth["auth"],
                                          'Content-Type':
                                          'application/yang-data+xml'},
-                                     method="POST")
+                                     method="POST", validate_certs=validate_certs)
     except urllib_error.HTTPError as e:
         result["post_url"] = url
         result["post_resp_code"] = e.code
@@ -87,6 +103,8 @@ def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, longer_timeo
         :return: 0 for success or -1 for failure
         :rtype: int
     """
+    not_used, validate_certs = full_url_get(is_https, "", "")
+
     if vfid is not None and vfid != -1:
         url = url + VF_ID + str(vfid)
 
@@ -97,7 +115,7 @@ def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, longer_timeo
                                          "Authorization": auth["auth"],
                                          'Content-Type':
                                          'application/yang-data+xml'},
-                                     method="PATCH")
+                                     method="PATCH", validate_certs=validate_certs)
         except urllib_error.HTTPError as e:
             result["patch_url"] = url
             result["patch_resp_code"] = e.code
@@ -114,7 +132,7 @@ def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, longer_timeo
                                          "Authorization": auth["auth"],
                                          'Content-Type':
                                          'application/yang-data+xml'},
-                                     method="PATCH", timeout = longer_timeout)
+                                     method="PATCH", timeout = longer_timeout, validate_certs=validate_certs)
         except urllib_error.HTTPError as e:
             result["patch_url"] = url
             result["patch_resp_code"] = e.code
@@ -149,6 +167,8 @@ def url_delete(fos_ip_addr, is_https, auth, vfid, result, url, body):
         :return: 0 for success or -1 for failure
         :rtype: int
     """
+    not_used, validate_certs = full_url_get(is_https, "", "")
+
     if vfid is not None and vfid != -1:
         url = url + VF_ID + str(vfid)
 
@@ -158,7 +178,7 @@ def url_delete(fos_ip_addr, is_https, auth, vfid, result, url, body):
                                          "Authorization": auth["auth"],
                                          'Content-Type':
                                          'application/yang-data+xml'},
-                                     method="DELETE")
+                                     method="DELETE", validate_certs=validate_certs)
     except urllib_error.HTTPError as e:
         result["delete_url"] = url
         result["delete_resp_code"] = e.code
@@ -193,6 +213,8 @@ def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url):
         :return: list of dict of port configurations
         :rtype: list
     """
+    not_used, validate_certs = full_url_get(is_https, "", "")
+
     if vfid is not None and vfid != -1:
         url = url + VF_ID + str(vfid)
 
@@ -202,7 +224,7 @@ def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url):
                                              "Authorization": auth["auth"],
                                              'Content-Type':
                                              'application/yang-data+xml'},
-                                         method="GET")
+                                         method="GET", validate_certs=validate_certs)
     except urllib_error.HTTPError as e:
         e_data = e.read()
         ret_code, root_dict = bsn_xmltodict(result, e_data)
