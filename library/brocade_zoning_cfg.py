@@ -60,6 +60,10 @@ options:
           will be added and removed members will be removed. cfgs and
           cfgs_to_delete are mutually exclusive.
         required: false
+    members_add_only:
+        description:
+        - If set to True, new members will be added and old members
+          not specified also remain
     cfgs_to_delete:
         description:
         - List of cfgs to be deleted. cfgs and cfgs_to_delete are
@@ -185,6 +189,7 @@ def main():
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
         cfgs=dict(required=False, type='list'),
+        members_add_only=dict(required=False, type='bool'),
         cfgs_to_delete=dict(required=False, type='list'),
         active_cfg=dict(required=False, type='str'))
 
@@ -203,6 +208,7 @@ def main():
     throttle = input_params['throttle']
     vfid = input_params['vfid']
     cfgs = input_params['cfgs']
+    members_add_only = input_params['members_add_only']
     cfgs_to_delete = input_params['cfgs_to_delete']
     active_cfg = input_params['active_cfg']
     result = {"changed": False}
@@ -217,7 +223,8 @@ def main():
         module.exit_json(**result)
 
     zoning_common(fos_ip_addr, https, auth, vfid, result, module, cfgs,
-                  cfgs_to_delete, "cfg", cfg_process_diff, cfg_get, cfg_post,
+                  members_add_only, cfgs_to_delete, "cfg",
+                  cfg_process_diff, cfg_get, cfg_post,
                   cfg_delete, active_cfg)
 
     ret_code = logout(fos_ip_addr, https, auth, result)
