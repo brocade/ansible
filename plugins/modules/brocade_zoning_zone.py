@@ -62,6 +62,10 @@ options:
           members are specified. zones are zones_to_delete are mutually
           exclusive.
         required: true
+    members_add_only:
+        description:
+        - If set to True, new members will be added and old members
+          not specified also remain
     zones_to_delete:
         description:
         - List of zones to be deleted. zones are zones_to_delete are mutually
@@ -212,6 +216,7 @@ def main():
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
         zones=dict(required=False, type='list'),
+        members_add_only=dict(required=False, type='bool'),
         zones_to_delete=dict(required=False, type='list'))
 
     module = AnsibleModule(
@@ -229,6 +234,7 @@ def main():
     throttle = input_params['throttle']
     vfid = input_params['vfid']
     zones = input_params['zones']
+    members_add_only = input_params['members_add_only']
     zones_to_delete = input_params['zones_to_delete']
     result = {"changed": False}
 
@@ -242,7 +248,8 @@ def main():
         module.exit_json(**result)
 
     zoning_common(fos_ip_addr, https, auth, vfid, result, module, zones,
-                  zones_to_delete, "zone", zone_process_diff, zone_get,
+                  members_add_only, zones_to_delete, "zone",
+                  zone_process_diff, zone_get,
                   zone_post, zone_delete, None)
 
     ret_code = logout(fos_ip_addr, https, auth, result)

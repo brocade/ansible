@@ -421,7 +421,7 @@ def user_config_xml_str(result, users):
 
 
 def user_config_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
-                       vfid, result, users):
+                       vfid, result, users, ssh_hostkeymust):
     """
         update existing user config configurations
 
@@ -448,18 +448,18 @@ def user_config_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
         for l_user in l_users:
             if "account-enabled" in l_user:
                 if l_user["account-enabled"] == "true":
-                    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "userconfig --change " + l_user["name"] + " -e yes" , "")
+                    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "userconfig --change " + l_user["name"] + " -e yes" , "")
                     if rssh != 0:
                         result["failed"] = True
-                        result["msg"] = "Failed to enable account"
+                        result["msg"] = "Failed to enable account. " + sshstr
                     else:
                         result["changed"] = True
                         result["messages"] = "account enabled"
                 elif l_user["account-enabled"] == "false":
-                    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "userconfig --change " + l_user["name"] + " -e no" , "")
+                    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "userconfig --change " + l_user["name"] + " -e no" , "")
                     if rssh != 0:
                         result["failed"] = True
-                        result["msg"] = "Failed to disable account"
+                        result["msg"] = "Failed to disable account. " + sshstr
                     else:
                         result["changed"] = True
                         result["messages"] = "account disabled"

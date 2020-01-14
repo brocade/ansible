@@ -81,7 +81,7 @@ def to_fos_switch(switch_config, result):
     return 0
 
 
-def fc_switch_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result):
+def fc_switch_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust):
     """
         retrieve existing switch configurations
 
@@ -113,7 +113,7 @@ def fc_switch_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfi
     result["fos_version"] = fos_version
     result["fos_version_check"] = fos_version < "v9.0"
     if fos_version < "v9.0":
-        rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "dlsshow", "showcommand")
+        rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "dlsshow", "showcommand")
         if rssh == 0:
             if "DLS is set with Lossless disabled" in sshstr:
                 rdict["Response"]["fibrechannel-switch"]["dynamic-load-sharing"] = "disabled"
@@ -129,7 +129,7 @@ def fc_switch_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfi
     return 0, rdict
 
 def fc_switch_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
-                    vfid, result, diff_attributes):
+                    vfid, result, diff_attributes, ssh_hostkeymust):
     """
         update existing switch configurations
 
@@ -153,40 +153,40 @@ def fc_switch_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
     if fos_version < "v9.0":
         if "dynamic-load-sharing" in l_diffs:
             if l_diffs["dynamic-load-sharing"] == "disabled":
-                rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "dlsset --disable -lossless", "Lossless is not set")
+                rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "dlsset --disable -lossless", "Lossless is not set")
                 if rssh != 0:
                     result["failed"] = True
-                    result["msg"] = "Failed to disable DLS lossless"
+                    result["msg"] = "Failed to disable DLS lossless. " + sshstr
                 else:
-                    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "dlsset --disable -twohop", "Two-hop lossless is not set")
+                    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "dlsset --disable -twohop", "Two-hop lossless is not set")
                     if rssh != 0:
                         result["failed"] = True
-                        result["msg"] = "Failed to disable DLS twohop"
+                        result["msg"] = "Failed to disable DLS twohop. " + sshstr
                     else:
                         result["changed"] = True
             elif l_diffs["dynamic-load-sharing"] == "lossless-dls":
-                rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "dlsset --enable -lossless", "Lossless is set")
+                rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "dlsset --enable -lossless", "Lossless is set")
                 if rssh != 0:
                     result["failed"] = True
-                    result["msg"] = "Failed to enable DLS lossless"
+                    result["msg"] = "Failed to enable DLS lossless. " + sshstr
                 else:
-                    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "dlsset --disable -twohop", ["Two-hop lossless disabled successfully", "Two-hop lossless is not set"])
+                    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "dlsset --disable -twohop", ["Two-hop lossless disabled successfully", "Two-hop lossless is not set"])
                     if rssh != 0:
                         result["failed"] = True
-                        result["msg"] = "Failed to disable DLS twohop"
+                        result["msg"] = "Failed to disable DLS twohop. " + sshstr
                     else:
                         result["changed"] = True
                         result["messages"] = "disabled DSL twohop"
             elif l_diffs["dynamic-load-sharing"] == "two-hop-lossless-dls":
-                rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "dlsset --enable -lossless", "Lossless is set")
+                rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "dlsset --enable -lossless", "Lossless is set")
                 if rssh != 0:
                     result["failed"] = True
-                    result["msg"] = "Failed to enable DLS lossless"
+                    result["msg"] = "Failed to enable DLS lossless. " + sshstr
                 else:
-                    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "dlsset --enable -twohop", "Two-hop lossless enabled successfully")
+                    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "dlsset --enable -twohop", "Two-hop lossless enabled successfully")
                     if rssh != 0:
                         result["failed"] = True
-                        result["msg"] = "Failed to enable DLS twohop"
+                        result["msg"] = "Failed to enable DLS twohop. " + sshstr
                     else:
                         result["changed"] = True
                         result["messages"] = "enable DSL two-hop-lossless-dls"

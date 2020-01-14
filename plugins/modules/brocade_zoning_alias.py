@@ -55,11 +55,16 @@ options:
         - List of aliases to be created or modified. If an alias does
           not exist in the current Zone Database, the alias will be
           created with the members specified. If an alias already
-          exist in the current Zone Database, the alias is upcated to
+          exist in the current Zone Database, the alias is updated to
           reflect to members specificed. In other word, new members
           will be added and removed members will be removed.
           If no aliases_to_delete are listed, aliases is required.
           aliases_to_delete and aliases are mutually exclusive.
+        required: false
+    members_add_only:
+        description:
+        - If set to True, new members will be added and old members
+          not specified also remain
         required: false
     aliases_to_delete:
         description:
@@ -185,6 +190,7 @@ def main():
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
         aliases=dict(required=False, type='list'),
+        members_add_only=dict(required=False, type='bool'),
         aliases_to_delete=dict(required=False, type='list'))
 
     module = AnsibleModule(
@@ -202,6 +208,7 @@ def main():
     throttle = input_params['throttle']
     vfid = input_params['vfid']
     aliases = input_params['aliases']
+    members_add_only = input_params['members_add_only']
     aliases_to_delete = input_params['aliases_to_delete']
     result = {"changed": False}
 
@@ -215,7 +222,7 @@ def main():
         module.exit_json(**result)
 
     zoning_common(fos_ip_addr, https, auth, vfid, result, module, aliases,
-                  aliases_to_delete, "alias",
+                  members_add_only, aliases_to_delete, "alias",
                   alias_process_diff, alias_get, alias_post, alias_delete,
                   None)
 
