@@ -44,13 +44,13 @@ def to_fos_fabric(attributes, result):
     return 0
 
 
-def fabric_principal(login, password, fos_ip_addr):
+def fabric_principal(login, password, fos_ip_addr, ssh_hostkeymust):
     enabled_err = None
     enabled = False
     priority_err = None
     priority = ""
 
-    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "fabricprincipal", "showcommand")
+    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "fabricprincipal", "showcommand")
     if rssh == 0:
         if "Principal Selection Mode: Enable" in sshstr:
             enabled = True
@@ -69,7 +69,7 @@ def fabric_principal(login, password, fos_ip_addr):
     return enabled_err, enabled, priority_err, priority
 
 
-def fabric_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result):
+def fabric_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust):
     """
         retrieve existing switch configurations
 
@@ -97,7 +97,7 @@ def fabric_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, 
         result["msg"] = "API failed to return data"
         return -1, None
 
-    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "iodshow", "showcommand")
+    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "iodshow", "showcommand")
     if rssh == 0:
         if "IOD is not set" in sshstr:
             rdict["Response"]["fabric"]["in-order-delivery-enabled"] = "false"
@@ -105,10 +105,10 @@ def fabric_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, 
             rdict["Response"]["fabric"]["in-order-delivery-enabled"] = "true"
         else:
             result["failed"] = True
-            result["msg"] = "IOD returned unknown string"
+            result["msg"] = "IOD returned unknown string. " + sshstr
             return -1, None
 
-    enabled_err, enabled, priority_err, priority = fabric_principal(login, password, fos_ip_addr)
+    enabled_err, enabled, priority_err, priority = fabric_principal(login, password, fos_ip_addr, ssh_hostkeymust)
     if enabled_err == None:
         if enabled:
             rdict["Response"]["fabric"]["fabric-principal-enabled"] = "true"
@@ -129,7 +129,7 @@ def fabric_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, 
     return 0, rdict
 
 
-def fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, diff_attributes):
+def fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, diff_attributes, ssh_hostkeymust):
     """
         :param fos_ip_addr: ip address of FOS switch
         :type fos_ip_addr: str
@@ -150,18 +150,18 @@ def fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid
 
     if "in-order-delivery-enabled" in l_diffs:
         if l_diffs["in-order-delivery-enabled"] == "true":
-            rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "iodset", "IOD is set")
+            rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "iodset", "IOD is set")
             if rssh != 0:
                 result["failed"] = True
-                result["msg"] = "Failed to set IOD"
+                result["msg"] = "Failed to set IOD. " + sshstr
             else:
                 result["changed"] = True
                 result["messages"] = "in-order-delivery-enabled set"
         elif l_diffs["in-order-delivery-enabled"] == "false":
-            rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "iodreset", "IOD is not set")
+            rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "iodreset", "IOD is not set")
             if rssh != 0:
                 result["failed"] = True
-                result["msg"] = "Failed to reset IOD"
+                result["msg"] = "Failed to reset IOD. " + sshstr
             else:
                 result["changed"] = True
                 result["messages"] = "in-order-delivery-enabled reset"
@@ -173,10 +173,10 @@ def fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid
     if "fabric-principal-priority" in l_diffs and "fabric-principal-enabled" in l_diffs:
         # if both are given, execute the CLI
         if l_diffs["fabric-principal-enabled"] == "true":
-            rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "fabricprincipal --enable -p " + l_diffs["fabric-principal-priority"] + " -f", "Principal Selection Mode enabled")
+            rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "fabricprincipal --enable -p " + l_diffs["fabric-principal-priority"] + " -f", "Principal Selection Mode enabled")
             if rssh != 0:
                 result["failed"] = True
-                result["msg"] = "Failed to set fabric-principal"
+                result["msg"] = "Failed to set fabric-principal. " + sshstr
             else:
                 result["changed"] = True
                 result["messages"] = "fabric-principal-enabled set"
@@ -186,10 +186,10 @@ def fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid
                 result["failed"] = True
                 result["msg"] = "Priority must be 0 when disabling"
             else:
-                rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "fabricprincipal --disable", "Principal Selection Mode disabled")
+                rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "fabricprincipal --disable", "Principal Selection Mode disabled")
                 if rssh != 0:
                     result["failed"] = True
-                    result["msg"] = "Failed to set fabric-principal"
+                    result["msg"] = "Failed to set fabric-principal. " + sshstr
                 else:
                     result["changed"] = True
                     result["messages"] = "fabric-principal-enabled reset"
@@ -200,12 +200,12 @@ def fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid
         l_diffs.pop("fabric-principal-priority")
     else:
         if "fabric-principal-priority" in l_diffs:
-            enabled_err, enabled, priority_err, priority = fabric_principal(login, password, fos_ip_addr)
+            enabled_err, enabled, priority_err, priority = fabric_principal(login, password, fos_ip_addr, ssh_hostkeymust)
             if enabled_err is None and enabled:
-                rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "fabricprincipal --enable -p " + l_diffs["fabric-principal-priority"] + " -f", "Principal Selection Mode enabled")
+                rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "fabricprincipal --enable -p " + l_diffs["fabric-principal-priority"] + " -f", "Principal Selection Mode enabled")
                 if rssh != 0:
                     result["failed"] = True
-                    result["msg"] = "Failed to set fabric-principal-priority"
+                    result["msg"] = "Failed to set fabric-principal-priority. " + sshstr
                 else:
                     result["changed"] = True
                     result["messages"] = "fabric-principal-priority set"
@@ -254,7 +254,7 @@ def to_fos_port_configuration(attributes, result):
     return 0
 
 
-def port_configuration_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result):
+def port_configuration_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust):
     """
         retrieve existing port configurations
 
@@ -282,7 +282,7 @@ def port_configuration_get(login, password, fos_ip_addr, fos_version, is_https, 
         result["msg"] = "API failed to return data"
         return -1, None
 
-    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "creditrecovmode --show", "showcommand")
+    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "creditrecovmode --show", "showcommand")
     if rssh == 0:
         if "Internal port credit recovery is Disabled" in sshstr:
             rdict["Response"]["port-configuration"]["credit-recovery-mode"] = "off"
@@ -298,7 +298,7 @@ def port_configuration_get(login, password, fos_ip_addr, fos_version, is_https, 
     return 0, rdict
 
 
-def port_configuration_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, diff_attributes):
+def port_configuration_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, diff_attributes, ssh_hostkeymust):
     """
         :param fos_ip_addr: ip address of FOS switch
         :type fos_ip_addr: str
@@ -319,26 +319,26 @@ def port_configuration_patch(login, password, fos_ip_addr, fos_version, is_https
 
     if "credit-recovery-mode" in l_diffs:
         if l_diffs["credit-recovery-mode"] == "off":
-            rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "creditrecovmode --cfg off", "")
+            rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "creditrecovmode --cfg off", "")
             if rssh != 0:
                 result["failed"] = True
-                result["msg"] = "Failed to set credit-recovery-mode to off"
+                result["msg"] = "Failed to set credit-recovery-mode to off. " + sshstr
             else:
                 result["changed"] = True
                 result["messages"] = "credit-recovery-mode set to off"
         elif l_diffs["credit-recovery-mode"] == "onLrOnly":
-            rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "creditrecovmode --cfg onLrOnly", "")
+            rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "creditrecovmode --cfg onLrOnly", "")
             if rssh != 0:
                 result["failed"] = True
-                result["msg"] = "Failed to credit-recovery-mode to onLrOnly"
+                result["msg"] = "Failed to credit-recovery-mode to onLrOnly. " + sshstr
             else:
                 result["changed"] = True
                 result["messages"] = "credit-recovery-mode set to onLrOnly"
         elif l_diffs["credit-recovery-mode"] == "onLrThresh":
-            rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "creditrecovmode --cfg onLrThresh", "")
+            rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "creditrecovmode --cfg onLrThresh", "")
             if rssh != 0:
                 result["failed"] = True
-                result["msg"] = "Failed to credit-recovery-mode to onLrThresh"
+                result["msg"] = "Failed to credit-recovery-mode to onLrThresh. "+ sshstr
             else:
                 result["changed"] = True
                 result["messages"] = "credit-recovery-mode set to onLrThresh"
