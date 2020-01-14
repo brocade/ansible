@@ -15,6 +15,7 @@
       fos_user_name: admin
       fos_password: fibranne
       https: False
+      ssh_hostkeymust: False
 
   tasks:
 

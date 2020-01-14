@@ -33,6 +33,7 @@ options:
           fos_user_name: login name of FOS switch REST API
           fos_password: password of FOS switch REST API
           https: True for HTTPS, self for self-signed HTTPS, or False for HTTP
+          ssh_hostkeymust: hostkeymust arguement for ssh attributes only. Default True.
         type: dict
         required: true
     vfid:
@@ -154,6 +155,9 @@ def main():
     fos_user_name = input_params['credential']['fos_user_name']
     fos_password = input_params['credential']['fos_password']
     https = input_params['credential']['https']
+    ssh_hostkeymust = True
+    if 'ssh_hostkeymust' in input_params['credential']:
+        ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
     user_configs = input_params['user_configs']
@@ -263,7 +267,8 @@ def main():
             ret_code = user_config_patch(
                 fos_user_name, fos_password,
                 fos_ip_addr, fos_version, https,
-                auth, vfid, result, diff_user_configs)
+                auth, vfid, result, diff_user_configs,
+                ssh_hostkeymust)
             if ret_code != 0:
                 exit_after_login(fos_ip_addr, https, auth, result, module)
 

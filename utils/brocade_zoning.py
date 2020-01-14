@@ -519,6 +519,7 @@ def process_member_diff(result, members, current_members):
 
 
 def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
+                  members_add_only,
                   to_delete_list, type_str, type_diff_processing, type_get,
                   type_post, type_delete, active_cfg):
     """
@@ -591,7 +592,7 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
 #    result["post_list"] = post_list
 #    result["remove_list"] = remove_list
 
-        if len(post_list) == 0 and len(remove_list) == 0 and\
+        if len(post_list) == 0 and (len(remove_list) == 0 or (len(remove_list) > 0 and members_add_only == True)) and\
            active_cfg is None:
             exit_after_login(fos_ip_addr, https, auth, result, module)
 
@@ -609,7 +610,7 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
 
             need_to_save = True
 
-        if len(remove_list) > 0:
+        if len(remove_list) > 0 and (members_add_only == False or members_add_only == None):
             if not module.check_mode:
                 ret_code = type_delete(fos_ip_addr, https, auth, vfid,
                                        result, remove_list)
