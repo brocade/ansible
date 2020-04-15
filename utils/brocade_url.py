@@ -145,6 +145,8 @@ def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, longer_timeo
 
     time.sleep(auth["throttle"])
 
+    result["patch_resp_data"] = resp.read()
+
     return 0
 
 
@@ -234,20 +236,24 @@ def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url):
             empty_list_resp["Response"][os.path.basename(url)] = []
             return 0, empty_list_resp
 
+        ret_val = -1
         result["get_url"] = url
         result["get_resp_code"] = e.code
         result["get_resp_reason"] = e.reason
         result["get_resp_data"] = root_dict
-        result["failed"] = True
-        result["msg"] = "url_get_to_dict failed"
-        return -1, None
+        if e.code == 405:
+            ret_val = -2
+        else:
+            result["failed"] = True
+            result["msg"] = "url_get_to_dict failed"
+        return ret_val, None
 
     data = get_resp.read()
     ret_code, root_dict = bsn_xmltodict(result, data)
     if ret_code == -1:
         result["failed"] = True
         result["msg"] = "bsn_xmltodict failed"
-        return -1, None
+        return -100, None
 
     time.sleep(auth["throttle"])
 
