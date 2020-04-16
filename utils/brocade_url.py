@@ -31,7 +31,7 @@ def full_url_get(is_https, fos_ip_addr, path):
             return HTTPS + fos_ip_addr + path, True
         else:
             return HTTP + fos_ip_addr + path, False
-    elif is_https == SELF_SIGNED:
+    elif is_https.lower() == SELF_SIGNED:
         return HTTPS + fos_ip_addr + path, False
     else:
         # by default, return HTTP
