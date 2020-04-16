@@ -8,6 +8,7 @@ from __future__ import (absolute_import, division, print_function)
 from ansible.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object, url_post, url_delete
 from ansible.module_utils.brocade_yang import yang_to_human, human_to_yang
 from ansible.module_utils.brocade_ssh import ssh_and_configure
+import base64
 
 __metaclass__ = type
 
@@ -20,7 +21,7 @@ Brocade logging utils
 REST_PREFIX = "/rest/running/"
 
 
-def to_human_singleton(attributes):
+def to_human_singleton(module_name, obj_name, attributes):
     for k, v in attributes.items():
         if v == "true":
             attributes[k] = True
@@ -30,7 +31,7 @@ def to_human_singleton(attributes):
     yang_to_human(attributes)
 
 
-def to_fos_singleton(attributes, result):
+def to_fos_singleton(module_name, obj_name, attributes, result):
     human_to_yang(attributes)
 
     for k, v in attributes.items():
@@ -39,6 +40,11 @@ def to_fos_singleton(attributes, result):
                 attributes[k] = "true"
             else:
                 attributes[k] = "false"
+        # if going to fos, we need to encode password
+        if module_name == "brocade-security" and obj_name == "password" and k == "old-password":
+            attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
+        if module_name == "brocade-security" and obj_name == "password" and k == "new-password":
+            attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
 
     return 0
 

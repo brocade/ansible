@@ -56,6 +56,9 @@ options:
         description:
         - list of attributes for the object. names match rest attributes
           with "-" replaced with "_"
+          - special node for "brocade-security" module "password" object
+            "old_password" and "new_password" are in plain text
+            if "user_name" is user account, only "new_password" is needed
 
 '''
 
@@ -81,8 +84,8 @@ EXAMPLES = """
       obj_name: "password"
       attributes:
         user_name: "user"
-        new_password: "ZmlicmFubmU="  
-        old_password: "cGFzc3dvcmQx"
+        new_password: "xxxx"  
+        old_password: "yyyy"
 
 """
 
@@ -163,7 +166,7 @@ def main():
 
     resp_attributes = response["Response"][obj_name]
 
-    to_human_singleton(resp_attributes)
+    to_human_singleton(module_name, obj_name, resp_attributes)
 
     diff_attributes = generate_diff(result, resp_attributes, attributes)
 
@@ -172,7 +175,7 @@ def main():
     result["attributes"] = attributes
 
     if len(diff_attributes) > 0:
-        ret_code = to_fos_singleton(diff_attributes, result)
+        ret_code = to_fos_singleton(module_name, obj_name, diff_attributes, result)
         if ret_code != 0:
             exit_after_login(fos_ip_addr, https, auth, result, module)
 
