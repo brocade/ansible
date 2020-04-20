@@ -58,8 +58,12 @@ def login(fos_ip_addr, fos_user_name, fos_password, is_https, throttle, result):
         result["login_resp_code"] = e.code
         result["login_resp_reason"] = e.reason
         result["full_login_Url"] = full_login_url
-        ret_code, root_dict = bsn_xmltodict(result, e.read())
-        result["login_resp_data"] = root_dict
+        resp_body = e.read()
+        if len(resp_body) > 0:
+            ret_code, root_dict = bsn_xmltodict(result, resp_body)
+            result["login_resp_data"] = root_dict
+        else:
+            result["login_resp_data"] = resp_body
         result["failed"] = True
         result["msg"] = "failed to login"
         return -1, None, None

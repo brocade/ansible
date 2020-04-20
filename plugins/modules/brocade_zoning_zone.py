@@ -183,21 +183,23 @@ def zone_process_diff(result, zones, c_zones):
                     added_pmembers = []
                     removed_pmembers = []
 
-                if len(added_members) > 0 or len(added_pmembers):
+                if len(added_members) > 0 or len(added_pmembers) > 0:
                     post_zone = {}
                     post_zone["name"] = zone["name"]
+                    post_zone["zone_type"] = c_zone["zone-type"]
                     if added_members:
                         post_zone["members"] = added_members
                     if added_pmembers:
                         post_zone["principal_members"] = added_pmembers
                     post_zones.append(post_zone)
-                if len(removed_members) > 0:
+                if len(removed_members) > 0 or len(removed_pmembers) > 0:
                     remove_zone = {}
                     remove_zone["name"] = zone["name"]
+                    remove_zone["zone_type"] = c_zone["zone-type"]
                     if removed_members:
                         remove_zone["members"] = removed_members
                     if removed_pmembers:
-                        remove_zone["members"] = removed_pmembers
+                        remove_zone["principal_members"] = removed_pmembers
                     remove_zones.append(remove_zone)
                 continue
         if not found_in_c:

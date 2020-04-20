@@ -224,8 +224,14 @@ def zone_set(fos_ip_addr, is_https, auth, vfid, result, zones, method):
     for zone in zones:
         zone_str = zone_str + "<zone><zone-name>" +\
             zone["name"] + "</zone-name>"
-        if "principal_members" in zone and len(zone["principal_members"]) > 0:
-            zone_str = zone_str + "<zone-type>1</zone-type>"
+        # if zone_type is passed, we are talking about an existing
+        # zone. keep type type. Otherwise, add the zone type of
+        # 1 as peer if pmembers are present
+        if "zone_type" in zone:
+            zone_str = zone_str + "<zone-type>" + zone["zone_type"] + "</zone-type>"
+        else:
+            if "principal_members" in zone and len(zone["principal_members"]) > 0:
+                zone_str = zone_str + "<zone-type>1</zone-type>"
 
         if "principal_members" in zone or "members" in zone:
             zone_str = zone_str + "<member-entry>"
@@ -589,8 +595,8 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                                                                 input_list,
                                                                 c_list)
 
-#    result["post_list"] = post_list
-#    result["remove_list"] = remove_list
+        result["post_list"] = post_list
+        result["remove_list"] = remove_list
 
         if len(post_list) == 0 and (len(remove_list) == 0 or (len(remove_list) > 0 and members_add_only == True)) and\
            active_cfg is None:

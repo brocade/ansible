@@ -186,7 +186,7 @@ def main():
         c_user_configs = [resp_uc]
 
     for c_user_config in c_user_configs:
-        if not isinstance(c_user_config["virtual-fabric-role-id-list"], list):
+        if "virtual-fabric-role-id-list" in c_user_config and not isinstance(c_user_config["virtual-fabric-role-id-list"], list):
             c_user_config["virtual-fabric-role-id-list"] = [c_user_config["virtual-fabric-role-id-list"]]
 
     # convert REST to human readable format first
