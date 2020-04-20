@@ -23,6 +23,8 @@ The Brocade FOS collection consists of the latest versions of the FOS modules.
 - brocade_zoning_default_zone - Brocade Zoning Default Zone Configuration
 - brocade_zoning_zone - Brocade Zoning Zones
 
+- brocade_singleton_obj - generic template object to handle singleton REST object. Tested with password object
+
 ## Requirements
 
 - Ansible 2.9 or later

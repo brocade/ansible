@@ -17,12 +17,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: brocade_singleton_obj
-short_description: Brocade generic handler for singleton_obj
+module: brocade_security_password
+short_description: Brocade security password change
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- userd for brocade-security/password object
+- Update password for a given user
 
 options:
 
@@ -46,19 +46,13 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
-    module_name:
+    password:
         description:
-        - name of module. for example, brocade-security
-    obj_name:
-        description:
-        - name of obj. for example, password under brocade-security
-    attributes:
-        description:
-        - list of attributes for the object. names match rest attributes
-          with "-" replaced with "_"
-          - special node for "brocade-security" module "password" object
-            "old_password" and "new_password" are in plain text
-            if "user_name" is user account, only "new_password" is needed
+        - password change attributes.
+          - old_password - old password
+          - user_name - name of the account. Base 64 encoded.
+          - new_password - new password. Base 64 encoded.
+        required: true
 
 '''
 
@@ -77,15 +71,13 @@ EXAMPLES = """
   tasks:
 
   - name: change password
-    brocade_singleton_obj:
+    brocade_chassis:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-security"
-      obj_name: "password"
-      attributes:
-        user_name: "user"
-        new_password: "xxxx"  
-        old_password: "yyyy"
+      password:
+        user_name: user
+        old_password: xxxBase64Encoded
+        new_password: yyyBase64Encoded
 
 """
 
@@ -105,9 +97,9 @@ Brocade Fibre Channel switch Configuration
 """
 
 
-from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
-from ansible.module_utils.brocade_objects import singleton_patch, singleton_get, to_human_singleton, to_fos_singleton
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import generate_diff
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_security import password_patch, password_get, to_human_password, to_fos_password
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -120,9 +112,7 @@ def main():
         credential=dict(required=True, type='dict'),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
-        module_name=dict(required=True, type='str'),
-        obj_name=dict(required=True, type='str'),
-        attributes=dict(required=True, type='dict'))
+        password=dict(required=True, type='dict'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -141,9 +131,7 @@ def main():
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    module_name = input_params['module_name']
-    obj_name = input_params['obj_name']
-    attributes = input_params['attributes']
+    password = input_params['password']
     result = {"changed": False}
 
     if vfid is None:
@@ -157,34 +145,31 @@ def main():
 
     result['ssh_hostkeymust'] = ssh_hostkeymust
 
-    ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
-                                       module_name, obj_name, fos_version,
-                                       https, auth, vfid, result,
-                                       ssh_hostkeymust)
+    ret_code, response = password_get(fos_user_name, fos_password, fos_ip_addr,
+                                     fos_version, https, auth, vfid, result, ssh_hostkeymust)
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
-    resp_attributes = response["Response"][obj_name]
+    resp_password = response["Response"]["password"]
 
-    to_human_singleton(module_name, obj_name, resp_attributes)
+    to_human_password(resp_password)
 
-    diff_attributes = generate_diff(result, resp_attributes, attributes)
+    diff_attributes = generate_diff(result, resp_password, password)
 
     result["diff_attributes"] = diff_attributes
-    result["resp_attributes"] = resp_attributes
-    result["attributes"] = attributes
+    result["resp_chassis"] = resp_password
+    result["chassis"] = password
 
     if len(diff_attributes) > 0:
-        ret_code = to_fos_singleton(module_name, obj_name, diff_attributes, result)
+        ret_code = to_fos_password(diff_attributes, result)
         if ret_code != 0:
             exit_after_login(fos_ip_addr, https, auth, result, module)
 
         if not module.check_mode:
-            ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
-                                       module_name, obj_name,
-                                       fos_version, https,
-                                       auth, vfid, result, diff_attributes,
-                                       ssh_hostkeymust)
+            ret_code = password_patch(fos_user_name, fos_password, fos_ip_addr,
+                                     fos_version, https,
+                                     auth, vfid, result, diff_attributes,
+                                     ssh_hostkeymust)
             if ret_code != 0:
                 exit_after_login(fos_ip_addr, https, auth, result, module)
 
