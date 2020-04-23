@@ -5,6 +5,29 @@
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+# This playbook is an example of how to use zoning_to_xml.py
+# to generate a yml file that contains exising defined zone
+# db. After saving the output of the script to a file, the
+# file now contains the variables that can be referenced
+# by tasks defined below:
+#
+# example:
+#  note: zoning_to_xml.py requires PyFOS to be installed first.
+#        Details on how to install PyFOS is available under
+#        github.com/brocade/pyfos
+#
+#  bash prompt> ./zoning_to_xml.py -i xxx -L admin -P yyy > zonedb.yml
+#  note: output file name, zonedb.yml in this example, should match
+#        the file being included in zoning_act.yml playbook under vars_files.
+#        The resulting file contains the variables "aliaes", "zones",
+#        and "cfgs" that are being used by tasks within zoning_act.yml
+#
+#  bash prompt> ansible-playbook -i ../san-inventory zoning_act.yml
+#  note: this play will apply the zone database catpured in zonedb.yml.
+#        However, active_cfg variable is not captured by the script.
+#        So, zoning_act.yml playbook needs to be updated to set the
+#        active_cfg to be the correct enabled cfg name.
+
 
 - hosts: san_eng_zone_seed_san_a
   gather_facts: False
