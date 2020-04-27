@@ -180,6 +180,34 @@ def alias_process_diff(result, aliases, c_aliases):
     return 0, post_aliases, remove_aliases
 
 
+def alias_process_diff_to_delete(result, aliases, c_aliases):
+    """
+    return the diff from to delete aliases vs. current aliases
+
+    :param aliases: list of expected aliases
+    :type aliases: list
+    :param c_aliases: list of current aliases
+    :type c_aliases: list
+    :return: indicate if diff or the same
+    :rtype: bool
+    :return: list of aliases to delete
+    :rtype: list
+    :return: list of aliases with to be removed members
+    :rtype: list
+    """
+    delete_aliases = []
+    for alias in aliases:
+        found_in_c = False
+        for c_alias in c_aliases:
+            if alias["name"] == c_alias["alias-name"]:
+                found_in_c = True
+                break
+        if found_in_c:
+            delete_aliases.append(alias)
+
+    return 0, delete_aliases
+
+
 def main():
     """
     Main function
@@ -223,7 +251,8 @@ def main():
 
     zoning_common(fos_ip_addr, https, auth, vfid, result, module, aliases,
                   members_add_only, aliases_to_delete, "alias",
-                  alias_process_diff, alias_get, alias_post, alias_delete,
+                  alias_process_diff, alias_process_diff_to_delete,
+                  alias_get, alias_post, alias_delete,
                   None)
 
     ret_code = logout(fos_ip_addr, https, auth, result)

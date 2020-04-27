@@ -208,6 +208,33 @@ def zone_process_diff(result, zones, c_zones):
     return 0, post_zones, remove_zones
 
 
+def zone_process_diff_to_delete(result, zones, c_zones):
+    """
+    return the diff from to delete zones vs. current zones
+
+    :param zones: list of expected zones
+    :type zones: list
+    :param c_zones: list of current zones
+    :type c_zones: list
+    :return: indicate if diff or the same
+    :rtype: bool
+    :return: list of zones to be deleted
+    :rtype: list
+    :return: list of zones with to be removed members
+    :rtype: list
+    """
+    delete_zones = []
+    for zone in zones:
+        found_in_c = False
+        for c_zone in c_zones:
+            if zone["name"] == c_zone["zone-name"]:
+                found_in_c = True
+                break
+        if found_in_c:
+            delete_zones.append(zone)
+
+    return 0, delete_zones
+
 def main():
     """
     Main function
@@ -251,7 +278,7 @@ def main():
 
     zoning_common(fos_ip_addr, https, auth, vfid, result, module, zones,
                   members_add_only, zones_to_delete, "zone",
-                  zone_process_diff, zone_get,
+                  zone_process_diff, zone_process_diff_to_delete, zone_get,
                   zone_post, zone_delete, None)
 
     ret_code = logout(fos_ip_addr, https, auth, result)
