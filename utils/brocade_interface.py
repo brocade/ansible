@@ -129,10 +129,10 @@ def to_fos_fc(port_config, result):
             port_config["enabled-state"] = "2"
         elif port_config["enabled-state"] == False:
             port_config["enabled-state"] = "6"
-        else:
-            result["failed"] = True
-            result["msg"] = "enabled-state converted to unknown value"
-            return -1
+    else:
+        result["failed"] = True
+        result["msg"] = "enabled-state converted to unknown value"
+        return -1
 
     for attrib in zero_one_attributes:
         if attrib in port_config:
@@ -160,10 +160,10 @@ def to_fos_fc(port_config, result):
             port_config["los-tov-mode-enabled"] = "1"
         elif port_config["los-tov-mode-enabled"] == "FixedAuto":
             port_config["los-tov-mode-enabled"] = "2"
-        else:
-            result["failed"] = True
-            result["msg"] = "los-tov-mode-enabled converted to unknown value"
-            return -1
+    else:
+        result["failed"] = True
+        result["msg"] = "los-tov-mode-enabled converted to unknown value"
+        return -1
 
     if "long-distance" in port_config:
         if port_config["long-distance"] == "Disabled":
@@ -182,10 +182,10 @@ def to_fos_fc(port_config, result):
             port_config["long-distance"] = "6"
         elif port_config["long-distance"] == "LS":
             port_config["long-distance"] = "7"
-        else:
-            result["failed"] = True
-            result["msg"] = "long-distance converted to unknown value"
-            return -1
+    else:
+        result["failed"] = True
+        result["msg"] = "long-distance converted to unknown value"
+        return -1
 
     if "speed" in port_config:
         if port_config["speed"] == "32Gig":
@@ -204,10 +204,10 @@ def to_fos_fc(port_config, result):
             port_config["speed"] = "1000000000"
         if port_config["speed"] == "Auto":
             port_config["speed"] = "0"
-        else:
-            result["failed"] = True
-            result["msg"] = "speed converted to unknown value"
-            return -1
+    else:
+        result["failed"] = True
+        result["msg"] = "speed converted to unknown value"
+        return -1
 
     return 0
 
