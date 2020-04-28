@@ -192,9 +192,9 @@ def to_fos_fc(port_config, result):
             port_config["speed"] = "32000000000"
         if port_config["speed"] == "16Gig":
             port_config["speed"] = "16000000000"
-        if port_config["speed"] == "8Gig":
-            port_config["speed"] = "10000000000"
         if port_config["speed"] == "10Gig":
+            port_config["speed"] = "10000000000"
+        if port_config["speed"] == "8Gig":
             port_config["speed"] = "8000000000"
         if port_config["speed"] == "4Gig":
             port_config["speed"] = "4000000000"
