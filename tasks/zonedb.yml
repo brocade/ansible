@@ -1,0 +1,43 @@
+aliases:
+  - name: Host1
+    members:
+      -  11:22:33:44:55:66:77:88
+  - name: Target1
+    members:
+      -  22:22:33:44:55:66:77:99
+  - name: Target2
+    members:
+      -  22:22:33:44:55:66:77:aa
+  - name: Target3
+    members:
+      -  22:22:33:44:55:66:77:bb
+
+zones:
+  - name: NewZoneName
+    members:
+      -  Host1
+      -  Target1
+      -  Target2
+  - name: NewZoneName2
+    members:
+      -  Host1
+      -  Target2
+  - name: NewZoneNameP
+    members:
+      -  11:22:33:44:55:66:77:88
+    principal_members:
+      -  22:22:33:44:55:66:77:88
+
+cfgs:
+  - name: newcfg1
+    members:
+      -  NewZoneName
+      -  NewZoneName2
+  - name: newcfg2
+    members:
+      -  NewZoneName
+      -  NewZoneName2
+  - name: newcfg3
+    members:
+      -  NewZoneName
+      -  NewZoneName2
