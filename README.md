@@ -25,6 +25,9 @@ The Brocade FOS collection consists of the latest versions of the FOS modules.
 
 - brocade_singleton_obj - generic template object to handle singleton REST object. Tested with password object
 
+## Utilities
+- zoning_to_yaml.py - python script to output FOS zoning database in yaml to be used in zoning playbook (example, zoning_act.yml and zonedb.yml) using PyFOS
+
 ## Requirements
 
 - Ansible 2.9 or later
