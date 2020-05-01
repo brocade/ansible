@@ -101,19 +101,19 @@ def to_human_fc(port_config):
     if "speed" in port_config:
         if port_config["speed"] == "32000000000":
             port_config["speed"] = "32Gig"
-        if port_config["speed"] == "16000000000":
+        elif port_config["speed"] == "16000000000":
             port_config["speed"] = "16Gig"
-        if port_config["speed"] == "10000000000":
+        elif port_config["speed"] == "10000000000":
             port_config["speed"] = "10Gig"
-        if port_config["speed"] == "8000000000":
+        elif port_config["speed"] == "8000000000":
             port_config["speed"] = "8Gig"
-        if port_config["speed"] == "4000000000":
+        elif port_config["speed"] == "4000000000":
             port_config["speed"] = "4Gig"
-        if port_config["speed"] == "2000000000":
+        elif port_config["speed"] == "2000000000":
             port_config["speed"] = "2Gig"
-        if port_config["speed"] == "1000000000":
+        elif port_config["speed"] == "1000000000":
             port_config["speed"] = "1Gig"
-        if port_config["speed"] == "0":
+        elif port_config["speed"] == "0":
             port_config["speed"] = "Auto"
 
     yang_to_human(port_config)
@@ -190,19 +190,19 @@ def to_fos_fc(port_config, result):
     if "speed" in port_config:
         if port_config["speed"] == "32Gig":
             port_config["speed"] = "32000000000"
-        if port_config["speed"] == "16Gig":
+        elif port_config["speed"] == "16Gig":
             port_config["speed"] = "16000000000"
-        if port_config["speed"] == "8Gig":
-            port_config["speed"] = "10000000000"
-        if port_config["speed"] == "10Gig":
+        elif port_config["speed"] == "8Gig":
             port_config["speed"] = "8000000000"
-        if port_config["speed"] == "4Gig":
+        elif port_config["speed"] == "10Gig":
+            port_config["speed"] = "10000000000"
+        elif port_config["speed"] == "4Gig":
             port_config["speed"] = "4000000000"
-        if port_config["speed"] == "2Gig":
+        elif port_config["speed"] == "2Gig":
             port_config["speed"] = "2000000000"
-        if port_config["speed"] == "1Gig":
+        elif port_config["speed"] == "1Gig":
             port_config["speed"] = "1000000000"
-        if port_config["speed"] == "Auto":
+        elif port_config["speed"] == "Auto":
             port_config["speed"] = "0"
         else:
             result["failed"] = True

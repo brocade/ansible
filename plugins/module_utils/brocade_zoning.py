@@ -526,7 +526,8 @@ def process_member_diff(result, members, current_members):
 
 def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                   members_add_only,
-                  to_delete_list, type_str, type_diff_processing, type_get,
+                  to_delete_list, type_str, type_diff_processing,
+                  type_diff_processing_to_delete, type_get,
                   type_post, type_delete, active_cfg):
     """
         common flow of zone database updates.
@@ -549,6 +550,8 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
         :type type_str: str
         :param type_diff_processing: function to compare expected & current
         :type type_diff_processing: func
+        :param type_diff_processing_to_delete: function to compare to delete & current
+        :type type_diff_processing_to_delete: func
         :param type_get: function to get the current db
         :type type_get: func
         :param type_post: function to post to FOS
@@ -670,9 +673,18 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
     if to_delete_list:
         need_to_save = False
 
+        ret_code, delete_list = type_diff_processing_to_delete(result,
+                                                               to_delete_list,
+                                                               c_list)
+
+        result["delete_list"] = delete_list
+
+        if len(delete_list) == 0:
+            return 0
+
         if not module.check_mode:
             ret_code = type_delete(fos_ip_addr, https, auth, vfid,
-                                   result, to_delete_list)
+                                   result, delete_list)
             if ret_code != 0:
                 ret_code = cfg_abort(fos_ip_addr, https, auth, vfid, result)
                 result["failed"] = True

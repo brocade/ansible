@@ -179,6 +179,34 @@ def cfg_process_diff(result, cfgs, c_cfgs):
     return 0, post_cfgs, remove_cfgs
 
 
+def cfg_process_diff_to_delete(result, cfgs, c_cfgs):
+    """
+    return the diff from to delete cfgs vs. current cfgs
+
+    :param cfgs: list of expected cfgs
+    :type cfgs: list
+    :param c_cfgs: list of current cfgs
+    :type c_cfgs: list
+    :return: indicate if diff or the same
+    :rtype: bool
+    :return: list of cfgs to delete
+    :rtype: list
+    :return: list of cfgs with to be removed members
+    :rtype: list
+    """
+    delete_cfgs = []
+    for cfg in cfgs:
+        found_in_c = False
+        for c_cfg in c_cfgs:
+            if cfg["name"] == c_cfg["cfg-name"]:
+                found_in_c = True
+                break
+        if found_in_c:
+            delete_cfgs.append(cfg)
+
+    return 0, delete_cfgs
+
+
 def main():
     """
     Main function
@@ -224,8 +252,8 @@ def main():
 
     zoning_common(fos_ip_addr, https, auth, vfid, result, module, cfgs,
                   members_add_only, cfgs_to_delete, "cfg",
-                  cfg_process_diff, cfg_get, cfg_post,
-                  cfg_delete, active_cfg)
+                  cfg_process_diff, cfg_process_diff_to_delete,
+                  cfg_get, cfg_post, cfg_delete, active_cfg)
 
     ret_code = logout(fos_ip_addr, https, auth, result)
     module.exit_json(**result)
