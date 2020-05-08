@@ -1,0 +1,57 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: admin
+      fos_password: fibranne
+      https: False
+    aliases:
+      - name: Host1
+        members:
+          - cc:99:99:99:99:99:99:99
+    zones:
+      - name: Zone3
+        members:
+          - cc:99:99:99:99:99:99:99
+        principal_members:
+          - cc:cc:cc:cc:99:99:99:99
+      - name: Zone4
+        members:
+          - cc:88:88:88:88:88:88:88
+        principal_members:
+          - cc:cc:cc:cc:88:88:88:88
+    cfgs:
+      - name: cfg1
+        members:
+          - Zone4
+
+  tasks:
+
+  - name: after zoning_zone.yml, add cc:99:99:99:99:99:99:99 and remove aa:11:11:11:11:11:11:11/aa:22:22:22:22:22:22:22 from Host1 by specifying the final member list
+    brocade_zoning_alias:
+      credential: "{{credential}}"
+      vfid: -1
+      aliases: "{{aliases}}"
+
+  - name: after zoning_zone.yml, add cc:99:99:99:99:99:99:99/cc:cc:cc:cc:99:99:99:99 and remove aa:44:44:44:44:44:44:44/aa:55:55:55:55:55:55:55/aa:aa:aa:aa:bb:bb:bb:bb/aa:aa:aa:aa:cc:cc:cc:cc from Zone3 by specifying the final member list. Also, create Zone4.
+    brocade_zoning_zone:
+      credential: "{{credential}}"
+      vfid: -1
+      zones: "{{zones}}"
+
+  - name: after zoning_zone.yml, add Zone4 and remove Zone1/Zone2. And leave cfg1 enabled
+    brocade_zoning_cfg:
+      credential: "{{credential}}"
+      vfid: -1
+      cfgs: "{{cfgs}}"
+      active_cfg: cfg1
