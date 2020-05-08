@@ -156,7 +156,7 @@ def main():
         for k, v in attributes.items():
             if k in obj and obj[k] == v:
                 matched_all = matched_all + 1
-                break
+
         if matched_all == len(attributes.items()):
             ret_list.append(obj)
 
