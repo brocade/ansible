@@ -18,7 +18,7 @@
 
   tasks:
 
-  - name: gather facts
+  - name: gather device info
     brocade_list_obj_facts:
       credential: "{{credential}}"
       vfid: -1
@@ -27,6 +27,11 @@
       attributes:
         port_name: "11:11:11:11:11:11:11:11"
 
-  - name: print ansible_facts gathered
+  - name: print device information matching port_name
+    vars:
+      port_index: "{{ ansible_facts['fibrechannel-name-server'][0]['port_index'] }}"
+      port_wwn: "{{ ansible_facts['fibrechannel-name-server'][0]['port_name'] }}"
+      port_speed: "{{ ansible_facts['fibrechannel-name-server'][0]['link_speed'] }}"
     debug:
-      var: ansible_facts
+      msg: device with Port WWN of "{{port_wwn}}" is found at Port Indext of "{{ port_index }}". The device's speed is "{{port_speed}}"
+    when: ansible_facts['fibrechannel-name-server'][0]['port_name'] is defined
