@@ -66,6 +66,10 @@ options:
         - If set to True, new members will be added and old members
           not specified also remain
         required: false
+    members_remove_only:
+        description:
+        - If set to True, members specified are removed
+        required: false
     aliases_to_delete:
         description:
         - List of aliases to be deleted. If no aliases are listed,

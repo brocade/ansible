@@ -46,6 +46,10 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
+    wwn:
+        description:
+        - wwn to search in the aliases within Zone DB
+        required: true
 
 '''
 
@@ -58,8 +62,20 @@ EXAMPLES = """
       fos_user_name: admin
       fos_password: fibranne
       https: False
+    wwn_to_search: "11:22:33:44:55:66:77:88"
 
   tasks:
+
+  - name: gather device alias info
+    brocade_zoning_alias_facts_by_wwn:
+      credential: "{{credential}}"
+      vfid: -1
+      wwn: "{{wwn_to_search}}"
+
+  - name: print device alias information matching port_name
+    debug:
+      var: ansible_facts['alias']
+    when: ansible_facts['alias'] is defined
 
 """
 

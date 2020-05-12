@@ -64,6 +64,10 @@ options:
         description:
         - If set to True, new members will be added and old members
           not specified also remain
+    members_remove_only:
+        description:
+        - If set to True, members specified are removed
+        required: false
     cfgs_to_delete:
         description:
         - List of cfgs to be deleted. cfgs and cfgs_to_delete are
