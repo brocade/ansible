@@ -6,6 +6,21 @@
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
+# This playbook is a reference example complete two operations
+#
+# 1) find a device in NS to display by matching to Port WWN (port_name)
+# 2) find a device in alias in Zoning DB to display by matching WWN
+#
+# wwn_to_search variable is referenced by both tasks
+#
+# Each operation is associated with a task to get the data
+# and another to display the data.
+#
+# If the matching Port WWN doesn't exist in the DB, the display task
+# will be "skiped". The same is true for alias display task. In other
+# word, display task will only show something if a match is found.
+#
+
 - hosts: san_eng_zone_seed_san_a
   gather_facts: False
 

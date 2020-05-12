@@ -18,7 +18,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = '''
 
 module: brocade_facts
-short_description: Brocade facts gathering
+short_description: Brocade generic facts gathering for list objects
 version_added: '2.6'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
@@ -46,6 +46,16 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
+    module_name:
+        description:
+        - name of module. for example, brocade-security
+    obj_name:
+        description:
+        - name of obj. for example, password under brocade-security
+    attributes:
+        description:
+        - list of attributes for the object to match to return.
+          names match rest attributes with "-" replaced with "_"
 
 '''
 
@@ -58,8 +68,18 @@ EXAMPLES = """
       fos_user_name: admin
       fos_password: fibranne
       https: False
+    wwn_to_search: "11:22:33:44:55:66:77:88"
 
   tasks:
+
+  - name: gather device info
+    brocade_list_obj_facts:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-name-server"
+      list_name: "fibrechannel-name-server"
+      attributes:
+        port_name: "{{wwn_to_search}}"
 
   - name: print ansible_facts gathered
     debug:
@@ -141,6 +161,7 @@ def main():
                                   https, auth, vfid, result,
                                   ssh_hostkeymust)
     if ret_code != 0:
+        result["list_get"] = ret_code
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
     obj_list = response["Response"][list_name]
