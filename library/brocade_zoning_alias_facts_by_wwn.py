@@ -156,8 +156,13 @@ def main():
     ret_list = []
     for alias in alias_list:
         if "member-entry" in alias and "alias-entry-name" in alias["member-entry"]:
-            for entry in alias["member-entry"]["alias-entry-name"]:
-                if entry == wwn:
+            if isinstance(alias["member-entry"]["alias-entry-name"], list):
+                for entry in alias["member-entry"]["alias-entry-name"]:
+                    if entry == wwn.lower():
+                        ret_list.append(alias)
+                        break
+            else:
+                if alias["member-entry"]["alias-entry-name"] == wwn.lower():
                     ret_list.append(alias)
                     break
 
