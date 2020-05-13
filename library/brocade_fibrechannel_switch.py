@@ -132,7 +132,7 @@ def main():
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict'),
+        credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
         switch=dict(required=True, type='dict'))
