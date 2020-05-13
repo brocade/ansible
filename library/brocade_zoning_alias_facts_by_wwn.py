@@ -153,6 +153,8 @@ def main():
 
     alias_list = response["Response"]["defined-configuration"]["alias"]
 
+    result["alias_list"] = alias_list
+
     ret_list = []
     for alias in alias_list:
         if "member-entry" in alias and "alias-entry-name" in alias["member-entry"]:
