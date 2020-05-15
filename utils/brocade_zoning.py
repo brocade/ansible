@@ -760,7 +760,7 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                 result["changed"] = True
         else:
             if not module.check_mode:
-                ret_code = cfg_enable(fos_ip_addr, https, auth,
+                ret_code = cfg_enable(fos_ip_addr, https, auth, vfid,
                                       result, checksum, active_cfg)
                 if ret_code != 0:
                     ret_code = cfg_abort(fos_ip_addr, https,
