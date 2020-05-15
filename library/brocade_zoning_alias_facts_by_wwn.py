@@ -153,7 +153,10 @@ def main():
 
     alias_list = []
     if "alias" in response["Response"]["defined-configuration"]:
-        alias_list = response["Response"]["defined-configuration"]["alias"]
+        if isinstance(response["Response"]["defined-configuration"]["alias"], list):
+            alias_list = response["Response"]["defined-configuration"]["alias"]
+        else:
+            alias_list = [response["Response"]["defined-configuration"]["alias"]]
 
     result["alias_list"] = alias_list
 
@@ -168,7 +171,6 @@ def main():
             else:
                 if alias["member-entry"]["alias-entry-name"] == wwn.lower():
                     ret_list.append(alias)
-                    break
 
     ret_dict = {}
     if len(ret_list) > 0:
