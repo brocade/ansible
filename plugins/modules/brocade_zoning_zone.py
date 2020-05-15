@@ -66,6 +66,10 @@ options:
         description:
         - If set to True, new members will be added and old members
           not specified also remain
+    members_remove_only:
+        description:
+        - If set to True, members specified are removed
+        required: false
     zones_to_delete:
         description:
         - List of zones to be deleted. zones are zones_to_delete are mutually
@@ -153,35 +157,37 @@ def zone_process_diff(result, zones, c_zones):
     """
     post_zones = []
     remove_zones = []
+    common_zones = []
     for zone in zones:
         found_in_c = False
         for c_zone in c_zones:
             if zone["name"] == c_zone["zone-name"]:
                 found_in_c = True
-                added_members, removed_members = process_member_diff(
+                added_members, removed_members, common_members = process_member_diff(
                     result, zone["members"],
                     c_zone["member-entry"]["entry-name"])
                 if (
                         "principal_members" in zone and
                         "principal-entry-name" in c_zone["member-entry"]):
-                    added_pmembers, removed_pmembers = process_member_diff(
+                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff(
                         result, zone["principal_members"],
                         c_zone["member-entry"]
                         ["principal-entry-name"])
                 elif (
                         "principal_members" in zone and
                         "principal-entry-name" not in c_zone["member-entry"]):
-                    added_pmembers, removed_pmembers = process_member_diff(
+                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff(
                         result, zone["principal_members"], [])
                 elif (
                         "principal_members" not in zone and
                         "principal-entry-name" in c_zone["member-entry"]):
-                    added_pmembers, removed_pmembers = process_member_diff(
+                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff(
                         result, [], c_zone["member-entry"]
                         ["principal-entry-name"])
                 else:
                     added_pmembers = []
                     removed_pmembers = []
+                    common_pmembers = []
 
                 if len(added_members) > 0 or len(added_pmembers) > 0:
                     post_zone = {}
@@ -201,11 +207,20 @@ def zone_process_diff(result, zones, c_zones):
                     if removed_pmembers:
                         remove_zone["principal_members"] = removed_pmembers
                     remove_zones.append(remove_zone)
+                if len(common_members) > 0 or len(common_pmembers) > 0:
+                    common_zone = {}
+                    common_zone["name"] = zone["name"]
+                    common_zone["zone_type"] = c_zone["zone-type"]
+                    if common_members:
+                        common_zone["members"] = common_members
+                    if common_pmembers:
+                        common_zone["principal_members"] = common_pmembers
+                    common_zones.append(common_zone)
                 continue
         if not found_in_c:
             post_zones.append(zone)
 
-    return 0, post_zones, remove_zones
+    return 0, post_zones, remove_zones, common_zones
 
 
 def zone_process_diff_to_delete(result, zones, c_zones):
@@ -241,11 +256,12 @@ def main():
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict'),
+        credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
         zones=dict(required=False, type='list'),
         members_add_only=dict(required=False, type='bool'),
+        members_remove_only=dict(required=False, type='bool'),
         zones_to_delete=dict(required=False, type='list'))
 
     module = AnsibleModule(
@@ -264,6 +280,7 @@ def main():
     vfid = input_params['vfid']
     zones = input_params['zones']
     members_add_only = input_params['members_add_only']
+    members_remove_only = input_params['members_remove_only']
     zones_to_delete = input_params['zones_to_delete']
     result = {"changed": False}
 
@@ -277,7 +294,7 @@ def main():
         module.exit_json(**result)
 
     zoning_common(fos_ip_addr, https, auth, vfid, result, module, zones,
-                  members_add_only, zones_to_delete, "zone",
+                  members_add_only, members_remove_only, zones_to_delete, "zone",
                   zone_process_diff, zone_process_diff_to_delete, zone_get,
                   zone_post, zone_delete, None)
 

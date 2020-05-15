@@ -230,7 +230,7 @@ def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url):
     except urllib_error.HTTPError as e:
         e_data = e.read()
         ret_code, root_dict = bsn_xmltodict(result, e_data)
-        if e.code == 404 and (root_dict["errors"]["error"]["error-message"] == "No entries found" or root_dict["errors"]["error"]["error-message"] == "No syslog servers are configured"):
+        if e.code == 404 and (root_dict["errors"]["error"]["error-message"] == "No entries found" or root_dict["errors"]["error"]["error-message"] == "No syslog servers are configured" or root_dict["errors"]["error"]["error-message"] == "No entries in Name Server"):
             empty_list_resp = {}
             empty_list_resp["Response"] = {}
             empty_list_resp["Response"][os.path.basename(url)] = []

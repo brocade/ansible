@@ -20,54 +20,57 @@
     aliases:
       - name: Host1
         members:
-          - 11:22:33:44:55:66:77:88
-      - name: Target1
-        members:
-          - 22:22:33:44:55:66:77:99      
+          - aa:11:11:11:11:11:11:11
+          - aa:22:22:22:22:22:22:22
       - name: Target2
         members:
-          - 22:22:33:44:55:66:77:AA
+          - aa:44:44:44:44:44:44:44      
       - name: Target3
         members:
-          - 22:22:33:44:55:66:77:bb
+          - aa:55:55:55:55:55:55:55
+      - name: Target4
+        members:
+          - aa:bb:cc:dd:AA:BB:CC:DD
     aliases_to_delete:
-      - name: Target1
-      - name: Target2
       - name: Target3
+      - name: Target4
     zones:
-      - name: NewZoneName
-        members:
-          - Host1
-          - Target1
-          - Target2
-      - name: NewZoneName2
+      - name: Zone1
         members:
           - Host1
           - Target2
-      - name: NewZoneNameP
+          - Target3
+      - name: Zone2
         members:
-          - 11:22:33:44:55:66:77:88
+          - Host1
+          - Target3
+          - Target4
+      - name: Zone3
+        members:
+          - aa:44:44:44:44:44:44:44
+          - aa:55:55:55:55:55:55:55
         principal_members:
-          - 22:22:33:44:55:66:77:88
+          - aa:aa:aa:aa:bb:bb:bb:bb
+          - aa:aa:aa:aa:cc:cc:cc:cc
     zones_to_delete:
-      - name: NewZoneNameP
-      - name: NewZoneName2
+      - name: Zone2
+      - name: Zone3
     cfgs:
-      - name: newcfg1
+      - name: cfg1
         members:
-          - NewZoneName
-          - NewZoneName2
-      - name: newcfg2
+          - Zone1
+          - Zone2
+      - name: cfg2
         members:
-          - NewZoneName
-          - NewZoneName2
-      - name: newcfg3
+          - Zone2
+          - zone3
+      - name: cfg3
         members:
-          - NewZoneName
-          - NewZoneName2
+          - Zone1
+          - Zone3
     cfgs_to_delete:
-      - name: newcfg2
-      - name: newcfg3
+      - name: cfg2
+      - name: cfg3
 
   tasks:
 
@@ -91,7 +94,7 @@
       vfid: -1
       cfgs: "{{cfgs}}"
 #      cfgs_to_delete: "{{cfgs_to_delete}}"
-      active_cfg: newcfg2
+      active_cfg: cfg1
 
   - name: Default zoning
     brocade_zoning_default_zone:

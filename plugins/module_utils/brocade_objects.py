@@ -82,6 +82,21 @@ def singleton_get(login, password, fos_ip_addr, module_name, obj_name, fos_versi
     return ret, resp
 
 
+def to_human_list(module_name, list_name, attributes_list):
+    for attributes in attributes_list:
+        for k, v in attributes.items():
+            if v == "true":
+                attributes[k] = True
+            elif v == "false":
+                attributes[k] = False
+
+        yang_to_human(attributes)
+
+
+def list_get(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, ssh_hostkeymust):
+    return singleton_get(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, ssh_hostkeymust)
+
+
 def singleton_xml_str(result, obj_name, attributes):
     xml_str = ""
 
