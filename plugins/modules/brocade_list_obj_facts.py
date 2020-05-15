@@ -18,7 +18,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = '''
 
 module: brocade_facts
-short_description: Brocade facts gathering of Zoning by WWN
+short_description: Brocade generic facts gathering for list objects
 version_added: '2.6'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
@@ -46,10 +46,16 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
-    wwn:
+    module_name:
         description:
-        - wwn to search in the aliases within Zone DB
-        required: true
+        - name of module. for example, brocade-security
+    obj_name:
+        description:
+        - name of obj. for example, password under brocade-security
+    attributes:
+        description:
+        - list of attributes for the object to match to return.
+          names match rest attributes with "-" replaced with "_"
 
 '''
 
@@ -66,16 +72,18 @@ EXAMPLES = """
 
   tasks:
 
-  - name: gather device alias info
-    brocade_zoning_alias_facts_by_wwn:
+  - name: gather device info
+    brocade_list_obj_facts:
       credential: "{{credential}}"
       vfid: -1
-      wwn: "{{wwn_to_search}}"
+      module_name: "brocade-name-server"
+      list_name: "fibrechannel-name-server"
+      attributes:
+        port_name: "{{wwn_to_search}}"
 
-  - name: print device alias information matching port_name
+  - name: print ansible_facts gathered
     debug:
-      var: ansible_facts['alias']
-    when: ansible_facts['alias'] is defined
+      var: ansible_facts
 
 """
 
@@ -95,8 +103,8 @@ Brocade Fibre Channel Port Configuration
 """
 
 
-from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_zoning import defined_get
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_objects import list_get, to_human_list
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -109,7 +117,9 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
-        wwn=dict(required=True, type='str'))
+        module_name=dict(required=True, type='str'),
+        list_name=dict(required=True, type='str'),
+        attributes=dict(required=True, type='dict'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -128,7 +138,9 @@ def main():
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    wwn = input_params['wwn']
+    module_name = input_params['module_name']
+    list_name = input_params['list_name']
+    attributes = input_params['attributes']
     result = {"changed": False}
 
     if vfid is None:
@@ -144,33 +156,35 @@ def main():
 
     facts['ssh_hostkeymust'] = ssh_hostkeymust
 
-    ret_code, response = defined_get(fos_ip_addr, https, auth, vfid, result)
+    ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
+                                  module_name, list_name, fos_version,
+                                  https, auth, vfid, result,
+                                  ssh_hostkeymust)
     if ret_code != 0:
+        result["list_get"] = ret_code
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
+    obj_list = response["Response"][list_name]
 
-    alias_list = response["Response"]["defined-configuration"]["alias"]
+    to_human_list(module_name, list_name, obj_list)
 
-    result["alias_list"] = alias_list
-
-    ret_list = []
-    for alias in alias_list:
-        if "member-entry" in alias and "alias-entry-name" in alias["member-entry"]:
-            if isinstance(alias["member-entry"]["alias-entry-name"], list):
-                for entry in alias["member-entry"]["alias-entry-name"]:
-                    if entry == wwn.lower():
-                        ret_list.append(alias)
-                        break
-            else:
-                if alias["member-entry"]["alias-entry-name"] == wwn.lower():
-                    ret_list.append(alias)
-                    break
+    result["obj_list"] = obj_list
 
     ret_dict = {}
-    if len(ret_list) > 0:
-        ret_dict["alias"] = ret_list
+    ret_list = []
+    for obj in obj_list:
+        matched_all = 0
+        for k, v in attributes.items():
+            if k in obj and obj[k] == v:
+                matched_all = matched_all + 1
+
+        if matched_all == len(attributes.items()):
+            ret_list.append(obj)
+
+    result["attributes_len"] = len(attributes.items())
+    result["ret_list"] = ret_list
+
+    ret_dict[list_name] = ret_list
 
     result["ansible_facts"] = ret_dict
 

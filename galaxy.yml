@@ -1,6 +1,6 @@
 namespace: daniel_chung_broadcom
 name: fos
-version: 1.0.10
+version: 1.0.11
 readme: README.md
 authors:
   - Brocade Automation Team <Automation.BSN@broadcom.com>

@@ -8,6 +8,8 @@
 
 - hosts: san_eng_zone_seed_san_a
   gather_facts: False
+  collections:
+    - daniel_chung_broadcom.fos
 
   vars:
     credential:
@@ -18,38 +20,40 @@
     aliases:
       - name: Host1
         members:
-          - aa:11:11:11:11:11:11:11
+          - cc:99:99:99:99:99:99:99
     zones:
       - name: Zone3
         members:
-          - aa:44:44:44:44:44:44:44
+          - cc:99:99:99:99:99:99:99
         principal_members:
-          - aa:aa:aa:aa:bb:bb:bb:bB
+          - cc:cc:cc:cc:99:99:99:99
+      - name: Zone4
+        members:
+          - cc:88:88:88:88:88:88:88
+        principal_members:
+          - cc:cc:cc:cc:88:88:88:88
     cfgs:
       - name: cfg1
         members:
-          - Zone1
+          - Zone4
 
   tasks:
 
-  - name: after zoning_zone.yml, remove aa:11:11:11:11:11:11:11 from Host1 by specifying only those members being removed and setting members_remove_only to True
+  - name: after zoning_zone.yml, add cc:99:99:99:99:99:99:99 and remove aa:11:11:11:11:11:11:11/aa:22:22:22:22:22:22:22 from Host1 by specifying the final member list
     brocade_zoning_alias:
       credential: "{{credential}}"
       vfid: -1
-      members_remove_only: True
       aliases: "{{aliases}}"
 
-  - name: after zoning_zone.yml, remove aa:44:44:44:44:44:44:44/aa:aa:aa:aa:bb:bb:bb:bb from Zone3 by specifying only those members being removed and setting members_remove_only to True
+  - name: after zoning_zone.yml, add cc:99:99:99:99:99:99:99/cc:cc:cc:cc:99:99:99:99 and remove aa:44:44:44:44:44:44:44/aa:55:55:55:55:55:55:55/aa:aa:aa:aa:bb:bb:bb:bb/aa:aa:aa:aa:cc:cc:cc:cc from Zone3 by specifying the final member list. Also, create Zone4.
     brocade_zoning_zone:
       credential: "{{credential}}"
       vfid: -1
-      members_remove_only: True
       zones: "{{zones}}"
 
-  - name: after zoning_zone.yml, remove Zone1 from cfg1 a by specifying only those members being removed and setting members_remove_only to True and leave it enabled
+  - name: after zoning_zone.yml, add Zone4 and remove Zone1/Zone2. And leave cfg1 enabled
     brocade_zoning_cfg:
       credential: "{{credential}}"
       vfid: -1
-      members_remove_only: True
       cfgs: "{{cfgs}}"
       active_cfg: cfg1
