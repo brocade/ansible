@@ -151,7 +151,9 @@ def main():
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
-    alias_list = response["Response"]["defined-configuration"]["alias"]
+    alias_list = []
+    if "alias" in response["Response"]["defined-configuration"]:
+        alias_list = response["Response"]["defined-configuration"]["alias"]
 
     result["alias_list"] = alias_list
 
