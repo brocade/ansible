@@ -17,12 +17,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: brocade_singleton_obj
-short_description: Brocade generic handler for singleton_obj
-version_added: '2.7'
+module: brocade_facts
+short_description: Brocade generic facts gathering for list objects
+version_added: '2.6'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- userd for brocade-security/password object
+- Gather FOS facts
 
 options:
 
@@ -54,38 +54,36 @@ options:
         - name of obj. for example, password under brocade-security
     attributes:
         description:
-        - list of attributes for the object. names match rest attributes
-          with "-" replaced with "_"
-          - special node for "brocade-security" module "password" object
-            "old_password" and "new_password" are in plain text
-            if "user_name" is user account, only "new_password" is needed
+        - list of attributes for the object to match to return.
+          names match rest attributes with "-" replaced with "_"
 
 '''
 
 
 EXAMPLES = """
 
-  gather_facts: False
-
-  vars:
+  var:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
       fos_user_name: admin
-      fos_password: xxxx
+      fos_password: fibranne
       https: False
+    wwn_to_search: "11:22:33:44:55:66:77:88"
 
   tasks:
 
-  - name: change password
-    brocade_singleton_obj:
+  - name: gather device info
+    brocade_list_obj_facts:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-security"
-      obj_name: "password"
+      module_name: "brocade-name-server"
+      list_name: "fibrechannel-name-server"
       attributes:
-        user_name: "user"
-        new_password: "xxxx"  
-        old_password: "yyyy"
+        port_name: "{{wwn_to_search}}"
+
+  - name: print ansible_facts gathered
+    debug:
+      var: ansible_facts
 
 """
 
@@ -101,13 +99,12 @@ msg:
 
 
 """
-Brocade Fibre Channel switch Configuration
+Brocade Fibre Channel Port Configuration
 """
 
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
-from ansible.module_utils.brocade_objects import singleton_patch, singleton_get, to_human_singleton, to_fos_singleton
+from ansible.module_utils.brocade_objects import list_get, to_human_list
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -121,12 +118,12 @@ def main():
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
         module_name=dict(required=True, type='str'),
-        obj_name=dict(required=True, type='str'),
+        list_name=dict(required=True, type='str'),
         attributes=dict(required=True, type='dict'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
-        supports_check_mode=True
+        supports_check_mode=False
     )
 
     input_params = module.params
@@ -142,7 +139,7 @@ def main():
     throttle = input_params['throttle']
     vfid = input_params['vfid']
     module_name = input_params['module_name']
-    obj_name = input_params['obj_name']
+    list_name = input_params['list_name']
     attributes = input_params['attributes']
     result = {"changed": False}
 
@@ -155,43 +152,41 @@ def main():
     if ret_code != 0:
         module.exit_json(**result)
 
-    result['ssh_hostkeymust'] = ssh_hostkeymust
+    facts = {}
 
-    ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
-                                       module_name, obj_name, fos_version,
-                                       https, auth, vfid, result,
-                                       ssh_hostkeymust)
+    facts['ssh_hostkeymust'] = ssh_hostkeymust
+
+    ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
+                                  module_name, list_name, fos_version,
+                                  https, auth, vfid, result,
+                                  ssh_hostkeymust)
     if ret_code != 0:
+        result["list_get"] = ret_code
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
-    resp_attributes = response["Response"][obj_name]
+    obj_list = response["Response"][list_name]
 
-    to_human_singleton(module_name, obj_name, resp_attributes)
+    to_human_list(module_name, list_name, obj_list)
 
-    diff_attributes = generate_diff(result, resp_attributes, attributes)
+    result["obj_list"] = obj_list
 
-    result["diff_attributes"] = diff_attributes
-    result["resp_attributes"] = resp_attributes
-    result["attributes"] = attributes
+    ret_dict = {}
+    ret_list = []
+    for obj in obj_list:
+        matched_all = 0
+        for k, v in attributes.items():
+            if k in obj and obj[k] == v:
+                matched_all = matched_all + 1
 
-    if len(diff_attributes) > 0:
-        ret_code = to_fos_singleton(module_name, obj_name, diff_attributes, result)
-        if ret_code != 0:
-            exit_after_login(fos_ip_addr, https, auth, result, module)
+        if matched_all == len(attributes.items()):
+            ret_list.append(obj)
 
-        if not module.check_mode:
-            ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
-                                       module_name, obj_name,
-                                       fos_version, https,
-                                       auth, vfid, result, diff_attributes,
-                                       ssh_hostkeymust)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
+    result["attributes_len"] = len(attributes.items())
+    result["ret_list"] = ret_list
 
-        result["changed"] = True
-    else:
-        logout(fos_ip_addr, https, auth, result)
-        module.exit_json(**result)
+    ret_dict[list_name] = ret_list
+
+    result["ansible_facts"] = ret_dict
 
     logout(fos_ip_addr, https, auth, result)
     module.exit_json(**result)
