@@ -89,6 +89,10 @@
         - name: "0/1"
           persistent_disable: False
 
+  # pause for 15 seconds to make sure fabric is stable for
+  # zoning commit
+  - pause: seconds=15
+
   - name: change all zoning configuration
     brocade_zoning_default_zone:
       credential: "{{credential}}"
