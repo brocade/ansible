@@ -52,11 +52,6 @@ options:
     obj_name:
         description:
         - name of obj. for example, password under brocade-security
-    attributes:
-        description:
-        - list of attributes for the object to match to return.
-          names match rest attributes with "-" replaced with "_".
-          If none is given, return all entries in a list.
 
 '''
 
@@ -77,10 +72,8 @@ EXAMPLES = """
     brocade_list_obj_facts:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-name-server"
-      list_name: "fibrechannel-name-server"
-      attributes:
-        port_name: "{{wwn_to_search}}"
+      module_name: "brocade-snmp"
+      obj_name: "system"
 
   - name: print ansible_facts gathered
     debug:
@@ -105,7 +98,7 @@ Brocade Fibre Channel Port Configuration
 
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_objects import list_get, to_human_list
+from ansible.module_utils.brocade_objects import singleton_get, to_human_singleton
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -119,8 +112,7 @@ def main():
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
         module_name=dict(required=True, type='str'),
-        list_name=dict(required=True, type='str'),
-        attributes=dict(required=False, type='dict'))
+        obj_name=dict(required=True, type='str'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -140,8 +132,7 @@ def main():
     throttle = input_params['throttle']
     vfid = input_params['vfid']
     module_name = input_params['module_name']
-    list_name = input_params['list_name']
-    attributes = input_params['attributes']
+    obj_name = input_params['obj_name']
     result = {"changed": False}
 
     if vfid is None:
@@ -157,41 +148,22 @@ def main():
 
     facts['ssh_hostkeymust'] = ssh_hostkeymust
 
-    ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
-                                  module_name, list_name, fos_version,
+    ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
+                                  module_name, obj_name, fos_version,
                                   https, auth, vfid, result,
                                   ssh_hostkeymust)
     if ret_code != 0:
-        result["list_get"] = ret_code
+        result["singleton_get"] = ret_code
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
-    obj_list = response["Response"][list_name]
+    obj = response["Response"][obj_name]
 
-    to_human_list(module_name, list_name, obj_list, result)
+    to_human_singleton(module_name, obj_name, obj)
 
-    result["obj_list"] = obj_list
+    result["obj"] = obj
 
     ret_dict = {}
-    ret_list = []
-    for obj in obj_list:
-        if attributes == None:
-            ret_list.append(obj)
-        else:
-            matched_all = 0
-            for k, v in attributes.items():
-                if k in obj and obj[k] == v:
-                    matched_all = matched_all + 1
-
-            if matched_all == len(attributes.items()):
-                ret_list.append(obj)
-
-    if attributes == None:
-        result["attributes_len"] = 0
-    else:
-        result["attributes_len"] = len(attributes.items())
-    result["ret_list"] = ret_list
-
-    ret_dict[list_name] = ret_list
+    ret_dict[obj_name] = obj
 
     result["ansible_facts"] = ret_dict
 
