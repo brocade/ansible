@@ -240,7 +240,7 @@ def list_xml_str(result, module_name, list_name, entries):
     return xml_str
 
 
-def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust):
+def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust, longer_timeout=None):
     """
         update existing user config configurations
 
@@ -267,8 +267,12 @@ def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version
 
     result["patch_str"] = xml_str
 
-    return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                     full_url, xml_str)
+    if longer_timeout == None:
+        return url_patch(fos_ip_addr, is_https, auth, vfid, result,
+                         full_url, xml_str)
+    else:
+        return url_patch(fos_ip_addr, is_https, auth, vfid, result,
+                         full_url, xml_str, longer_timeout)
 
 
 def list_post(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust):

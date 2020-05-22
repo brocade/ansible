@@ -40,6 +40,7 @@
       vfid: -1
       module_name: "brocade-snmp"
       list_name: "v1-account"
+      longer_timeout: 30
       entries:
         - index: 1
           community_name: "Secret code new"

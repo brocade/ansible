@@ -53,6 +53,10 @@ options:
         description:
         - Yang name for the list object
         required: true
+    longer_timeout:
+        description:
+        - If the operation requires longer timeout
+        required: false
     all_entries:
         description:
         - Boolean to indicate if the entries specified are full
@@ -136,6 +140,7 @@ def main():
         module_name=dict(required=True, type='str'),
         list_name=dict(required=True, type='str'),
         all_entries=dict(required=False, type='bool'),
+        longer_timeout=dict(required=False, type='int'),
         entries=dict(required=True, type='list'))
 
     module = AnsibleModule(
@@ -159,6 +164,7 @@ def main():
     list_name = input_params['list_name']
     entries = input_params['entries']
     all_entries = input_params['all_entries']
+    longer_timeout = input_params['longer_timeout']
     result = {"changed": False}
 
     if vfid is None:
@@ -244,7 +250,11 @@ def main():
 
     if len(diff_entries) > 0:
         if not module.check_mode:
-            ret_code = list_patch(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, diff_entries, ssh_hostkeymust)
+            ret_code = 0
+            if longer_timeout != None:
+                ret_code = list_patch(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, diff_entries, ssh_hostkeymust, longer_timeout)
+            else:
+                ret_code = list_patch(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, diff_entries, ssh_hostkeymust)
             if ret_code != 0:
                 exit_after_login(fos_ip_addr, https, auth, result, module)
 
