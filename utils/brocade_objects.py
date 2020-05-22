@@ -157,8 +157,19 @@ def singleton_xml_str(result, obj_name, attributes):
     xml_str = xml_str + "<" + obj_name + ">"
 
     for k, v in attributes.items():
-        xml_str = xml_str + "<" + k + ">" +\
-                      str(v) + "</" + k + ">"
+        xml_str = xml_str + "<" + k + ">"
+
+        if isinstance(v, dict):
+            for k1, v1 in v.items():
+                if isinstance(v1, list):
+                    for entry in v1:
+                        xml_str = xml_str + "<" + k1 + ">" + str(entry) + "</" + k1 + ">"
+                else:
+                    xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">"
+        else:
+            xml_str = xml_str + str(v)
+
+        xml_str = xml_str + "</" + k + ">"
 
     xml_str = xml_str + "</" + obj_name + ">"
 
@@ -210,7 +221,19 @@ def list_xml_str(result, module_name, list_name, entries):
         # add non key entries next
         for k, v in entry.items():
             if k not in list_entry_keys(module_name, list_name):
-                xml_str = xml_str + "<" + k + ">" + str(v) + "</" + k + ">"
+                xml_str = xml_str + "<" + k + ">"
+
+                if isinstance(v, dict):
+                    for k1, v1 in v.items():
+                        if isinstance(v1, list):
+                            for entry in v1:
+                                xml_str = xml_str + "<" + k1 + ">" + str(entry) + "</" + k1 + ">"
+                        else:
+                            xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">"
+                else:
+                    xml_str = xml_str + str(v)
+
+                xml_str = xml_str + "</" + k + ">"
 
         xml_str = xml_str + "</" + list_name + ">"
 

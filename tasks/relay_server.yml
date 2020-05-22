@@ -26,5 +26,10 @@
       module_name: "brocade-maps"
       obj_name: "maps-config"
       attributes:
-        relay_ip_address: "10.10.10.10"
-        domain_name: "d.com"
+        relay_ip_address: "10.10.10.11"
+        domain_name: "dd.com"
+        sender_address: "s@dd.com"
+        recipient_address_list:
+          recipient_address:
+           - "r@dd.com"
+           - "r@rr.com"
