@@ -22,7 +22,7 @@ short_description: Brocade general list processing
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update logging audit configuration
+- Update list of obj based on module name and list name provided
 
 options:
 
@@ -45,6 +45,32 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
+    module_name:
+        description:
+        - Yang module name
+        required: true
+    list_name:
+        description:
+        - Yang name for the list object
+        required: true
+    all_entries:
+        description:
+        - Boolean to indicate if the entries specified are full
+          list of objects or not. By default, all_entries are
+          thought to be true if not specified. If all_entries
+          is set to true, the entries is used to calculate the change
+          of existing entryies, addition, and deletion. If
+          all_entries is set to false, the entries is used to
+          calculate the change of existing entries only. i.e. 
+          the module will not attempt to delete objects that do
+          not show up in the entries and will not attempt to
+          add objects that do show up in the entries but does
+          not exist in FOS
+        required: false
+    entries:
+        description:
+        - List of objects
+        required: true
 
 '''
 
@@ -66,9 +92,13 @@ EXAMPLES = """
     brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      module_name:
-      list_name:
-      attributes:
+      module_name: "brocade-snmp"
+      list_name: "v1-account"
+      all_entries: False
+      entries:
+        - index: 1
+          community_name: "new name"
+
 
 """
 
@@ -84,7 +114,7 @@ msg:
 
 
 """
-Brocade Fibre Channel syslog server Configuration
+Brocade Fibre Channel Yang list processor
 """
 
 

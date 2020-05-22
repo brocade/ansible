@@ -17,12 +17,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: brocade_facts
-short_description: Brocade generic facts gathering for list objects
+module: brocade_singleton_obj_facts
+short_description: Brocade generic facts gathering for singleton objects
 version_added: '2.6'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Gather FOS facts
+- Gather FOS facts for singleon obj
 
 options:
 
@@ -64,7 +64,6 @@ EXAMPLES = """
       fos_user_name: admin
       fos_password: fibranne
       https: False
-    wwn_to_search: "11:22:33:44:55:66:77:88"
 
   tasks:
 

@@ -17,12 +17,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: brocade_facts
+module: brocade_list_obj_facts
 short_description: Brocade generic facts gathering for list objects
 version_added: '2.6'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Gather FOS facts
+- Gather FOS facts for objects that are defined as list in Yang
 
 options:
 
@@ -56,7 +56,7 @@ options:
         description:
         - list of attributes for the object to match to return.
           names match rest attributes with "-" replaced with "_".
-          If none is given, return all entries in a list.
+          If none is given, the module returns all valid entries.
 
 '''
 
