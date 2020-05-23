@@ -10,7 +10,7 @@ import time
 import ansible.module_utils.urls as ansible_urls
 import ansible.module_utils.six.moves.urllib.error as urllib_error
 from ansible.module_utils.brocade_xml import bsn_xmltodict
-from ansible.module_utils.brocade_url import url_post, full_url_get, url_get_to_dict
+from ansible.module_utils.brocade_url import url_post, full_url_get, url_get_to_dict, url_helper
 
 
 __metaclass__ = type
@@ -20,7 +20,7 @@ __metaclass__ = type
 Brocade Connections utils
 """
 
-DEFAULT_THROTTLE = 1.1
+DEFAULT_THROTTLE = 4
 REST_LOGIN = "/rest/login"
 REST_LOGOUT = "/rest/logout"
 REST_SWITCH = "/rest/running/brocade-fibrechannel-switch/fibrechannel-switch"
@@ -51,22 +51,19 @@ def login(fos_ip_addr, fos_user_name, fos_password, is_https, throttle, result):
 
     credential = {"Authorization": "Basic " + login_encoded.decode(),
                   "User-Agent": "Rest-Conf"}
-    try:
-        login_resp = ansible_urls.open_url(full_login_url, headers=credential,
-                                           method="POST", validate_certs=validate_certs)
-    except urllib_error.HTTPError as e:
-        result["login_resp_code"] = e.code
-        result["login_resp_reason"] = e.reason
-        result["full_login_Url"] = full_login_url
-        resp_body = e.read()
-        if len(resp_body) > 0:
-            ret_code, root_dict = bsn_xmltodict(result, resp_body)
-            result["login_resp_data"] = root_dict
-        else:
-            result["login_resp_data"] = resp_body
-        result["failed"] = True
-        result["msg"] = "failed to login"
-        return -1, None, None
+
+    retval, eret, edict, login_resp = url_helper(full_login_url, None, "POST", None, result, validate_certs, credential=credential)
+    if retval == -1:
+        if eret != -3:
+            return eret, None, None
+        elif eret == -3:
+            if throttle == None:
+                time.sleep(DEFAULT_THROTTLE)
+            else:
+                time.sleep(throttle)
+            retval, eret, edict, login_resp = url_helper(full_login_url, None, "POST", None, result, validate_certs, credential=credential)
+            if retval == -1:
+                return eret, None, None
 
     full_switch_url, validate_certs = full_url_get(is_https,
                                                    fos_ip_addr,
@@ -88,7 +85,7 @@ def login(fos_ip_addr, fos_user_name, fos_password, is_https, throttle, result):
         logout(fos_ip_addr, is_https, auth, result)
         return -1, None, None
 
-    time.sleep(auth["throttle"] * 2)
+#    time.sleep(auth["throttle"] * 2)
 
     return 0, auth, rdict["Response"]["fibrechannel-switch"]["firmware-version"]
 
