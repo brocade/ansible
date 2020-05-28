@@ -60,6 +60,14 @@ options:
           will be added and removed members will be removed. cfgs and
           cfgs_to_delete are mutually exclusive.
         required: false
+    members_add_only:
+        description:
+        - If set to True, new members will be added and old members
+          not specified also remain
+    members_remove_only:
+        description:
+        - If set to True, members specified are removed
+        required: false
     cfgs_to_delete:
         description:
         - List of cfgs to be deleted. cfgs and cfgs_to_delete are
@@ -150,12 +158,13 @@ def cfg_process_diff(result, cfgs, c_cfgs):
     """
     post_cfgs = []
     remove_cfgs = []
+    common_cfgs = []
     for cfg in cfgs:
         found_in_c = False
         for c_cfg in c_cfgs:
             if cfg["name"] == c_cfg["cfg-name"]:
                 found_in_c = True
-                added_members, removed_members = process_member_diff(
+                added_members, removed_members, common_members = process_member_diff(
                     result, cfg["members"], c_cfg["member-zone"]["zone-name"])
 
                 if len(added_members) > 0:
@@ -168,11 +177,44 @@ def cfg_process_diff(result, cfgs, c_cfgs):
                     remove_cfg["name"] = cfg["name"]
                     remove_cfg["members"] = removed_members
                     remove_cfgs.append(remove_cfg)
+                if len(common_members) > 0:
+                    common_cfg = {}
+                    common_cfg["name"] = cfg["name"]
+                    common_cfg["members"] = common_members
+                    common_cfgs.append(common_cfg)
                 continue
         if not found_in_c:
             post_cfgs.append(cfg)
 
-    return 0, post_cfgs, remove_cfgs
+    return 0, post_cfgs, remove_cfgs, common_cfgs
+
+
+def cfg_process_diff_to_delete(result, cfgs, c_cfgs):
+    """
+    return the diff from to delete cfgs vs. current cfgs
+
+    :param cfgs: list of expected cfgs
+    :type cfgs: list
+    :param c_cfgs: list of current cfgs
+    :type c_cfgs: list
+    :return: indicate if diff or the same
+    :rtype: bool
+    :return: list of cfgs to delete
+    :rtype: list
+    :return: list of cfgs with to be removed members
+    :rtype: list
+    """
+    delete_cfgs = []
+    for cfg in cfgs:
+        found_in_c = False
+        for c_cfg in c_cfgs:
+            if cfg["name"] == c_cfg["cfg-name"]:
+                found_in_c = True
+                break
+        if found_in_c:
+            delete_cfgs.append(cfg)
+
+    return 0, delete_cfgs
 
 
 def main():
@@ -181,10 +223,12 @@ def main():
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict'),
+        credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
         cfgs=dict(required=False, type='list'),
+        members_add_only=dict(required=False, type='bool'),
+        members_remove_only=dict(required=False, type='bool'),
         cfgs_to_delete=dict(required=False, type='list'),
         active_cfg=dict(required=False, type='str'))
 
@@ -203,6 +247,8 @@ def main():
     throttle = input_params['throttle']
     vfid = input_params['vfid']
     cfgs = input_params['cfgs']
+    members_add_only = input_params['members_add_only']
+    members_remove_only = input_params['members_remove_only']
     cfgs_to_delete = input_params['cfgs_to_delete']
     active_cfg = input_params['active_cfg']
     result = {"changed": False}
@@ -217,8 +263,9 @@ def main():
         module.exit_json(**result)
 
     zoning_common(fos_ip_addr, https, auth, vfid, result, module, cfgs,
-                  cfgs_to_delete, "cfg", cfg_process_diff, cfg_get, cfg_post,
-                  cfg_delete, active_cfg)
+                  members_add_only, members_remove_only, cfgs_to_delete, "cfg",
+                  cfg_process_diff, cfg_process_diff_to_delete,
+                  cfg_get, cfg_post, cfg_delete, active_cfg)
 
     ret_code = logout(fos_ip_addr, https, auth, result)
     module.exit_json(**result)

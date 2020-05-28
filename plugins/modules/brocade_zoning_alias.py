@@ -55,11 +55,20 @@ options:
         - List of aliases to be created or modified. If an alias does
           not exist in the current Zone Database, the alias will be
           created with the members specified. If an alias already
-          exist in the current Zone Database, the alias is upcated to
+          exist in the current Zone Database, the alias is updated to
           reflect to members specificed. In other word, new members
           will be added and removed members will be removed.
           If no aliases_to_delete are listed, aliases is required.
           aliases_to_delete and aliases are mutually exclusive.
+        required: false
+    members_add_only:
+        description:
+        - If set to True, new members will be added and old members
+          not specified also remain
+        required: false
+    members_remove_only:
+        description:
+        - If set to True, members specified are removed
         required: false
     aliases_to_delete:
         description:
@@ -149,12 +158,13 @@ def alias_process_diff(result, aliases, c_aliases):
     """
     post_aliases = []
     remove_aliases = []
+    common_aliases = []
     for alias in aliases:
         found_in_c = False
         for c_alias in c_aliases:
             if alias["name"] == c_alias["alias-name"]:
                 found_in_c = True
-                added_members, removed_members = process_member_diff(
+                added_members, removed_members, common_members = process_member_diff(
                     result, alias["members"],
                     c_alias["member-entry"]["alias-entry-name"])
 
@@ -168,11 +178,44 @@ def alias_process_diff(result, aliases, c_aliases):
                     remove_alias["name"] = alias["name"]
                     remove_alias["members"] = removed_members
                     remove_aliases.append(remove_alias)
+                if len(common_members) > 0:
+                    common_alias = {}
+                    common_alias["name"] = alias["name"]
+                    common_alias["members"] = common_members
+                    common_aliases.append(common_alias)
                 continue
         if not found_in_c:
             post_aliases.append(alias)
 
-    return 0, post_aliases, remove_aliases
+    return 0, post_aliases, remove_aliases, common_aliases
+
+
+def alias_process_diff_to_delete(result, aliases, c_aliases):
+    """
+    return the diff from to delete aliases vs. current aliases
+
+    :param aliases: list of expected aliases
+    :type aliases: list
+    :param c_aliases: list of current aliases
+    :type c_aliases: list
+    :return: indicate if diff or the same
+    :rtype: bool
+    :return: list of aliases to delete
+    :rtype: list
+    :return: list of aliases with to be removed members
+    :rtype: list
+    """
+    delete_aliases = []
+    for alias in aliases:
+        found_in_c = False
+        for c_alias in c_aliases:
+            if alias["name"] == c_alias["alias-name"]:
+                found_in_c = True
+                break
+        if found_in_c:
+            delete_aliases.append(alias)
+
+    return 0, delete_aliases
 
 
 def main():
@@ -181,10 +224,12 @@ def main():
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict'),
+        credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
         aliases=dict(required=False, type='list'),
+        members_add_only=dict(required=False, type='bool'),
+        members_remove_only=dict(required=False, type='bool'),
         aliases_to_delete=dict(required=False, type='list'))
 
     module = AnsibleModule(
@@ -202,6 +247,8 @@ def main():
     throttle = input_params['throttle']
     vfid = input_params['vfid']
     aliases = input_params['aliases']
+    members_add_only = input_params['members_add_only']
+    members_remove_only = input_params['members_remove_only']
     aliases_to_delete = input_params['aliases_to_delete']
     result = {"changed": False}
 
@@ -215,8 +262,9 @@ def main():
         module.exit_json(**result)
 
     zoning_common(fos_ip_addr, https, auth, vfid, result, module, aliases,
-                  aliases_to_delete, "alias",
-                  alias_process_diff, alias_get, alias_post, alias_delete,
+                  members_add_only, members_remove_only, aliases_to_delete, "alias",
+                  alias_process_diff, alias_process_diff_to_delete,
+                  alias_get, alias_post, alias_delete,
                   None)
 
     ret_code = logout(fos_ip_addr, https, auth, result)

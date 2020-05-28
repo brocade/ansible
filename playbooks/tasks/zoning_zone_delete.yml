@@ -1,0 +1,53 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+  collections:
+    - daniel_chung_broadcom.fos
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: admin
+      fos_password: fibranne
+      https: False
+    aliases_to_delete:
+      - name: Host1
+      - name: Target2
+      - name: Target3
+      - name: Target4
+    zones_to_delete:
+      - name: Zone1
+      - name: Zone2
+      - name: Zone3
+    cfgs_to_delete:
+      - name: cfg2
+      - name: cfg3
+
+  tasks:
+
+  - name: delete cfg2, & cfg3 and leave cfg1 enabled
+    brocade_zoning_cfg:
+      credential: "{{credential}}"
+      vfid: -1
+      cfgs_to_delete: "{{cfgs_to_delete}}"
+      active_cfg: cfg1
+
+  - name: delete Host1, Target2, Target3 and Targer4
+    brocade_zoning_alias:
+      credential: "{{credential}}"
+      vfid: -1
+      aliases_to_delete: "{{aliases_to_delete}}"
+
+  - name: delete Zone1, Zone2, and Zone3
+    brocade_zoning_zone:
+      credential: "{{credential}}"
+      vfid: -1
+      zones_to_delete: "{{zones_to_delete}}"
+

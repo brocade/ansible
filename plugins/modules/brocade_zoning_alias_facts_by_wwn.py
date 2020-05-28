@@ -17,12 +17,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: brocade_zoning_default_zone
-short_description: Brocade Zoning Default Zone Configuration
-version_added: '2.7'
+module: brocade_facts
+short_description: Brocade facts gathering of Zoning by WWN
+version_added: '2.6'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update Zoning's Default Zone configuration
+- Gather FOS facts
 
 options:
 
@@ -33,6 +33,7 @@ options:
           fos_user_name: login name of FOS switch REST API
           fos_password: password of FOS switch REST API
           https: True for HTTPS, self for self-signed HTTPS, or False for HTTP
+          ssh_hostkeymust: hostkeymust arguement for ssh attributes only. Default True.
         type: dict
         required: true
     vfid:
@@ -45,33 +46,36 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
-    default_zone_access:
+    wwn:
         description:
-        - default zone access mode. "allaccess" to indicate all access
-          "noaccess" to indicate no access
-        required: false
+        - wwn to search in the aliases within Zone DB
+        required: true
 
 '''
 
 
 EXAMPLES = """
 
-  gather_facts: False
-
-  vars:
+  var:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
       fos_user_name: admin
       fos_password: fibranne
       https: False
+    wwn_to_search: "11:22:33:44:55:66:77:88"
 
   tasks:
 
-  - name: Default zoning
-    brocade_zoning_default_zone:
+  - name: gather device alias info
+    brocade_zoning_alias_facts_by_wwn:
       credential: "{{credential}}"
       vfid: -1
-      default_zone_access: allaccess
+      wwn: "{{wwn_to_search}}"
+
+  - name: print device alias information matching port_name
+    debug:
+      var: ansible_facts['alias']
+    when: ansible_facts['alias'] is defined
 
 """
 
@@ -87,14 +91,13 @@ msg:
 
 
 """
-Brocade Fibre Channel default zone Configuration
+Brocade Fibre Channel Port Configuration
 """
 
 
 from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_zoning import effective_get, effective_patch, cfg_save, cfg_abort, to_human_zoning, to_fos_zoning
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_zoning import defined_get
 from ansible.module_utils.basic import AnsibleModule
-
 
 
 def main():
@@ -106,11 +109,11 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
-        default_zone_access=dict(required=False, type='str'))
+        wwn=dict(required=True, type='str'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
-        supports_check_mode=True
+        supports_check_mode=False
     )
 
     input_params = module.params
@@ -120,9 +123,12 @@ def main():
     fos_user_name = input_params['credential']['fos_user_name']
     fos_password = input_params['credential']['fos_password']
     https = input_params['credential']['https']
+    ssh_hostkeymust = True
+    if 'ssh_hostkeymust' in input_params['credential']:
+        ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    default_zone_access = input_params['default_zone_access']
+    wwn = input_params['wwn']
     result = {"changed": False}
 
     if vfid is None:
@@ -134,41 +140,43 @@ def main():
     if ret_code != 0:
         module.exit_json(**result)
 
-    ret_code, response = effective_get(fos_ip_addr, https, auth, vfid, result)
+    facts = {}
+
+    facts['ssh_hostkeymust'] = ssh_hostkeymust
+
+    ret_code, response = defined_get(fos_ip_addr, https, auth, vfid, result)
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
-    resp_effective = response["Response"]["effective-configuration"]
+    if ret_code != 0:
+        exit_after_login(fos_ip_addr, https, auth, result, module)
 
-    to_human_zoning(resp_effective)
+    alias_list = []
+    if "alias" in response["Response"]["defined-configuration"]:
+        if isinstance(response["Response"]["defined-configuration"]["alias"], list):
+            alias_list = response["Response"]["defined-configuration"]["alias"]
+        else:
+            alias_list = [response["Response"]["defined-configuration"]["alias"]]
 
-    diff_attributes = {}
-    if (default_zone_access is not None and
-        default_zone_access != resp_effective["default_zone_access"]):
-        diff_attributes["default_zone_access"] = default_zone_access
+    result["alias_list"] = alias_list
 
-    if len(diff_attributes) > 0:
-        ret_code = to_fos_zoning(diff_attributes, result)
-        if ret_code != 0:
-            exit_after_login(fos_ip_addr, https, auth, result, module)
+    ret_list = []
+    for alias in alias_list:
+        if "member-entry" in alias and "alias-entry-name" in alias["member-entry"]:
+            if isinstance(alias["member-entry"]["alias-entry-name"], list):
+                for entry in alias["member-entry"]["alias-entry-name"]:
+                    if entry == wwn.lower():
+                        ret_list.append(alias)
+                        break
+            else:
+                if alias["member-entry"]["alias-entry-name"] == wwn.lower():
+                    ret_list.append(alias)
 
-        if not module.check_mode:
-            ret_code = effective_patch(fos_ip_addr, https,
-                                       auth, vfid, result, diff_attributes)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
+    ret_dict = {}
+    if len(ret_list) > 0:
+        ret_dict["alias"] = ret_list
 
-            checksum = resp_effective["checksum"]
-            ret_code = cfg_save(fos_ip_addr, https, auth, vfid,
-                                result, checksum)
-            if ret_code != 0:
-                ret_code = cfg_abort(fos_ip_addr, https, auth, vfid, result)
-                exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        result["changed"] = True
-    else:
-        logout(fos_ip_addr, https, auth, result)
-        module.exit_json(**result)
+    result["ansible_facts"] = ret_dict
 
     logout(fos_ip_addr, https, auth, result)
     module.exit_json(**result)

@@ -71,22 +71,6 @@ def system_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, 
         result["msg"] = "API failed to return data"
         return -1, None
 
-#    result["fos_version"] = fos_version
-#    result["fos_version_check"] = fos_version < "v9.0"
-#    if fos_version < "v9.0":
-#        rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "dlsshow", "showcommand")
-#        if rssh == 0:
-#            if "DLS is set with Lossless disabled" in sshstr:
-#                rdict["Response"]["fibrechannel-switch"]["dynamic-load-sharing"] = "disabled"
-#            elif "DLS is set with Lossless enabled, Two-hop Lossless disabled" in sshstr:
-#                rdict["Response"]["fibrechannel-switch"]["dynamic-load-sharing"] = "lossless-dls"
-#            elif "DLS is set with Two-hop Lossless enabled" in sshstr:
-#                rdict["Response"]["fibrechannel-switch"]["dynamic-load-sharing"] = "two-hop-lossless-dls"
-#            else:
-#                result["failed"] = True
-#                result["msg"] = "DLS returned unknown string"
-#                return -1, None
-
     return 0, rdict
 
 def system_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
@@ -110,55 +94,6 @@ def system_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
         :rtype: dict
     """
     l_diffs = diff_attributes.copy()
-
-#    if fos_version < "v9.0":
-#        if "dynamic-load-sharing" in l_diffs:
-#            if l_diffs["dynamic-load-sharing"] == "disabled":
-#                rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "dlsset --disable -lossless", "Lossless is not set")
-#                if rssh != 0:
-#                    result["failed"] = True
-#                    result["msg"] = "Failed to disable DLS lossless"
-#                else:
-#                    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "dlsset --disable -twohop", "Two-hop lossless is not set")
-#                    if rssh != 0:
-#                        result["failed"] = True
-#                        result["msg"] = "Failed to disable DLS twohop"
-#                    else:
-#                        result["changed"] = True
-#            elif l_diffs["dynamic-load-sharing"] == "lossless-dls":
-#                rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "dlsset --enable -lossless", "Lossless is set")
-#                if rssh != 0:
-#                    result["failed"] = True
-#                    result["msg"] = "Failed to enable DLS lossless"
-#                else:
-#                    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "dlsset --disable -twohop", ["Two-hop lossless disabled successfully", "Two-hop lossless is not set"])
-#                    if rssh != 0:
-#                        result["failed"] = True
-#                        result["msg"] = "Failed to disable DLS twohop"
-#                    else:
-#                        result["changed"] = True
-#                        result["messages"] = "disabled DSL twohop"
-#            elif l_diffs["dynamic-load-sharing"] == "two-hop-lossless-dls":
-#                rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "dlsset --enable -lossless", "Lossless is set")
-#                if rssh != 0:
-#                    result["failed"] = True
-#                    result["msg"] = "Failed to enable DLS lossless"
-#                else:
-#                    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "dlsset --enable -twohop", "Two-hop lossless enabled successfully")
-#                    if rssh != 0:
-#                        result["failed"] = True
-#                        result["msg"] = "Failed to enable DLS twohop"
-#                    else:
-#                        result["changed"] = True
-#                        result["messages"] = "enable DSL two-hop-lossless-dls"
-#            else:
-#                result["failed"] = True
-#                result["msg"] = "Unkown DLS mode"
-#            l_diffs.pop("dynamic-load-sharing")
-#
-#    # should be only key for the switch if nothing else
-#    if len(l_diffs) <= 1:
-#        return 0
 
     full_url, validate_certs = full_url_get(is_https,
                                             fos_ip_addr,

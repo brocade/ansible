@@ -20,6 +20,7 @@ Brocade logging utils
 REST_IPFILTER_RULE = "/rest/running/brocade-security/ipfilter-rule"
 REST_IPFILTER_POLICY = "/rest/running/brocade-security/ipfilter-policy"
 REST_USER_CONFIG = "/rest/running/brocade-security/user-config"
+REST_PASSWORD = "/rest/running/brocade-security/password"
 
 
 def to_human_ipfilter_rule(attributes):
@@ -346,7 +347,6 @@ def ipfilter_policy_delete(fos_ip_addr, is_https, auth,
                      full_url, xml_str)
 
 
-
 def to_human_user_config(attributes):
     for k, v in attributes.items():
         if v == "true":
@@ -421,7 +421,7 @@ def user_config_xml_str(result, users):
 
 
 def user_config_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
-                       vfid, result, users):
+                       vfid, result, users, ssh_hostkeymust):
     """
         update existing user config configurations
 
@@ -448,18 +448,18 @@ def user_config_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
         for l_user in l_users:
             if "account-enabled" in l_user:
                 if l_user["account-enabled"] == "true":
-                    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "userconfig --change " + l_user["name"] + " -e yes" , "")
+                    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "userconfig --change " + l_user["name"] + " -e yes" , "")
                     if rssh != 0:
                         result["failed"] = True
-                        result["msg"] = "Failed to enable account"
+                        result["msg"] = "Failed to enable account. " + sshstr
                     else:
                         result["changed"] = True
                         result["messages"] = "account enabled"
                 elif l_user["account-enabled"] == "false":
-                    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "userconfig --change " + l_user["name"] + " -e no" , "")
+                    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "userconfig --change " + l_user["name"] + " -e no" , "")
                     if rssh != 0:
                         result["failed"] = True
-                        result["msg"] = "Failed to disable account"
+                        result["msg"] = "Failed to disable account. " + sshstr
                     else:
                         result["changed"] = True
                         result["messages"] = "account disabled"
@@ -552,3 +552,90 @@ def user_config_delete(fos_ip_addr, is_https, auth,
                      full_url, xml_str)
 
 
+def to_human_password(attributes):
+    for k, v in attributes.items():
+        if v == "true":
+            attributes[k] = True
+        elif v == "false":
+            attributes[k] = False
+
+    yang_to_human(attributes)
+
+def to_fos_password(attributes, result):
+    human_to_yang(attributes)
+
+    for k, v in attributes.items():
+        if isinstance(v, bool):
+            if v == True:
+                attributes[k] = "true"
+            else:
+                attributes[k] = "false"
+
+    return 0
+
+
+def password_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust):
+    """
+        retrieve existing user config configuration 
+
+        :param fos_ip_addr: ip address of FOS switch
+        :type fos_ip_addr: str
+        :param is_https: indicate to use HTTP or HTTPS
+        :type is_https: bool
+        :param auth: authorization struct from login
+        :type struct: dict
+        :param result: dict to keep track of execution msgs
+        :type result: dict
+        :return: code to indicate failure or success
+        :rtype: int
+        :return: dict of ipfilter policy configurations
+        :rtype: dict
+    """
+    # return empty dict. GET isn't supported
+    return 0, ({"Response" : {"password": {}}})
+
+
+def password_xml_str(result, user):
+    xml_str = ""
+
+    xml_str = xml_str + "<password>"
+
+    for k, v in user.items():
+        xml_str = xml_str + "<" + k + ">" +\
+                      str(v) + "</" + k + ">"
+
+    xml_str = xml_str + "</password>"
+
+    return xml_str
+
+
+def password_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
+                       vfid, result, new_password, ssh_hostkeymust):
+    """
+        update existing user config configurations
+
+        :param fos_ip_addr: ip address of FOS switch
+        :type fos_ip_addr: str
+        :param is_https: indicate to use HTTP or HTTPS
+        :type is_https: bool
+        :param auth: authorization struct from login
+        :type struct: dict
+        :param result: dict to keep track of execution msgs
+        :type result: dict
+        :param diff_attributes: list of attributes for update
+        :type ports: dict
+        :return: code to indicate failure or success
+        :rtype: int
+        :return: list of dict of chassis configurations
+        :rtype: list
+    """
+    full_url, validate_certs = full_url_get(is_https,
+                                            fos_ip_addr,
+                                            REST_PASSWORD)
+
+    xml_str = password_xml_str(result, new_password)
+
+    result["patch_password_str"] = xml_str
+
+    return url_patch(fos_ip_addr, is_https, auth, vfid, result,
+                     full_url, xml_str)

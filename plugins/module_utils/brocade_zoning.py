@@ -224,8 +224,14 @@ def zone_set(fos_ip_addr, is_https, auth, vfid, result, zones, method):
     for zone in zones:
         zone_str = zone_str + "<zone><zone-name>" +\
             zone["name"] + "</zone-name>"
-        if "principal_members" in zone and len(zone["principal_members"]) > 0:
-            zone_str = zone_str + "<zone-type>1</zone-type>"
+        # if zone_type is passed, we are talking about an existing
+        # zone. keep type type. Otherwise, add the zone type of
+        # 1 as peer if pmembers are present
+        if "zone_type" in zone:
+            zone_str = zone_str + "<zone-type>" + zone["zone_type"] + "</zone-type>"
+        else:
+            if "principal_members" in zone and len(zone["principal_members"]) > 0:
+                zone_str = zone_str + "<zone-type>1</zone-type>"
 
         if "principal_members" in zone or "members" in zone:
             zone_str = zone_str + "<member-entry>"
@@ -339,8 +345,8 @@ def alias_set(fos_ip_addr, is_https, auth, vfid, result, aliases, method):
 
     alias_str = alias_str + "</defined-configuration>"
 
-#    result["alias_str"] = alias_str
-#    result["method"] = method
+    result["alias_str"] = alias_str
+    result["method"] = method
 
     if method == "POST":
         return url_post(fos_ip_addr, is_https, auth, vfid, result,
@@ -485,12 +491,15 @@ def is_wwn(member):
 def process_member_diff(result, members, current_members):
     a_members = []
     r_members = []
+    o_members = []
 
     if isinstance(current_members, list):
         c_members = current_members
     else:
         c_members = [current_members]
 
+    # find requested members that are not in the current
+    # members to see if any needs to be added
     for member in members:
         if is_wwn(member):
             member = member.lower()
@@ -503,6 +512,8 @@ def process_member_diff(result, members, current_members):
         if found is False:
             a_members.append(member)
 
+    # find current members that are not in the requested
+    # members to see if any needs to be removed
     for c_member in c_members:
         found = False
         for member in members:
@@ -515,11 +526,28 @@ def process_member_diff(result, members, current_members):
         if found is False:
             r_members.append(c_member)
 
-    return a_members, r_members
+    # find requested members that are not in to-be-added
+    # members to see if any are overlap between requested
+    # and current
+    for member in members:
+        if is_wwn(member):
+            member = member.lower()
+
+        found = False
+        for a_member in a_members:
+            if member == a_member:
+                found = True
+                continue
+        if found is False:
+            o_members.append(member)
+
+    return a_members, r_members, o_members
 
 
 def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
-                  to_delete_list, type_str, type_diff_processing, type_get,
+                  members_add_only, members_remove_only,
+                  to_delete_list, type_str, type_diff_processing,
+                  type_diff_processing_to_delete, type_get,
                   type_post, type_delete, active_cfg):
     """
         common flow of zone database updates.
@@ -542,6 +570,8 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
         :type type_str: str
         :param type_diff_processing: function to compare expected & current
         :type type_diff_processing: func
+        :param type_diff_processing_to_delete: function to compare to delete & current
+        :type type_diff_processing_to_delete: func
         :param type_get: function to get the current db
         :type type_get: func
         :param type_post: function to post to FOS
@@ -584,19 +614,29 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
 #    result["c_list"] = c_list
 
     if input_list:
-        ret_code, post_list, remove_list = type_diff_processing(result,
+        ret_code, post_list, remove_list, common_list = type_diff_processing(result,
                                                                 input_list,
                                                                 c_list)
 
-#    result["post_list"] = post_list
-#    result["remove_list"] = remove_list
+        result["post_list"] = post_list
+        result["remove_list"] = remove_list
+        result["common_list"] = common_list
 
-        if len(post_list) == 0 and len(remove_list) == 0 and\
-           active_cfg is None:
+        # scenarios to return no changes
+        # to add list has nothing or
+        # add list has something but members_remove_only is True
+        # and
+        # to remove list has nothing or
+        # to remove list has something but members_add_only is True or
+        # to remove list has something but member_remove_only is True
+        # and
+        # common_list has nothing and member_remove_only is True
+        # and cfg is not enabled
+        if (len(post_list) == 0 or (len(post_list) > 0 and members_remove_only == True)) and (len(remove_list) == 0 or (len(remove_list) > 0 and members_add_only == True) or (len(remove_list) > 0 and members_remove_only == True)) and (members_remove_only == None or (len(common_list) == 0 and members_remove_only == True)) and active_cfg is None:
             exit_after_login(fos_ip_addr, https, auth, result, module)
 
         need_to_save = False
-        if len(post_list) > 0:
+        if len(post_list) > 0 and (members_remove_only == None or members_remove_only == False):
             if not module.check_mode:
                 ret_code = type_post(fos_ip_addr, https, auth, vfid,
                                      result, post_list)
@@ -609,7 +649,7 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
 
             need_to_save = True
 
-        if len(remove_list) > 0:
+        if len(remove_list) > 0 and (members_add_only == False or members_add_only == None) and (members_remove_only == None or members_remove_only == False):
             if not module.check_mode:
                 ret_code = type_delete(fos_ip_addr, https, auth, vfid,
                                        result, remove_list)
@@ -618,6 +658,19 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                                          auth, vfid, result)
                     result["failed"] = True
                     result['msg'] = "HTTP DELETE failed"
+                    exit_after_login(fos_ip_addr, https, auth, result, module)
+
+            need_to_save = True
+
+        if len(common_list) > 0 and (members_remove_only == True):
+            if not module.check_mode:
+                ret_code = type_delete(fos_ip_addr, https, auth, vfid,
+                                       result, common_list)
+                if ret_code != 0:
+                    ret_code = cfg_abort(fos_ip_addr, https,
+                                         auth, vfid, result)
+                    result["failed"] = True
+                    result['msg'] = "HTTP DELETE common failed"
                     exit_after_login(fos_ip_addr, https, auth, result, module)
 
             need_to_save = True
@@ -663,9 +716,18 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
     if to_delete_list:
         need_to_save = False
 
+        ret_code, delete_list = type_diff_processing_to_delete(result,
+                                                               to_delete_list,
+                                                               c_list)
+
+        result["delete_list"] = delete_list
+
+        if len(delete_list) == 0:
+            return 0
+
         if not module.check_mode:
             ret_code = type_delete(fos_ip_addr, https, auth, vfid,
-                                   result, to_delete_list)
+                                   result, delete_list)
             if ret_code != 0:
                 ret_code = cfg_abort(fos_ip_addr, https, auth, vfid, result)
                 result["failed"] = True
@@ -698,7 +760,7 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                 result["changed"] = True
         else:
             if not module.check_mode:
-                ret_code = cfg_enable(fos_ip_addr, https, auth,
+                ret_code = cfg_enable(fos_ip_addr, https, auth, vfid,
                                       result, checksum, active_cfg)
                 if ret_code != 0:
                     ret_code = cfg_abort(fos_ip_addr, https,

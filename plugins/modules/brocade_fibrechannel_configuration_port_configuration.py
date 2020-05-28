@@ -33,6 +33,7 @@ options:
           fos_user_name: login name of FOS switch REST API
           fos_password: password of FOS switch REST API
           https: True for HTTPS, self for self-signed HTTPS, or False for HTTP
+          ssh_hostkeymust: hostkeymust arguement for ssh attributes only. Default True.
         type: dict
         required: true
     vfid:
@@ -106,7 +107,7 @@ def main():
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict'),
+        credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
         port_configuration=dict(required=False, type='dict'))
@@ -123,6 +124,9 @@ def main():
     fos_user_name = input_params['credential']['fos_user_name']
     fos_password = input_params['credential']['fos_password']
     https = input_params['credential']['https']
+    ssh_hostkeymust = True
+    if 'ssh_hostkeymust' in input_params['credential']:
+        ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
     port_configuration = input_params['port_configuration']
@@ -139,7 +143,7 @@ def main():
 
     ret_code, response = port_configuration_get(fos_user_name, fos_password,
                                     fos_ip_addr, fos_version, https,
-                                    auth, vfid, result)
+                                    auth, vfid, result, ssh_hostkeymust)
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
@@ -161,7 +165,8 @@ def main():
         if not module.check_mode:
             ret_code = port_configuration_patch(fos_user_name, fos_password,
                                     fos_ip_addr, fos_version, https,
-                                    auth, vfid, result, diff_attributes)
+                                    auth, vfid, result, diff_attributes,
+                                    ssh_hostkeymust)
             if ret_code != 0:
                 exit_after_login(fos_ip_addr, https, auth, result, module)
 

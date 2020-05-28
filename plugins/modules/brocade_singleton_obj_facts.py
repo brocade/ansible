@@ -17,12 +17,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: brocade_zoning_default_zone
-short_description: Brocade Zoning Default Zone Configuration
-version_added: '2.7'
+module: brocade_singleton_obj_facts
+short_description: Brocade generic facts gathering for singleton objects
+version_added: '2.6'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update Zoning's Default Zone configuration
+- Gather FOS facts for singleon obj
 
 options:
 
@@ -33,6 +33,7 @@ options:
           fos_user_name: login name of FOS switch REST API
           fos_password: password of FOS switch REST API
           https: True for HTTPS, self for self-signed HTTPS, or False for HTTP
+          ssh_hostkeymust: hostkeymust arguement for ssh attributes only. Default True.
         type: dict
         required: true
     vfid:
@@ -45,20 +46,19 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
-    default_zone_access:
+    module_name:
         description:
-        - default zone access mode. "allaccess" to indicate all access
-          "noaccess" to indicate no access
-        required: false
+        - name of module. for example, brocade-security
+    obj_name:
+        description:
+        - name of obj. for example, password under brocade-security
 
 '''
 
 
 EXAMPLES = """
 
-  gather_facts: False
-
-  vars:
+  var:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
       fos_user_name: admin
@@ -67,11 +67,16 @@ EXAMPLES = """
 
   tasks:
 
-  - name: Default zoning
-    brocade_zoning_default_zone:
+  - name: gather device info
+    brocade_list_obj_facts:
       credential: "{{credential}}"
       vfid: -1
-      default_zone_access: allaccess
+      module_name: "brocade-snmp"
+      obj_name: "system"
+
+  - name: print ansible_facts gathered
+    debug:
+      var: ansible_facts
 
 """
 
@@ -87,14 +92,13 @@ msg:
 
 
 """
-Brocade Fibre Channel default zone Configuration
+Brocade Fibre Channel Port Configuration
 """
 
 
 from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_zoning import effective_get, effective_patch, cfg_save, cfg_abort, to_human_zoning, to_fos_zoning
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_objects import singleton_get, to_human_singleton
 from ansible.module_utils.basic import AnsibleModule
-
 
 
 def main():
@@ -106,11 +110,12 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
-        default_zone_access=dict(required=False, type='str'))
+        module_name=dict(required=True, type='str'),
+        obj_name=dict(required=True, type='str'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
-        supports_check_mode=True
+        supports_check_mode=False
     )
 
     input_params = module.params
@@ -120,9 +125,13 @@ def main():
     fos_user_name = input_params['credential']['fos_user_name']
     fos_password = input_params['credential']['fos_password']
     https = input_params['credential']['https']
+    ssh_hostkeymust = True
+    if 'ssh_hostkeymust' in input_params['credential']:
+        ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    default_zone_access = input_params['default_zone_access']
+    module_name = input_params['module_name']
+    obj_name = input_params['obj_name']
     result = {"changed": False}
 
     if vfid is None:
@@ -134,41 +143,28 @@ def main():
     if ret_code != 0:
         module.exit_json(**result)
 
-    ret_code, response = effective_get(fos_ip_addr, https, auth, vfid, result)
+    facts = {}
+
+    facts['ssh_hostkeymust'] = ssh_hostkeymust
+
+    ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
+                                  module_name, obj_name, fos_version,
+                                  https, auth, vfid, result,
+                                  ssh_hostkeymust)
     if ret_code != 0:
+        result["singleton_get"] = ret_code
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
-    resp_effective = response["Response"]["effective-configuration"]
+    obj = response["Response"][obj_name]
 
-    to_human_zoning(resp_effective)
+    to_human_singleton(module_name, obj_name, obj)
 
-    diff_attributes = {}
-    if (default_zone_access is not None and
-        default_zone_access != resp_effective["default_zone_access"]):
-        diff_attributes["default_zone_access"] = default_zone_access
+    result["obj"] = obj
 
-    if len(diff_attributes) > 0:
-        ret_code = to_fos_zoning(diff_attributes, result)
-        if ret_code != 0:
-            exit_after_login(fos_ip_addr, https, auth, result, module)
+    ret_dict = {}
+    ret_dict[obj_name] = obj
 
-        if not module.check_mode:
-            ret_code = effective_patch(fos_ip_addr, https,
-                                       auth, vfid, result, diff_attributes)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
-
-            checksum = resp_effective["checksum"]
-            ret_code = cfg_save(fos_ip_addr, https, auth, vfid,
-                                result, checksum)
-            if ret_code != 0:
-                ret_code = cfg_abort(fos_ip_addr, https, auth, vfid, result)
-                exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        result["changed"] = True
-    else:
-        logout(fos_ip_addr, https, auth, result)
-        module.exit_json(**result)
+    result["ansible_facts"] = ret_dict
 
     logout(fos_ip_addr, https, auth, result)
     module.exit_json(**result)

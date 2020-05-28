@@ -1,0 +1,37 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+  collections:
+    - daniel_chung_broadcom.fos
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: admin
+      fos_password: fibranne
+      https: False
+      ssh_hostkeymust: False
+
+  tasks:
+
+  - name: configure relay server
+    brocade_singleton_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-maps"
+      obj_name: "maps-config"
+      attributes:
+        relay_ip_address: "10.10.10.11"
+        domain_name: "dd.com"
+        sender_address: "s@dd.com"
+        recipient_address_list:
+          recipient_address:
+           - "r@dd.com"
+           - "r@rr.com"

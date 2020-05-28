@@ -22,82 +22,41 @@
         members:
           - aa:11:11:11:11:11:11:11
           - aa:22:22:22:22:22:22:22
-      - name: Target2
-        members:
-          - aa:44:44:44:44:44:44:44      
-      - name: Target3
-        members:
-          - aa:55:55:55:55:55:55:55
-      - name: Target4
-        members:
-          - aa:bb:cc:dd:AA:BB:CC:DD
-    aliases_to_delete:
-      - name: Target3
-      - name: Target4
+          - bb:99:99:99:99:99:99:99
     zones:
-      - name: Zone1
-        members:
-          - Host1
-          - Target2
-          - Target3
-      - name: Zone2
-        members:
-          - Host1
-          - Target3
-          - Target4
       - name: Zone3
         members:
           - aa:44:44:44:44:44:44:44
           - aa:55:55:55:55:55:55:55
+          - bb:99:99:99:99:99:99:99
         principal_members:
           - aa:aa:aa:aa:bb:bb:bb:bb
-          - aa:aa:aa:aa:cc:cc:cc:cc
-    zones_to_delete:
-      - name: Zone2
-      - name: Zone3
+          - aa:aa:aa:aa:cc:cc:cc:CC
+          - bb:bb:bb:bb:99:99:99:99
     cfgs:
       - name: cfg1
         members:
           - Zone1
           - Zone2
-      - name: cfg2
-        members:
-          - Zone2
-          - zone3
-      - name: cfg3
-        members:
-          - Zone1
           - Zone3
-    cfgs_to_delete:
-      - name: cfg2
-      - name: cfg3
 
   tasks:
 
-  - name: Create aliases
+  - name: after zoning_zone.yml, add bb:99:99:99:99:99:99:99 to Host1 by specifying all members
     brocade_zoning_alias:
       credential: "{{credential}}"
       vfid: -1
       aliases: "{{aliases}}"
-#      aliases_to_delete: "{{aliases_to_delete}}"
 
-  - name: Create zones
+  - name: after zoning_zone.yml, add bb:99:99:99:99:99:99:99/bb:bb:bb:bb:99:99:99:99 to Zone3 by specifying all members
     brocade_zoning_zone:
       credential: "{{credential}}"
       vfid: -1
       zones: "{{zones}}"
-#      zones_to_delete: "{{zones_to_delete}}"
 
-  - name: Create cfgs
+  - name: after zoning_zone.yml, add Zone3 to cfg1 by specifying all members and leave it enabled
     brocade_zoning_cfg:
       credential: "{{credential}}"
       vfid: -1
       cfgs: "{{cfgs}}"
-#      cfgs_to_delete: "{{cfgs_to_delete}}"
       active_cfg: cfg1
-
-  - name: Default zoning
-    brocade_zoning_default_zone:
-      credential: "{{credential}}"
-      vfid: -1
-      default_zone_access: allaccess

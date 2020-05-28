@@ -43,7 +43,7 @@ def to_fos_chassis(attributes, result):
     return 0
 
 
-def chassis_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result):
+def chassis_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust):
     """
         retrieve existing switch configurations
 
@@ -71,10 +71,14 @@ def chassis_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid,
         result["msg"] = "API failed to return data"
         return -1, None
 
-    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "timeout", "showcommand")
+    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "timeout", "showcommand")
     if rssh == 0:
         if "Current IDLE Timeout is " in sshstr:
             text = sshstr[len("Current IDLE Timeout is "):]
+            timeout = text.split(" ")
+            rdict["Response"]["chassis"]["telnet-timeout"] = timeout[0]
+        elif "Shell Idle Timeout is " in sshstr:
+            text = sshstr[len("Shell Idle Timeout is "):]
             timeout = text.split(" ")
             rdict["Response"]["chassis"]["telnet-timeout"] = timeout[0]
         else:
@@ -85,7 +89,7 @@ def chassis_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid,
     return 0, rdict
 
 
-def chassis_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, diff_attributes):
+def chassis_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, diff_attributes, ssh_hostkeymust):
     """
         update existing switch configurations
 
@@ -107,10 +111,10 @@ def chassis_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfi
     l_diffs = diff_attributes.copy()
 
     if "telnet-timeout" in l_diffs:
-        rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, False, "timeout " + str(l_diffs["telnet-timeout"]), "The modified IDLE Timeout will be in effect after NEXT login")
+        rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "timeout " + str(l_diffs["telnet-timeout"]), "The modified IDLE Timeout will be in effect after NEXT login")
         if rssh != 0:
             result["failed"] = True
-            result["msg"] = "Failed to set telnet-timeout"
+            result["msg"] = "Failed to set telnet-timeout. " + sshstr
         else:
             result["changed"] = True
             result["messages"] = "telnet-timeout set"
