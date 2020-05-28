@@ -97,6 +97,10 @@
         - name: "0/1"
           persistent_disable: True
 
+  # pause for 15 seconds to make sure fabric is stable for
+  # zoning commit
+  - pause: seconds=15
+
   - name: zoning configuration
     brocade_zoning_default_zone:
       credential: "{{credential}}"
@@ -162,6 +166,103 @@
         security_get_level: 0
         security_set_level: 3
         snmpv1_enabled: True
+
+  - name: snmp v1 accounts
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-snmp"
+      list_name: "v1-account"
+      longer_timeout: 30
+      entries:
+        - index: 1
+          community_name: "secret code"
+        - index: 2
+          community_name: "oem"
+        - index: 3
+          community_name: "private"
+        - index: 4
+          community_name: "public"
+        - index: 5
+          community_name: "common"
+        - index: 6
+          community_name: "FibreChannel"
+
+  - name: snmp v1 traps
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-snmp"
+      list_name: "v1-trap"
+      all_entries: False
+      entries:
+        - index: 1
+          host: "10.10.10.10"
+          port_number: 1010
+          trap_severity_level: "warning"
+
+  - name: snmp v3 accounts - setup non-password attributes
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-snmp"
+      list_name: "v3-account"
+      all_entries: False
+      entries:
+        - index: 1
+          authentication_protocol: "md5"
+          manager_engine_id: "00:00:00:00:00:00:00:00:00"
+          privacy_protocol: "aes128"
+          user_name: "asc-test"
+        - index: 2
+          authentication_protocol: "sha"
+          manager_engine_id: "00:00:00:00:00:00:00:00:00"
+          privacy_protocol: "des"
+          user_name: "snmpadmin2"
+
+  - name: snmp v3 traps
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-snmp"
+      list_name: "v3-trap"
+      entries:
+        - trap_index: 1
+          host: "10.10.10.11"
+          informs_enabled: true
+          port_number: 1011
+          trap_severity_level: "warning"
+          usm_index: 1
+        - trap_index: 2
+          host: "10.10.10.12"
+          informs_enabled: false
+          port_number: 1012
+          trap_severity_level: "critical"
+          usm_index: 2
+        - trap_index: 3
+          host: "0.0.0.0"
+          informs_enabled: false
+          port_number: 162
+          trap_severity_level: "none"
+          usm_index: 3
+        - trap_index: 4
+          host: "0.0.0.0"
+          informs_enabled: false
+          port_number: 162
+          trap_severity_level: "none"
+          usm_index: 4
+        - trap_index: 5
+          host: "0.0.0.0"
+          informs_enabled: false
+          port_number: 162
+          trap_severity_level: "none"
+          usm_index: 5
+        - trap_index: 6
+          host: "0.0.0.0"
+          informs_enabled: false
+          port_number: 162
+          trap_severity_level: "none"
+          usm_index: 6
 
   - name: ipfilter policy is created or present
     brocade_security_ipfilter_policy:
@@ -298,3 +399,18 @@
           virtual_fabric_role_id_list:
             - role_id: "admin=1-128"
           chassis_access_role: "admin"
+
+  - name: configure relay server
+    brocade_singleton_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-maps"
+      obj_name: "maps-config"
+      attributes:
+        relay_ip_address: "10.10.10.10"
+        domain_name: "d.com"
+        sender_address: "s@d.com"
+        recipient_address_list:
+          recipient_address:
+            - "r@d.com"
+            - "r@r.com"

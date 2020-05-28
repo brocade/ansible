@@ -163,27 +163,23 @@ def zone_process_diff(result, zones, c_zones):
         for c_zone in c_zones:
             if zone["name"] == c_zone["zone-name"]:
                 found_in_c = True
-                added_members, removed_members, common_members = process_member_diff(
-                    result, zone["members"],
-                    c_zone["member-entry"]["entry-name"])
-                if (
-                        "principal_members" in zone and
-                        "principal-entry-name" in c_zone["member-entry"]):
-                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff(
-                        result, zone["principal_members"],
-                        c_zone["member-entry"]
-                        ["principal-entry-name"])
-                elif (
-                        "principal_members" in zone and
-                        "principal-entry-name" not in c_zone["member-entry"]):
-                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff(
-                        result, zone["principal_members"], [])
-                elif (
-                        "principal_members" not in zone and
-                        "principal-entry-name" in c_zone["member-entry"]):
-                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff(
-                        result, [], c_zone["member-entry"]
-                        ["principal-entry-name"])
+                if ("members" in zone and "entry-name" in c_zone["member-entry"]):
+                    added_members, removed_members, common_members = process_member_diff(result, zone["members"], c_zone["member-entry"]["entry-name"])
+                elif ("members" in zone and "entry-name" not in c_zone["member-entry"]):
+                    added_members, removed_members, common_members = process_member_diff(result, zone["members"], [])
+                elif ("members" not in zone and "entry-name" in c_zone["member-entry"]):
+                    added_members, removed_members, common_members = process_member_diff(result, [], c_zone["member-entry"]["entry-name"])
+                else:
+                    added_members = []
+                    removed_members = []
+                    common_members = []
+
+                if ("principal_members" in zone and "principal-entry-name" in c_zone["member-entry"]):
+                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff( result, zone["principal_members"], c_zone["member-entry"] ["principal-entry-name"])
+                elif ("principal_members" in zone and "principal-entry-name" not in c_zone["member-entry"]):
+                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff( result, zone["principal_members"], [])
+                elif ("principal_members" not in zone and "principal-entry-name" in c_zone["member-entry"]):
+                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff( result, [], c_zone["member-entry"] ["principal-entry-name"])
                 else:
                     added_pmembers = []
                     removed_pmembers = []

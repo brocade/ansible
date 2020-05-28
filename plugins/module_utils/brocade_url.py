@@ -18,6 +18,7 @@ __metaclass__ = type
 Brocade Connections utils
 """
 
+DEFAULT_TO = 10
 
 VF_ID = "?vf-id="
 HTTP = "http://"
@@ -62,24 +63,15 @@ def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body):
     if vfid is not None and vfid != -1:
         url = url + VF_ID + str(vfid)
 
-    try:
-        resp = ansible_urls.open_url(url, body,
-                                     headers={
-                                         "Authorization": auth["auth"],
-                                         'Content-Type':
-                                         'application/yang-data+xml'},
-                                     method="POST", validate_certs=validate_certs)
-    except urllib_error.HTTPError as e:
-        result["post_url"] = url
-        result["post_resp_code"] = e.code
-        result["post_resp_reason"] = e.reason
-        ret_code, root_dict = bsn_xmltodict(result, e.read())
-        result["post_resp_data"] = root_dict
-        result["failed"] = True
-        result["msg"] = "url_post failed"
-        return -1
-
-    time.sleep(auth["throttle"])
+    retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs)
+    if retval == -1:
+        if eret != -3:
+            return eret
+        elif eret == -3:
+            time.sleep(auth["throttle"])
+            retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs)
+            if retval == -1:
+                return eret
 
     return 0
 
@@ -109,41 +101,25 @@ def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, longer_timeo
         url = url + VF_ID + str(vfid)
 
     if longer_timeout == None:
-        try:
-            resp = ansible_urls.open_url(url, body,
-                                     headers={
-                                         "Authorization": auth["auth"],
-                                         'Content-Type':
-                                         'application/yang-data+xml'},
-                                     method="PATCH", validate_certs=validate_certs)
-        except urllib_error.HTTPError as e:
-            result["patch_url"] = url
-            result["patch_resp_code"] = e.code
-            result["patch_resp_reason"] = e.reason
-            ret_code, root_dict = bsn_xmltodict(result, e.read())
-            result["patch_resp_data"] = root_dict
-            result["failed"] = True
-            result["msg"] = "url_patch failed"
-            return -1
+        retval, eret, edict, resp = url_helper(url, body, "PATCH", auth, result, validate_certs)
+        if retval == -1:
+            if eret != -3:
+                return eret
+            elif eret == -3:
+                time.sleep(auth["throttle"])
+                retval, eret, delete, resp = url_helper(url, body, "PATCH", auth, result, validate_certs)
+                if retval == -1:
+                    return eret
     else:
-        try:
-            resp = ansible_urls.open_url(url, body,
-                                     headers={
-                                         "Authorization": auth["auth"],
-                                         'Content-Type':
-                                         'application/yang-data+xml'},
-                                     method="PATCH", timeout = longer_timeout, validate_certs=validate_certs)
-        except urllib_error.HTTPError as e:
-            result["patch_url"] = url
-            result["patch_resp_code"] = e.code
-            result["patch_resp_reason"] = e.reason
-            ret_code, root_dict = bsn_xmltodict(result, e.read())
-            result["patch_resp_data"] = root_dict
-            result["failed"] = True
-            result["msg"] = "url_patch failed"
-            return -1
-
-    time.sleep(auth["throttle"])
+        retval, eret, edict, resp = url_helper(url, body, "PATCH", auth, result, validate_certs, timeout=longer_timeout)
+        if retval == -1:
+            if eret != -3:
+                return eret
+            elif eret == -3:
+                time.sleep(auth["throttle"])
+                retval, eret, delete, resp = url_helper(url, body, "PATCH", auth, result, validate_certs)
+                if retval == -1:
+                    return eret
 
     result["patch_resp_data"] = resp.read()
 
@@ -174,27 +150,62 @@ def url_delete(fos_ip_addr, is_https, auth, vfid, result, url, body):
     if vfid is not None and vfid != -1:
         url = url + VF_ID + str(vfid)
 
-    try:
-        resp = ansible_urls.open_url(url, body,
-                                     headers={
-                                         "Authorization": auth["auth"],
-                                         'Content-Type':
-                                         'application/yang-data+xml'},
-                                     method="DELETE", validate_certs=validate_certs)
-    except urllib_error.HTTPError as e:
-        result["delete_url"] = url
-        result["delete_resp_code"] = e.code
-        result["delete_resp_reason"] = e.reason
-        ret_code, root_dict = bsn_xmltodict(result, e.read())
-        result["delete_resp_data"] = root_dict
-        result["failed"] = True
-        result["msg"] = "url_delete failed"
-        return -1
-
-    time.sleep(auth["throttle"])
+    retval, eret, edict, delete_resp = url_helper(url, body, "DELETE", auth, result, validate_certs)
+    if retval == -1:
+        if eret != -3:
+            return eret
+        elif eret == -3:
+            time.sleep(auth["throttle"])
+            retval, eret, delete, delete_resp = url_helper(url, body, "DELETE", auth, result, validate_certs)
+            if retval == -1:
+                return eret
 
     return 0
 
+def url_helper(url, body, method, auth, result, validate_certs, timeout=DEFAULT_TO, credential=None):
+    myheaders = {}
+    if credential == None:   
+        myheaders={
+            "Authorization": auth["auth"],
+            'Content-Type': 'application/yang-data+xml'}
+    else:
+        myheaders = credential
+
+    try:
+        get_resp = ansible_urls.open_url(url, body,
+                                         headers=myheaders,
+                                         method=method, timeout=timeout, validate_certs=validate_certs)
+    except urllib_error.HTTPError as e:
+        e_data = e.read()
+        if len(e_data) > 0:
+            ret_code, root_dict = bsn_xmltodict(result, e_data)
+            result[method + "_resp_data"] = root_dict
+        else:
+            result[method + "_resp_data"] = e_data
+
+        if e.code == 404 and (root_dict["errors"]["error"]["error-message"] == "No entries found" or root_dict["errors"]["error"]["error-message"] == "No syslog servers are configured" or root_dict["errors"]["error"]["error-message"] == "No entries in Name Server"):
+            empty_list_resp = {}
+            empty_list_resp["Response"] = {}
+            empty_list_resp["Response"][os.path.basename(url)] = []
+            return -1, 0, empty_list_resp, None
+
+        result[method + "_url"] = url
+        result[method + "_resp_code"] = e.code
+        result[method + "_resp_reason"] = e.reason
+
+        ret_val = -1
+        if e.code == 405:
+            ret_val = -2
+        elif e.code == 503:
+            ret_val = -3
+            result["myretry"] = True
+        else:
+            result["failed"] = True
+            result["msg"] = method + " failed"
+
+        return -1, ret_val, None, None
+
+    return 0, 0, None, get_resp,
 
 def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url):
     """
@@ -220,33 +231,15 @@ def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url):
     if vfid is not None and vfid != -1:
         url = url + VF_ID + str(vfid)
 
-    try:
-        get_resp = ansible_urls.open_url(url,
-                                         headers={
-                                             "Authorization": auth["auth"],
-                                             'Content-Type':
-                                             'application/yang-data+xml'},
-                                         method="GET", validate_certs=validate_certs)
-    except urllib_error.HTTPError as e:
-        e_data = e.read()
-        ret_code, root_dict = bsn_xmltodict(result, e_data)
-        if e.code == 404 and (root_dict["errors"]["error"]["error-message"] == "No entries found" or root_dict["errors"]["error"]["error-message"] == "No syslog servers are configured" or root_dict["errors"]["error"]["error-message"] == "No entries in Name Server"):
-            empty_list_resp = {}
-            empty_list_resp["Response"] = {}
-            empty_list_resp["Response"][os.path.basename(url)] = []
-            return 0, empty_list_resp
-
-        ret_val = -1
-        result["get_url"] = url
-        result["get_resp_code"] = e.code
-        result["get_resp_reason"] = e.reason
-        result["get_resp_data"] = root_dict
-        if e.code == 405:
-            ret_val = -2
-        else:
-            result["failed"] = True
-            result["msg"] = "url_get_to_dict failed"
-        return ret_val, None
+    retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs)
+    if retval == -1:
+        if eret != -3:
+            return eret, edict
+        elif eret == -3:
+            time.sleep(auth["throttle"])
+            retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs)
+            if retval == -1:
+                return eret, edict
 
     data = get_resp.read()
     ret_code, root_dict = bsn_xmltodict(result, data)
@@ -254,8 +247,6 @@ def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url):
         result["failed"] = True
         result["msg"] = "bsn_xmltodict failed"
         return -100, None
-
-    time.sleep(auth["throttle"])
 
     return 0, root_dict
 
