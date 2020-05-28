@@ -95,7 +95,7 @@ def find_diff(result, yang_key, new_value, c_config, diff_attributes):
                     if not found:
                         diff_attributes[yang_key] = new_value 
         else:
-            if str(new_value) != c_config[yang_key]:
+            if str(new_value) != str(c_config[yang_key]):
                 diff_attributes[yang_key] = new_value 
     else:
         # if the key doesn't exist in the current config

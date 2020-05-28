@@ -89,6 +89,10 @@
         - name: "0/1"
           persistent_disable: False
 
+  # pause for 15 seconds to make sure fabric is stable for
+  # zoning commit
+  - pause: seconds=15
+
   - name: change all zoning configuration
     brocade_zoning_default_zone:
       credential: "{{credential}}"
@@ -152,6 +156,103 @@
         security_set_level: 3
         snmpv1_enabled: False
 
+  - name: snmp v1 accounts
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-snmp"
+      list_name: "v1-account"
+      longer_timeout: 30
+      entries:
+        - index: 1
+          community_name: "Secret code old"
+        - index: 2
+          community_name: "OrigEquipMfr old"
+        - index: 3
+          community_name: "private old"
+        - index: 4
+          community_name: "public old"
+        - index: 5
+          community_name: "common old"
+        - index: 6
+          community_name: "FibreChannel old"
+
+  - name: v1 traps
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-snmp"
+      list_name: "v1-trap"
+      all_entries: False
+      entries:
+        - index: 1
+          host: "10.10.10.22"
+          port_number: 1022
+          trap_severity_level: "critical"
+
+  - name: v3 accounts - setup non-password attributes
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-snmp"
+      list_name: "v3-account"
+      all_entries: False
+      entries:
+        - index: 1
+          authentication_protocol: "sha"
+          manager_engine_id: "00:00:00:00:00:00:00:00:00"
+          privacy_protocol: "des"
+          user_name: "snmpadmin11"
+        - index: 2
+          authentication_protocol: "md5"
+          manager_engine_id: "00:00:00:00:00:00:00:00:00"
+          privacy_protocol: "aes128"
+          user_name: "snmpadmin22"
+
+  - name: v3 traps
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-snmp"
+      list_name: "v3-trap"
+      entries:
+        - trap_index: 1
+          host: "10.10.10.31"
+          informs_enabled: false
+          port_number: 1031
+          trap_severity_level: "critical"
+          usm_index: 1
+        - trap_index: 2
+          host: "10.10.10.32"
+          informs_enabled: false
+          port_number: 1032
+          trap_severity_level: "warning"
+          usm_index: 2
+        - trap_index: 3
+          host: "0.0.0.0"
+          informs_enabled: false
+          port_number: 162
+          trap_severity_level: "none"
+          usm_index: 3
+        - trap_index: 4
+          host: "0.0.0.0"
+          informs_enabled: false
+          port_number: 162
+          trap_severity_level: "none"
+          usm_index: 4
+        - trap_index: 5
+          host: "0.0.0.0"
+          informs_enabled: false
+          port_number: 162
+          trap_severity_level: "none"
+          usm_index: 5
+        - trap_index: 6
+          host: "0.0.0.0"
+          informs_enabled: false
+          port_number: 162
+          trap_severity_level: "none"
+          usm_index: 6
+
   - name: activate default ipv4 before deleting previously created custom policy
     brocade_security_ipfilter_policy:
       credential: "{{credential}}"
@@ -182,3 +283,19 @@
       delete_user_configs:
         - name: "myaccount"
         - name: "youraccount"
+
+  - name: configure relay server
+    brocade_singleton_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-maps"
+      obj_name: "maps-config"
+      attributes:
+        relay_ip_address: "10.10.10.11"
+        domain_name: "dd.com"
+        sender_address: "s@dd.com"
+        recipient_address_list:
+          recipient_address:
+            - "r@dd.com"
+            - "r@rr.com"
+

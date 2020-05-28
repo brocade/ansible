@@ -77,6 +77,10 @@ def chassis_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid,
             text = sshstr[len("Current IDLE Timeout is "):]
             timeout = text.split(" ")
             rdict["Response"]["chassis"]["telnet-timeout"] = timeout[0]
+        elif "Shell Idle Timeout is " in sshstr:
+            text = sshstr[len("Shell Idle Timeout is "):]
+            timeout = text.split(" ")
+            rdict["Response"]["chassis"]["telnet-timeout"] = timeout[0]
         else:
             result["failed"] = True
             result["msg"] = "telnet_timeout returned unknown string"
