@@ -181,11 +181,11 @@ def main():
             diff_attributes["relay_ip_address"] = resp_attributes["relay_ip_address"]
             result["kept the same"] = "relay_ip_address"
 
-        if diff_attributes["relay_ip_address"] == None:
+        if "relay_ip_address" in diff_attributes and diff_attributes["relay_ip_address"] == None:
             result["failed"] = True
             result['msg'] = "must specify relay_ip_address if configured empty"
             exit_after_login(fos_ip_addr, https, auth, result, module)
-        elif diff_attributes["domain_name"] == None:
+        elif "domain_name" in diff_attributes and diff_attributes["domain_name"] == None:
             result["failed"] = True
             result['msg'] = "must specify domain_name if configured empty"
             exit_after_login(fos_ip_addr, https, auth, result, module)
