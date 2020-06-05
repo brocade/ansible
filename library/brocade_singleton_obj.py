@@ -170,6 +170,26 @@ def main():
 
     diff_attributes = generate_diff(result, resp_attributes, attributes)
 
+    # any object specific special processing
+    if module_name == "brocade-maps" and obj_name == "maps-config":
+        # relay_ip_address and domain_name needs to be specifid
+        # at the same time based on FOS REST requirements
+        if "relay_ip_address" in diff_attributes and "domain_name" not in diff_attributes:
+            diff_attributes["domain_name"] = resp_attributes["domain_name"]
+            result["kept the same"] = "domain_name"
+        elif "relay_ip_address" not in diff_attributes and "domain_name" in diff_attributes:
+            diff_attributes["relay_ip_address"] = resp_attributes["relay_ip_address"]
+            result["kept the same"] = "relay_ip_address"
+
+        if "relay_ip_address" in diff_attributes and diff_attributes["relay_ip_address"] == None:
+            result["failed"] = True
+            result['msg'] = "must specify relay_ip_address if configured empty"
+            exit_after_login(fos_ip_addr, https, auth, result, module)
+        elif "domain_name" in diff_attributes and diff_attributes["domain_name"] == None:
+            result["failed"] = True
+            result['msg'] = "must specify domain_name if configured empty"
+            exit_after_login(fos_ip_addr, https, auth, result, module)
+
     result["diff_attributes"] = diff_attributes
     result["resp_attributes"] = resp_attributes
     result["attributes"] = attributes
