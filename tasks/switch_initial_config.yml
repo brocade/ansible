@@ -48,10 +48,12 @@
         domain_name: "yahoo.com"
 
   - name: fabric configuration
-    brocade_fibrechannel_configuration_fabric:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      fabric:
+      module_name: "brocade_fibrechannel_configuration"
+      obj_name: "fabric"
+      attributes:
         insistent_domain_id_enabled: True
         in_order_delivery_enabled: False
         fabric_principal_enabled: True
@@ -61,10 +63,12 @@
 #  - debug: var=result
 
   - name: port configuration
-    brocade_fibrechannel_configuration_port_configuration:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      port_configuration:
+      module_name: "brocade_fibrechannel_configuration"
+      obj_name: "port_configuration"
+      attributes:
         dynamic_portname_format: "I.T.A.R"
         portname_mode: "dynamic"
         credit_recovery_mode: "onLrOnly"

@@ -42,10 +42,12 @@
             - "9.8.8.8"
 
   - name: change all fabric configuration
-    brocade_fibrechannel_configuration_fabric:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      fabric:
+      module_name: "brocade_fibrechannel_configuration"
+      obj_name: "fabric"
+      attributes:
         insistent_domain_id_enabled: False
         in_order_delivery_enabled: True
         fabric_principal_enabled: False
@@ -55,10 +57,12 @@
 #  - debug: var=result
 
   - name: change all port configuration
-    brocade_fibrechannel_configuration_port_configuration:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      port_configuration:
+      module_name: "brocade_fibrechannel_configuration"
+      obj_name: "port_configuration"
+      attributes:
         dynamic_portname_format: "T.A.R"
         portname_mode: "off"
         credit_recovery_mode: "off"

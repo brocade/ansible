@@ -25,8 +25,6 @@
       gather_subset:
         - brocade_zoning
         - brocade_interface_fibrechannel
-        - brocade_fibrechannel_configuration_fabric
-        - brocade_fibrechannel_configuration_port_configuration
         - brocade_fibrechannel_switch
         - brocade_time_clock_server
         - brocade_time_time_zone
@@ -43,6 +41,20 @@
       vfid: -1
       module_name: "brocade_chassis"
       obj_name: "chassis"
+
+  - name: gather facts for brocade_fibrechannel_configuration_fabric
+    brocade_singleton_obj_facts:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_fibrechannel_configuration"
+      obj_name: "fabric"
+
+  - name: gather facts for brocade_fibrechannel_configuration_port_configuration
+    brocade_singleton_obj_facts:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_fibrechannel_configuration"
+      obj_name: "port_configuration"
 
   - name: print ansible_facts gathered
     debug:

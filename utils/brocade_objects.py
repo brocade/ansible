@@ -10,6 +10,7 @@ from ansible.module_utils.brocade_yang import yang_to_human, human_to_yang, str_
 from ansible.module_utils.brocade_ssh import ssh_and_configure
 from ansible.module_utils.brocade_interface import to_fos_fc, to_human_fc
 from ansible.module_utils.brocade_chassis import chassis_get, chassis_patch
+from ansible.module_utils.brocade_fibrechannel_configuration import fabric_get, fabric_patch, port_configuration_get, port_configuration_patch
 import base64
 
 __metaclass__ = type
@@ -79,6 +80,12 @@ def singleton_get(login, password, fos_ip_addr, module_name, obj_name, fos_versi
     """
     if module_name == "brocade_chassis" and obj_name == "chassis":
         return chassis_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust)
+
+    if module_name == "brocade_fibrechannel_configuration" and obj_name == "fabric":
+        return fabric_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust)
+
+    if module_name == "brocade_fibrechannel_configuration" and obj_name == "port_configuration":
+        return port_configuration_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust)
 
     full_url, validate_certs = full_url_get(is_https,
                                             fos_ip_addr,
@@ -233,6 +240,12 @@ def singleton_patch(login, password, fos_ip_addr, module_name, obj_name, fos_ver
     """
     if module_name == "brocade_chassis" and obj_name == "chassis":
         return chassis_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, new_attributes, ssh_hostkeymust)
+
+    if module_name == "brocade_fibrechannel_configuration" and obj_name == "fabric":
+        return fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, new_attributes, ssh_hostkeymust)
+
+    if module_name == "brocade_fibrechannel_configuration" and obj_name == "port_configuration":
+        return port_configuration_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, new_attributes, ssh_hostkeymust)
 
     full_url, validate_certs = full_url_get(is_https,
                                             fos_ip_addr,
