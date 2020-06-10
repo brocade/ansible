@@ -77,10 +77,12 @@
         enabled_state: True
 
   - name: chassis configuration
-    brocade_chassis:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      chassis:
+      module_name: "brocade_chassis"
+      obj_name: "chassis"
+      attributes:
         chassis_user_friendly_name: "chassis_name"
         telnet_timeout: 30
 

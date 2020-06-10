@@ -25,7 +25,6 @@
       gather_subset:
         - brocade_zoning
         - brocade_interface_fibrechannel
-        - brocade_chassis
         - brocade_fibrechannel_configuration_fabric
         - brocade_fibrechannel_configuration_port_configuration
         - brocade_fibrechannel_switch
@@ -37,6 +36,13 @@
         - brocade_security_ipfilter_rule
         - brocade_security_ipfilter_policy
         - brocade_security_user_config
+
+  - name: gather facts for brocade_chassis_chassis
+    brocade_singleton_obj_facts:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_chassis"
+      obj_name: "chassis"
 
   - name: print ansible_facts gathered
     debug:

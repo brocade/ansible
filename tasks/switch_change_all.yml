@@ -71,10 +71,12 @@
         enabled_state: True
 
   - name: change all chassis configuration
-    brocade_chassis:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      chassis:
+      module_name: "brocade_chassis"
+      obj_name: "chassis"
+      attributes:
         chassis_user_friendly_name: "new_chassis_name"
         telnet_timeout: 60
 

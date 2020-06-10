@@ -9,6 +9,7 @@ from ansible.module_utils.brocade_url import url_get_to_dict, url_patch, full_ur
 from ansible.module_utils.brocade_yang import yang_to_human, human_to_yang, str_to_yang, str_to_human
 from ansible.module_utils.brocade_ssh import ssh_and_configure
 from ansible.module_utils.brocade_interface import to_fos_fc, to_human_fc
+from ansible.module_utils.brocade_chassis import chassis_get, chassis_patch
 import base64
 
 __metaclass__ = type
@@ -76,6 +77,9 @@ def singleton_get(login, password, fos_ip_addr, module_name, obj_name, fos_versi
         :return: dict of ipfilter policy configurations
         :rtype: dict
     """
+    if module_name == "brocade_chassis" and obj_name == "chassis":
+        return chassis_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust)
+
     full_url, validate_certs = full_url_get(is_https,
                                             fos_ip_addr,
                                             REST_PREFIX + module_name + "/" + obj_name)
@@ -227,6 +231,9 @@ def singleton_patch(login, password, fos_ip_addr, module_name, obj_name, fos_ver
         :return: list of dict of chassis configurations
         :rtype: list
     """
+    if module_name == "brocade_chassis" and obj_name == "chassis":
+        return chassis_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, new_attributes, ssh_hostkeymust)
+
     full_url, validate_certs = full_url_get(is_https,
                                             fos_ip_addr,
                                             REST_PREFIX + module_name + "/" + obj_name)
