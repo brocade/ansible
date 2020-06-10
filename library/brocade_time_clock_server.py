@@ -99,7 +99,7 @@ Brocade Fibre Channel time clock server Configuration
 
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
+from ansible.module_utils.brocade_yang import generate_diff, is_full_human
 from ansible.module_utils.brocade_time import clock_server_patch, clock_server_get, to_human_clock_server, to_fos_clock_server
 from ansible.module_utils.basic import AnsibleModule
 
@@ -131,6 +131,9 @@ def main():
     vfid = input_params['vfid']
     clock_server = input_params['clock_server']
     result = {"changed": False}
+
+    if not is_full_human(clock_server, result):
+        module.exit_json(**result)
 
     if vfid is None:
         vfid = 128

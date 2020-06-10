@@ -98,7 +98,7 @@ Brocade Fibre Channel switch Configuration
 
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
+from ansible.module_utils.brocade_yang import generate_diff, is_full_human
 from ansible.module_utils.brocade_security import password_patch, password_get, to_human_password, to_fos_password
 from ansible.module_utils.basic import AnsibleModule
 
@@ -133,6 +133,9 @@ def main():
     vfid = input_params['vfid']
     password = input_params['password']
     result = {"changed": False}
+
+    if not is_full_human(password, result):
+        module.exit_json(**result)
 
     if vfid is None:
         vfid = 128

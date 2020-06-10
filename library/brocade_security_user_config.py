@@ -91,12 +91,14 @@ EXAMPLES = """
         - name: "myaccount"
           password: "bXlwYXNzd29yZA=="
           virtual_fabric_role_id_list:
-            - role_id: "admin=1-128"
+            role_id:
+              -  "admin=1-128"
           chassis_access_role: "admin"
         - name: "youraccount"
           password: "bXlwYXNzd29yZA=="
           virtual_fabric_role_id_list:
-            - role_id: "admin=1-128"
+            role_id:
+              - "admin=1-128"
           chassis_access_role: "admin"
 
   - name: delete accounts
@@ -126,7 +128,7 @@ Brocade Fibre Channel user config Configuration
 
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
+from ansible.module_utils.brocade_yang import generate_diff, is_full_human
 from ansible.module_utils.brocade_security import user_config_patch, user_config_post, user_config_delete, user_config_get, to_human_user_config, to_fos_user_config
 from ansible.module_utils.basic import AnsibleModule
 
@@ -164,6 +166,9 @@ def main():
     delete_user_configs = input_params['delete_user_configs']
     result = {"changed": False}
 
+    if not is_full_human(user_configs, result):
+        module.exit_json(**result)
+
     if vfid is None:
         vfid = 128
 
@@ -184,10 +189,6 @@ def main():
         c_user_configs = resp_uc
     else:
         c_user_configs = [resp_uc]
-
-    for c_user_config in c_user_configs:
-        if "virtual-fabric-role-id-list" in c_user_config and not isinstance(c_user_config["virtual-fabric-role-id-list"], list):
-            c_user_config["virtual-fabric-role-id-list"] = [c_user_config["virtual-fabric-role-id-list"]]
 
     # convert REST to human readable format first
     for c_user_config in c_user_configs:

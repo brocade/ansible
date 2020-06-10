@@ -197,7 +197,7 @@ Brocade Fibre Channel ipfilter rule Configuration
 
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
+from ansible.module_utils.brocade_yang import generate_diff, is_full_human
 from ansible.module_utils.brocade_security import ipfilter_rule_patch, ipfilter_rule_post, ipfilter_rule_delete, ipfilter_rule_get, to_human_ipfilter_rule, to_fos_ipfilter_rule
 from ansible.module_utils.basic import AnsibleModule
 
@@ -229,6 +229,9 @@ def main():
     vfid = input_params['vfid']
     ipfilter_rules = input_params['ipfilter_rules']
     result = {"changed": False}
+
+    if not is_full_human(ipfilter_rules, result):
+        module.exit_json(**result)
 
     if vfid is None:
         vfid = 128

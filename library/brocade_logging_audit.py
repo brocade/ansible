@@ -102,7 +102,7 @@ Brocade Fibre Channel logging audit Configuration
 
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
+from ansible.module_utils.brocade_yang import generate_diff, is_full_human
 from ansible.module_utils.brocade_logging import audit_patch, audit_get, to_human_audit, to_fos_audit
 from ansible.module_utils.basic import AnsibleModule
 
@@ -134,6 +134,9 @@ def main():
     vfid = input_params['vfid']
     audit = input_params['audit']
     result = {"changed": False}
+
+    if not is_full_human(audit, result):
+        module.exit_json(**result)
 
     if vfid is None:
         vfid = 128

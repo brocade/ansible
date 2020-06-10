@@ -102,7 +102,7 @@ Brocade Fibre Channel switch Configuration
 
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
+from ansible.module_utils.brocade_yang import generate_diff, is_full_human
 from ansible.module_utils.brocade_fibrechannel_configuration import fabric_patch, fabric_get, to_human_fabric, to_fos_fabric
 from ansible.module_utils.basic import AnsibleModule
 
@@ -137,6 +137,9 @@ def main():
     vfid = input_params['vfid']
     fabric = input_params['fabric']
     result = {"changed": False}
+
+    if not is_full_human(fabric, result):
+        module.exit_json(**result)
 
     if vfid is None:
         vfid = 128

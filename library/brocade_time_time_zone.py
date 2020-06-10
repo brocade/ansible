@@ -94,7 +94,7 @@ Brocade Fibre Channel time time zone Configuration
 
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
+from ansible.module_utils.brocade_yang import generate_diff, is_full_human
 from ansible.module_utils.brocade_time import time_zone_patch, time_zone_get, to_human_time_zone, to_fos_time_zone
 from ansible.module_utils.basic import AnsibleModule
 
@@ -126,6 +126,9 @@ def main():
     vfid = input_params['vfid']
     time_zone = input_params['time_zone']
     result = {"changed": False}
+
+    if not is_full_human(time_zone, result):
+        module.exit_json(**result)
 
     if vfid is None:
         vfid = 128

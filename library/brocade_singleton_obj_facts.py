@@ -98,6 +98,7 @@ Brocade Fibre Channel Port Configuration
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
 from ansible.module_utils.brocade_objects import singleton_get, to_human_singleton
+from ansible.module_utils.brocade_yang import str_to_human, str_to_yang
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -130,8 +131,8 @@ def main():
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    module_name = input_params['module_name']
-    obj_name = input_params['obj_name']
+    module_name = str_to_human(input_params['module_name'])
+    obj_name = str_to_human(input_params['obj_name'])
     result = {"changed": False}
 
     if vfid is None:
@@ -155,7 +156,7 @@ def main():
         result["singleton_get"] = ret_code
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
-    obj = response["Response"][obj_name]
+    obj = response["Response"][str_to_yang(obj_name)]
 
     to_human_singleton(module_name, obj_name, obj)
 

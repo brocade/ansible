@@ -106,6 +106,7 @@ Brocade Fibre Channel Port Configuration
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
 from ansible.module_utils.brocade_objects import list_get, to_human_list
+from ansible.module_utils.brocade_yang import str_to_human, str_to_yang
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -139,8 +140,8 @@ def main():
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    module_name = input_params['module_name']
-    list_name = input_params['list_name']
+    module_name = str_to_human(input_params['module_name'])
+    list_name = str_to_human(input_params['list_name'])
     attributes = input_params['attributes']
     result = {"changed": False}
 
@@ -165,7 +166,9 @@ def main():
         result["list_get"] = ret_code
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
-    obj_list = response["Response"][list_name]
+    obj_list = response["Response"][str_to_yang(list_name)]
+    if not isinstance(obj_list, list):
+        obj_list = [obj_list]
 
     to_human_list(module_name, list_name, obj_list, result)
 

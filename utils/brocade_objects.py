@@ -6,8 +6,9 @@
 
 from __future__ import (absolute_import, division, print_function)
 from ansible.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object, url_post, url_delete
-from ansible.module_utils.brocade_yang import yang_to_human, human_to_yang
+from ansible.module_utils.brocade_yang import yang_to_human, human_to_yang, str_to_yang, str_to_human
 from ansible.module_utils.brocade_ssh import ssh_and_configure
+from ansible.module_utils.brocade_interface import to_fos_fc, to_human_fc
 import base64
 
 __metaclass__ = type
@@ -22,17 +23,29 @@ REST_PREFIX = "/rest/running/"
 
 
 def to_human_singleton(module_name, obj_name, attributes):
+    yang_to_human(attributes)
+
     for k, v in attributes.items():
         if v == "true":
             attributes[k] = True
         elif v == "false":
             attributes[k] = False
 
-    yang_to_human(attributes)
+    if module_name == "brocade_time" and obj_name == "clock_server":
+        if "ntp_server_address" in attributes and "server_address" in attributes["ntp_server_address"]:
+            if not isinstance(attributes["ntp_server_address"]["server_address"], list):
+                new_list = []
+                new_list.append(attributes["ntp_server_address"]["server_address"])
+                attributes["ntp_server_address"]["server_address"] = new_list
 
 
 def to_fos_singleton(module_name, obj_name, attributes, result):
-    human_to_yang(attributes)
+    for k, v in attributes.items():
+        # if going to fos, we need to encode password
+        if module_name == "brocade_security" and obj_name == "password" and k == "old_password":
+            attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
+        if module_name == "brocade_security" and obj_name == "password" and k == "new_password":
+            attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
 
     for k, v in attributes.items():
         if isinstance(v, bool):
@@ -40,11 +53,8 @@ def to_fos_singleton(module_name, obj_name, attributes, result):
                 attributes[k] = "true"
             else:
                 attributes[k] = "false"
-        # if going to fos, we need to encode password
-        if module_name == "brocade-security" and obj_name == "password" and k == "old-password":
-            attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
-        if module_name == "brocade-security" and obj_name == "password" and k == "new-password":
-            attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
+
+    human_to_yang(attributes)
 
     return 0
 
@@ -83,23 +93,43 @@ def singleton_get(login, password, fos_ip_addr, module_name, obj_name, fos_versi
 
 def to_human_list(module_name, list_name, attributes_list, result):
     for attributes in attributes_list:
+        yang_to_human(attributes)
+
         for k, v in attributes.items():
             if v == "true":
                 attributes[k] = True
             elif v == "false":
                 attributes[k] = False
 
-            if module_name == "brocade-snmp" and list_name == "v3-account":
-                if k == "authentication-password" or k == "privacy-password":
+        if module_name == "brocade_interface" and list_name == "fibrechannel":
+            to_human_fc(attributes)
+
+        for k, v in attributes.items():
+            if module_name == "brocade_snmp" and list_name == "v3_account":
+                if k == "authentication_password" or k == "privacy_password":
                     if str(v) != "None":
                         attributes[k] = base64.b64decode(v)
 
-        yang_to_human(attributes)
+        if module_name == "brocade_security" and list_name == "user_config":
+            if "virtual_fabric_role_id_list" in attributes and "role_id" in attributes["virtual_fabric_role_id_list"]:
+                if not isinstance(attributes["virtual_fabric_role_id_list"]["role_id"], list):
+                    new_list = []
+                    new_list.append(attributes["virtual_fabric_role_id_list"]["role_id"])
+                    attributes["virtual_fabric_role_id_list"]["role_id"] = new_list
 
 
 def to_fos_list(module_name, list_name, attributes_list, result):
     for attributes in attributes_list:
         human_to_yang(attributes)
+
+        for k, v in attributes.items():
+            if module_name == "brocade_snmp" and list_name == "v3_account":
+                if k == "authentication_password" or k == "privacy_password":
+                    if str(v) != "None":
+                        attributes[k] = base64.b64encode(v.encode('ascii')).decode('utf-8')
+
+        if module_name == "brocade_interface" and list_name == "fibrechannel":
+            to_fos_fc(attributes, result)
 
         for k, v in attributes.items():
             if isinstance(v, bool):
@@ -108,23 +138,24 @@ def to_fos_list(module_name, list_name, attributes_list, result):
                 else:
                     attributes[k] = "false"
 
-            if module_name == "brocade-snmp" and list_name == "v3-account":
-                if k == "authentication-password" or k == "privacy-password":
-                    if str(v) != "None":
-                        attributes[k] = base64.b64encode(v.encode('ascii')).decode('utf-8')
-
     return 0
 
 list_keys = {
-    "brocade-snmp": {
-        "v1-account" : ["index"],
-        "v1-trap" : ["index"],
-        "v3-account" : ["index"],
-        "v3-trap" : ["trap_index"],
-        "access-control" : ["index"],
-        "trap-capability" : ["trap_name"],
-        "mib-capability" : ["mib_name"],
-    }
+    "brocade_snmp": {
+        "v1_account" : ["index"],
+        "v1_trap" : ["index"],
+        "v3_account" : ["index"],
+        "v3_trap" : ["trap_index"],
+        "access_control" : ["index"],
+        "trap_capability" : ["trap_name"],
+        "mib_capability" : ["mib_name"],
+    },
+    "brocade_interface": {
+        "fibrechannel" : ["name"],
+    },
+    "brocade_logging": {
+        "syslog_server" : ["server"],
+    },
 }
 
 def list_entry_keys_matched(e1, e2, module_name, list_name):
@@ -152,9 +183,10 @@ def list_get(login, password, fos_ip_addr, module_name, list_name, fos_version, 
 
 
 def singleton_xml_str(result, obj_name, attributes):
+    obj_name_yang = str_to_yang(obj_name)
     xml_str = ""
 
-    xml_str = xml_str + "<" + obj_name + ">"
+    xml_str = xml_str + "<" + obj_name_yang + ">"
 
     for k, v in attributes.items():
         xml_str = xml_str + "<" + k + ">"
@@ -171,12 +203,12 @@ def singleton_xml_str(result, obj_name, attributes):
 
         xml_str = xml_str + "</" + k + ">"
 
-    xml_str = xml_str + "</" + obj_name + ">"
+    xml_str = xml_str + "</" + obj_name_yang + ">"
 
     return xml_str
 
 
-def singleton_patch(login, password, fos_ip_addr, module_name, obj_name, fos_version, is_https, auth, vfid, result, new_attributes, ssh_hostkeymust):
+def singleton_patch(login, password, fos_ip_addr, module_name, obj_name, fos_version, is_https, auth, vfid, result, new_attributes, ssh_hostkeymust, longer_timeout=None):
     """
         update existing user config configurations
 
@@ -203,24 +235,30 @@ def singleton_patch(login, password, fos_ip_addr, module_name, obj_name, fos_ver
 
     result["patch_obj_str"] = xml_str
 
-    return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                     full_url, xml_str)
+    if longer_timeout == None:
+        return url_patch(fos_ip_addr, is_https, auth, vfid, result,
+                         full_url, xml_str)
+    else:
+        return url_patch(fos_ip_addr, is_https, auth, vfid, result,
+                         full_url, xml_str, longer_timeout)
 
 
 def list_xml_str(result, module_name, list_name, entries):
+    list_name_yang = str_to_yang(list_name)
     xml_str = ""
 
     for entry in entries:
-        xml_str = xml_str + "<" + list_name + ">"
+        xml_str = xml_str + "<" + list_name_yang + ">"
 
         # add the key entries first
         for k, v in entry.items():
-            if k in list_entry_keys(module_name, list_name):
+            if str_to_human(k) in list_entry_keys(module_name, list_name):
+                result[k] = "key identified"
                 xml_str = xml_str + "<" + k + ">" + str(v) + "</" + k + ">"
 
         # add non key entries next
         for k, v in entry.items():
-            if k not in list_entry_keys(module_name, list_name):
+            if str_to_human(k) not in list_entry_keys(module_name, list_name):
                 xml_str = xml_str + "<" + k + ">"
 
                 if isinstance(v, dict):
@@ -235,7 +273,7 @@ def list_xml_str(result, module_name, list_name, entries):
 
                 xml_str = xml_str + "</" + k + ">"
 
-        xml_str = xml_str + "</" + list_name + ">"
+        xml_str = xml_str + "</" + list_name_yang + ">"
 
     return xml_str
 

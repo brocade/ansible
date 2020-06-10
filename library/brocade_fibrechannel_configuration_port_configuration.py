@@ -96,7 +96,7 @@ Brocade Fibre Channel port Configuration
 
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
+from ansible.module_utils.brocade_yang import generate_diff, is_full_human
 from ansible.module_utils.brocade_fibrechannel_configuration import port_configuration_patch, port_configuration_get, to_human_port_configuration, to_fos_port_configuration
 from ansible.module_utils.basic import AnsibleModule
 
@@ -131,6 +131,9 @@ def main():
     vfid = input_params['vfid']
     port_configuration = input_params['port_configuration']
     result = {"changed": False}
+
+    if not is_full_human(port_configuration, result):
+        module.exit_json(**result)
 
     if vfid is None:
         vfid = 128

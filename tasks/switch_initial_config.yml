@@ -390,12 +390,14 @@
         - name: "myaccount"
           password: "bXlwYXNzd29yZA=="
           virtual_fabric_role_id_list:
-            - role_id: "admin=1-128"
+            role_id:
+              - "admin=1-128"
           chassis_access_role: "admin"
         - name: "youraccount"
           password: "bXlwYXNzd29yZA=="
           virtual_fabric_role_id_list:
-            - role_id: "admin=1-128"
+            role_id:
+              - "admin=1-128"
           chassis_access_role: "admin"
 
   - name: configure relay server

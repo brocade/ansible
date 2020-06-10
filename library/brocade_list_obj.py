@@ -123,7 +123,7 @@ Brocade Fibre Channel Yang list processor
 
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
+from ansible.module_utils.brocade_yang import generate_diff, str_to_human, str_to_yang, is_full_human
 from ansible.module_utils.brocade_objects import list_get, to_fos_list, to_human_list, list_entry_keys_matched, list_entry_keys, list_patch, list_post, list_delete
 from ansible.module_utils.basic import AnsibleModule
 
@@ -160,12 +160,15 @@ def main():
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    module_name = input_params['module_name']
-    list_name = input_params['list_name']
+    module_name = str_to_human(input_params['module_name'])
+    list_name = str_to_human(input_params['list_name'])
     entries = input_params['entries']
     all_entries = input_params['all_entries']
     longer_timeout = input_params['longer_timeout']
     result = {"changed": False}
+
+    if not is_full_human(entries, result):
+        module.exit_json(**result)
 
     if vfid is None:
         vfid = 128
@@ -183,13 +186,11 @@ def main():
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
-    current_entries = response["Response"][list_name]
+    current_entries = response["Response"][str_to_yang(list_name)]
     if not isinstance(current_entries, list):
         current_entries = [current_entries]
 
     to_human_list(module_name, list_name, current_entries, result)
-
-    result["current_entries"] = current_entries
 
     diff_entries = []
     for entry in entries:
@@ -241,6 +242,11 @@ def main():
                 delete_entry[key] = current_entry[key]
 
             delete_entries.append(delete_entry)
+
+    ret_code = to_fos_list(module_name, list_name, delete_entries, result)
+    result["delete_retcode"] = ret_code
+    if ret_code != 0:
+        exit_after_login(fos_ip_addr, https, auth, result, module)
 
     result["response"] = response
     result["current_entries"] = current_entries

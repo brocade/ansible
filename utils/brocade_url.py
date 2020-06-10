@@ -10,6 +10,7 @@ import os
 import ansible.module_utils.urls as ansible_urls
 import ansible.module_utils.six.moves.urllib.error as urllib_error
 from ansible.module_utils.brocade_xml import bsn_xmltodict
+from ansible.module_utils.brocade_yang import str_to_yang
 
 __metaclass__ = type
 
@@ -29,14 +30,14 @@ SELF_SIGNED = "self"
 def full_url_get(is_https, fos_ip_addr, path):
     if isinstance(is_https, bool):
         if is_https:
-            return HTTPS + fos_ip_addr + path, True
+            return HTTPS + fos_ip_addr + str_to_yang(path), True
         else:
-            return HTTP + fos_ip_addr + path, False
+            return HTTP + fos_ip_addr + str_to_yang(path), False
     elif is_https.lower() == SELF_SIGNED:
-        return HTTPS + fos_ip_addr + path, False
+        return HTTPS + fos_ip_addr + str_to_yang(path), False
     else:
         # by default, return HTTP
-        return HTTP + fos_ip_addr + path, False
+        return HTTP + fos_ip_addr + str_to_yang(path), False
 
 
 def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body):

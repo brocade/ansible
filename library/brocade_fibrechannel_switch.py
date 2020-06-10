@@ -121,7 +121,7 @@ Brocade Fibre Channel switch Configuration
 
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
+from ansible.module_utils.brocade_yang import generate_diff, is_full_human
 from ansible.module_utils.brocade_fibrechannel_switch import fc_switch_patch, fc_switch_get, to_human_switch, to_fos_switch
 from ansible.module_utils.basic import AnsibleModule
 
@@ -157,6 +157,9 @@ def main():
     switch = input_params['switch']
     result = {"changed": False}
 
+    if not is_full_human(switch, result):
+        module.exit_json(**result)
+   
     if vfid is None:
         vfid = 128
 
@@ -175,7 +178,7 @@ def main():
     resp_switch = response["Response"]["fibrechannel-switch"]
 
     to_human_switch(resp_switch)
-   
+
     if "dns_servers" in resp_switch:
         if resp_switch["dns_servers"] is not None and "dns_server" in resp_switch["dns_servers"]:
             if not isinstance(resp_switch["dns_servers"]["dns_server"], list):

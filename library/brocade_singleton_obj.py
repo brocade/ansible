@@ -52,6 +52,10 @@ options:
     obj_name:
         description:
         - name of obj. for example, password under brocade-security
+    longer_timeout:
+        description:
+        - If the operation requires longer timeout
+        required: false
     attributes:
         description:
         - list of attributes for the object. names match rest attributes
@@ -106,7 +110,7 @@ Brocade Fibre Channel switch Configuration
 
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
+from ansible.module_utils.brocade_yang import generate_diff, str_to_human, str_to_yang, is_full_human
 from ansible.module_utils.brocade_objects import singleton_patch, singleton_get, to_human_singleton, to_fos_singleton
 from ansible.module_utils.basic import AnsibleModule
 
@@ -122,6 +126,7 @@ def main():
         throttle=dict(required=False, type='float'),
         module_name=dict(required=True, type='str'),
         obj_name=dict(required=True, type='str'),
+        longer_timeout=dict(required=False, type='int'),
         attributes=dict(required=True, type='dict'))
 
     module = AnsibleModule(
@@ -141,10 +146,14 @@ def main():
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    module_name = input_params['module_name']
-    obj_name = input_params['obj_name']
+    module_name = str_to_human(input_params['module_name'])
+    obj_name = str_to_human(input_params['obj_name'])
+    longer_timeout = input_params['longer_timeout']
     attributes = input_params['attributes']
     result = {"changed": False}
+
+    if not is_full_human(attributes, result):
+        module.exit_json(**result)
 
     if vfid is None:
         vfid = 128
@@ -164,14 +173,14 @@ def main():
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
-    resp_attributes = response["Response"][obj_name]
+    resp_attributes = response["Response"][str_to_yang(obj_name)]
 
     to_human_singleton(module_name, obj_name, resp_attributes)
 
     diff_attributes = generate_diff(result, resp_attributes, attributes)
 
     # any object specific special processing
-    if module_name == "brocade-maps" and obj_name == "maps-config":
+    if module_name == "brocade_maps" and obj_name == "maps_config":
         # relay_ip_address and domain_name needs to be specifid
         # at the same time based on FOS REST requirements
         if "relay_ip_address" in diff_attributes and "domain_name" not in diff_attributes:
@@ -191,8 +200,8 @@ def main():
             exit_after_login(fos_ip_addr, https, auth, result, module)
 
     result["diff_attributes"] = diff_attributes
-    result["resp_attributes"] = resp_attributes
-    result["attributes"] = attributes
+    result["current_attributes"] = resp_attributes
+    result["new_attributes"] = attributes
 
     if len(diff_attributes) > 0:
         ret_code = to_fos_singleton(module_name, obj_name, diff_attributes, result)
@@ -200,7 +209,15 @@ def main():
             exit_after_login(fos_ip_addr, https, auth, result, module)
 
         if not module.check_mode:
-            ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+            ret_code = 0
+            if longer_timeout != None:
+                ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+                                       module_name, obj_name,
+                                       fos_version, https,
+                                       auth, vfid, result, diff_attributes,
+                                       ssh_hostkeymust, longer_timeout)
+            else:
+                ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
                                        module_name, obj_name,
                                        fos_version, https,
                                        auth, vfid, result, diff_attributes,
