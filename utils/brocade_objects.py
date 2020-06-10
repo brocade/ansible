@@ -11,6 +11,7 @@ from ansible.module_utils.brocade_ssh import ssh_and_configure
 from ansible.module_utils.brocade_interface import to_fos_fc, to_human_fc
 from ansible.module_utils.brocade_chassis import chassis_get, chassis_patch
 from ansible.module_utils.brocade_fibrechannel_configuration import fabric_get, fabric_patch, port_configuration_get, port_configuration_patch
+from ansible.module_utils.brocade_fibrechannel_switch import to_human_switch, to_fos_switch, fc_switch_get, fc_switch_patch
 import base64
 
 __metaclass__ = type
@@ -42,12 +43,15 @@ def to_human_singleton(module_name, obj_name, attributes):
 
 
 def to_fos_singleton(module_name, obj_name, attributes, result):
+    human_to_yang(attributes)
+
     for k, v in attributes.items():
         # if going to fos, we need to encode password
-        if module_name == "brocade_security" and obj_name == "password" and k == "old_password":
-            attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
-        if module_name == "brocade_security" and obj_name == "password" and k == "new_password":
-            attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
+        if module_name == "brocade_security" and obj_name == "password":
+            if k == "old-password":
+                attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
+            if k == "new-password":
+                attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
 
     for k, v in attributes.items():
         if isinstance(v, bool):
@@ -55,8 +59,6 @@ def to_fos_singleton(module_name, obj_name, attributes, result):
                 attributes[k] = "true"
             else:
                 attributes[k] = "false"
-
-    human_to_yang(attributes)
 
     return 0
 
@@ -96,7 +98,6 @@ def singleton_get(login, password, fos_ip_addr, module_name, obj_name, fos_versi
 
     if ret == -2:
         # return empty dict. GET isn't supported
-        result["daniel1"] = "here"
         return 0, ({"Response" : {obj_name: {}}})
 
     return ret, resp
@@ -128,6 +129,31 @@ def to_human_list(module_name, list_name, attributes_list, result):
                     new_list.append(attributes["virtual_fabric_role_id_list"]["role_id"])
                     attributes["virtual_fabric_role_id_list"]["role_id"] = new_list
 
+        if module_name == "brocade_fibrechannel_switch" and list_name == "fibrechannel_switch":
+
+            to_human_switch(attributes)
+
+            if "dns_servers" in attributes:
+                if attributes["dns_servers"] is not None and "dns_server" in attributes["dns_servers"]:
+                    if not isinstance(attributes["dns_servers"]["dns_server"], list):
+                        new_list = []
+                        new_list.append(attributes["dns_servers"]["dns_server"])
+                        attributes["dns_servers"]["dns_server"] = new_list
+
+            if "ip_address" in attributes:
+                if attributes["ip_address"] is not None and "ip_address" in attributes["ip_address"]:
+                    if not isinstance(attributes["ip_address"]["ip_address"], list):
+                        new_list = []
+                        new_list.append(attributes["ip_address"]["ip_address"])
+                        attributes["ip_address"]["ip_address"] = new_list
+
+            if "ip_static_gateway_list" in attributes:
+                if attributes["ip_static_gateway_list"] is not None and "ip_static_gateway" in attributes["ip_static_gateway_list"]:
+                    if not isinstance(attributes["ip_static_gateway_list"]["ip_static_gateway"], list):
+                        new_list = []
+                        new_list.append(attributes["ip_static_gateway_list"]["ip_static_gateway"])
+                        attributes["ip_static_gateway_list"]["ip_static_gateway"] = new_list
+
 
 def to_fos_list(module_name, list_name, attributes_list, result):
     for attributes in attributes_list:
@@ -141,6 +167,9 @@ def to_fos_list(module_name, list_name, attributes_list, result):
 
         if module_name == "brocade_interface" and list_name == "fibrechannel":
             to_fos_fc(attributes, result)
+
+        if module_name == "brocade_fibrechannel_switch" and list_name == "fibrechannel_switch":
+            to_fos_switch(attributes, result)
 
         for k, v in attributes.items():
             if isinstance(v, bool):
@@ -167,6 +196,9 @@ list_keys = {
     "brocade_logging": {
         "syslog_server" : ["server"],
     },
+    "brocade_fibrechannel_switch": {
+        "fibrechannel_switch" : ["name"],
+    },
 }
 
 def list_entry_keys_matched(e1, e2, module_name, list_name):
@@ -190,6 +222,9 @@ def list_entry_keys(module_name, list_name):
     return []
 
 def list_get(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, ssh_hostkeymust):
+    if module_name == "brocade_fibrechannel_switch" and list_name == "fibrechannel_switch":
+        return fc_switch_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust)
+
     return singleton_get(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, ssh_hostkeymust)
 
 
@@ -317,6 +352,9 @@ def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version
         :return: list of dict of chassis configurations
         :rtype: list
     """
+    if module_name == "brocade_fibrechannel_switch" and list_name == "fibrechannel_switch":
+        return fc_switch_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, entries[0], ssh_hostkeymust)
+
     full_url, validate_certs = full_url_get(is_https,
                                             fos_ip_addr,
                                             REST_PREFIX + module_name + "/" + list_name)

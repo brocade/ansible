@@ -192,6 +192,17 @@ def main():
 
     to_human_list(module_name, list_name, current_entries, result)
 
+    # for switch list object only, we only support one for now
+    # and allow users to not specifcy the WWN of the switch
+    # thus missing key of the entry. We'll get it from the switch
+    if module_name == "brocade_fibrechannel_switch" and list_name == "fibrechannel_switch":
+        if len(entries) != 1:
+            result["failed"] = True
+            result["msg"] = "Only one entry in an array is supported"
+            exit_after_login(fos_ip_addr, https, auth, result, module)
+
+        entries[0]["name"] = current_entries[0]["name"]
+
     diff_entries = []
     for entry in entries:
         for current_entry in current_entries:

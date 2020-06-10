@@ -19,33 +19,39 @@
   tasks:
 
   - name: disable switch before settings some attributes that require switch disable
-    brocade_fibrechannel_switch:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      switch:
-        enabled_state: False
+      module_name: "brocade_fibrechannel_switch"
+      list_name: "fibrechannel_switch"
+      entries:
+        - enabled_state: False
 
   - name: switch configuration
-    brocade_fibrechannel_switch:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      switch:
-        user_friendly_name: "switch_name"
-        fabric_user_friendly_name: "fabric_name"
-        domain_id: 1
-        banner: "AUTHORIZED USERS ONLY!"
-        dynamic_load_sharing: "lossless-dls"
-        dns_servers:
-          dns_server:
-            - "8.8.8.8"
-            - "8.8.4.4"
+      module_name: "brocade_fibrechannel_switch"
+      list_name: "fibrechannel_switch"
+      entries:
+        - user_friendly_name: "switch_name"
+          fabric_user_friendly_name: "fabric_name"
+          domain_id: 1
+          banner: "AUTHORIZED USERS ONLY!"
+          dynamic_load_sharing: "lossless-dls"
+          dns_servers:
+            dns_server:
+              - "8.8.8.8"
+              - "8.8.4.4"
 
   - name: switch configuration
-    brocade_fibrechannel_switch:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      switch:
-        domain_name: "yahoo.com"
+      module_name: "brocade_fibrechannel_switch"
+      list_name: "fibrechannel_switch"
+      entries:
+        - domain_name: "yahoo.com"
 
   - name: fabric configuration
     brocade_singleton_obj:
@@ -74,11 +80,13 @@
         credit_recovery_mode: "onLrOnly"
 
   - name: enable switch after settings some attributes that require switch disable
-    brocade_fibrechannel_switch:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      switch:
-        enabled_state: True
+      module_name: "brocade_fibrechannel_switch"
+      list_name: "fibrechannel_switch"
+      entries:
+        - enabled_state: True
 
   - name: chassis configuration
     brocade_singleton_obj:
