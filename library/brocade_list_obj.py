@@ -170,6 +170,10 @@ def main():
     if not is_full_human(entries, result):
         module.exit_json(**result)
 
+    if all_entries == None:
+        result["all_entries_default"] = all_entries
+        all_entries = True
+
     if vfid is None:
         vfid = 128
 
@@ -233,6 +237,18 @@ def main():
             for k, v in entry.items():
                 new_entry[k] = v
             add_entries.append(new_entry)
+
+    if module_name == "brocade_logging" and list_name == "syslog_server":
+        new_add_entries = []
+        for add_entry in add_entries:
+            secured = ("secured_mode" in add_entry and add_entry["secured_mode"] == True)
+            if not secured:
+                new_add_entry = {}
+                new_add_entry["server"] = add_entry["server"]
+                new_add_entries.append(new_add_entry)
+            else:
+                new_add_entries.append(add_entry)
+        add_entries = new_add_entries
 
     ret_code = to_fos_list(module_name, list_name, add_entries, result)
     result["add_retcode"] = ret_code

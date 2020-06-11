@@ -161,10 +161,12 @@
         severity_level: "info"
 
   - name: syslog configuration
-    brocade_logging_syslog_server:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      syslog_servers:
+      module_name: "brocade_logging"
+      list_name: "syslog_server"
+      entries:
         - port: 514
           secure_mode: False
           server: "10.155.2.151"
