@@ -1,0 +1,43 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: admin
+      fos_password: fibranne
+      https: False
+
+  tasks:
+
+  - name: gather facts
+    brocade_facts:
+      credential: "{{credential}}"
+      vfid: -1
+      gather_subset:
+        - brocade_zoning
+        - brocade_interface_fibrechannel
+        - brocade_chassis
+        - brocade_fibrechannel_configuration_fabric
+        - brocade_fibrechannel_configuration_port_configuration
+        - brocade_fibrechannel_switch
+        - brocade_time_clock_server
+        - brocade_time_time_zone
+        - brocade_logging_syslog_server
+        - brocade_logging_audit
+        - brocade_snmp_system
+        - brocade_security_ipfilter_rule
+        - brocade_security_ipfilter_policy
+        - brocade_security_user_config
+
+  - name: print ansible_facts gathered
+    debug:
+      var: ansible_facts

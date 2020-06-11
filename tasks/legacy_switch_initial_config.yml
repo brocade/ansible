@@ -1,0 +1,416 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: admin
+      fos_password: fibranne
+      https: False
+
+  tasks:
+
+  - name: disable switch before settings some attributes that require switch disable
+    brocade_fibrechannel_switch:
+      credential: "{{credential}}"
+      vfid: -1
+      switch:
+        enabled_state: False
+
+  - name: switch configuration
+    brocade_fibrechannel_switch:
+      credential: "{{credential}}"
+      vfid: -1
+      switch:
+        user_friendly_name: "switch_name"
+        fabric_user_friendly_name: "fabric_name"
+        domain_id: 1
+        banner: "AUTHORIZED USERS ONLY!"
+        dynamic_load_sharing: "lossless-dls"
+        dns_servers:
+          dns_server:
+            - "8.8.8.8"
+            - "8.8.4.4"
+
+  - name: switch configuration
+    brocade_fibrechannel_switch:
+      credential: "{{credential}}"
+      vfid: -1
+      switch:
+        domain_name: "yahoo.com"
+
+  - name: fabric configuration
+    brocade_fibrechannel_configuration_fabric:
+      credential: "{{credential}}"
+      vfid: -1
+      fabric:
+        insistent_domain_id_enabled: True
+        in_order_delivery_enabled: False
+        fabric_principal_enabled: True
+        fabric_principal_priority: "0x3"
+    register: result
+
+#  - debug: var=result
+
+  - name: port configuration
+    brocade_fibrechannel_configuration_port_configuration:
+      credential: "{{credential}}"
+      vfid: -1
+      port_configuration:
+        dynamic_portname_format: "I.T.A.R"
+        portname_mode: "dynamic"
+        credit_recovery_mode: "onLrOnly"
+
+  - name: enable switch after settings some attributes that require switch disable
+    brocade_fibrechannel_switch:
+      credential: "{{credential}}"
+      vfid: -1
+      switch:
+        enabled_state: True
+
+  - name: chassis configuration
+    brocade_chassis:
+      credential: "{{credential}}"
+      vfid: -1
+      chassis:
+        chassis_user_friendly_name: "chassis_name"
+        telnet_timeout: 30
+
+  - name: FC ports configuration
+    brocade_interface_fibrechannel:
+      credential: "{{credential}}"
+      vfid: -1
+      ports:
+        - name: "0/0"
+          enabled_state: False 
+          npiv_pp_limit: 126
+        - name: "0/1"
+          persistent_disable: True
+
+  # pause for 15 seconds to make sure fabric is stable for
+  # zoning commit
+  - pause: seconds=15
+
+  - name: zoning configuration
+    brocade_zoning_default_zone:
+      credential: "{{credential}}"
+      vfid: -1
+      default_zone_access: allaccess
+
+  # if using IP addresses that are not available as clock servers
+  # the module may timeout returning failure
+  - name: clock server configuration
+    brocade_time_clock_server:
+      credential: "{{credential}}"
+      vfid: -1
+      clock_server:
+        ntp_server_address:
+          server_address:
+            - "10.38.2.80"
+
+  - name: time zone configuration
+    brocade_time_time_zone:
+      credential: "{{credential}}"
+      vfid: -1
+      time_zone:
+        name: "America/Chicago"
+
+  - name: audit configuration
+    brocade_logging_audit:
+      credential: "{{credential}}"
+      vfid: -1
+      audit:
+        audit_enabled: True
+        filter_class_list:
+          filter_class:
+          - "zone"
+          - "security"
+          - "configuration"
+          - "firmware"
+          - "fabric"
+          - "ls"
+          - "cli"
+          - "maps"
+        severity_level: "info"
+
+  - name: syslog configuration
+    brocade_logging_syslog_server:
+      credential: "{{credential}}"
+      vfid: -1
+      syslog_servers:
+        - port: 514
+          secure_mode: False
+          server: "10.155.2.151"
+
+  - name: snmp system configuration
+    brocade_snmp_system:
+      credential: "{{credential}}"
+      vfid: -1
+      snmp_system:
+        audit_interval: 60
+        contact: "Field Support."
+        description: "DemoSwitch"
+        encryption_enabled: False
+        informs_enabled: False
+        location: "San Jose"
+        security_get_level: 0
+        security_set_level: 3
+        snmpv1_enabled: True
+
+  - name: snmp v1 accounts
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-snmp"
+      list_name: "v1-account"
+      longer_timeout: 30
+      entries:
+        - index: 1
+          community_name: "secret code"
+        - index: 2
+          community_name: "oem"
+        - index: 3
+          community_name: "private"
+        - index: 4
+          community_name: "public"
+        - index: 5
+          community_name: "common"
+        - index: 6
+          community_name: "FibreChannel"
+
+  - name: snmp v1 traps
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-snmp"
+      list_name: "v1-trap"
+      all_entries: False
+      entries:
+        - index: 1
+          host: "10.10.10.10"
+          port_number: 1010
+          trap_severity_level: "warning"
+
+  - name: snmp v3 accounts - setup non-password attributes
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-snmp"
+      list_name: "v3-account"
+      all_entries: False
+      entries:
+        - index: 1
+          authentication_protocol: "md5"
+          manager_engine_id: "00:00:00:00:00:00:00:00:00"
+          privacy_protocol: "aes128"
+          user_name: "asc-test"
+        - index: 2
+          authentication_protocol: "sha"
+          manager_engine_id: "00:00:00:00:00:00:00:00:00"
+          privacy_protocol: "des"
+          user_name: "snmpadmin2"
+
+  - name: snmp v3 traps
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-snmp"
+      list_name: "v3-trap"
+      entries:
+        - trap_index: 1
+          host: "10.10.10.11"
+          informs_enabled: true
+          port_number: 1011
+          trap_severity_level: "warning"
+          usm_index: 1
+        - trap_index: 2
+          host: "10.10.10.12"
+          informs_enabled: false
+          port_number: 1012
+          trap_severity_level: "critical"
+          usm_index: 2
+        - trap_index: 3
+          host: "0.0.0.0"
+          informs_enabled: false
+          port_number: 162
+          trap_severity_level: "none"
+          usm_index: 3
+        - trap_index: 4
+          host: "0.0.0.0"
+          informs_enabled: false
+          port_number: 162
+          trap_severity_level: "none"
+          usm_index: 4
+        - trap_index: 5
+          host: "0.0.0.0"
+          informs_enabled: false
+          port_number: 162
+          trap_severity_level: "none"
+          usm_index: 5
+        - trap_index: 6
+          host: "0.0.0.0"
+          informs_enabled: false
+          port_number: 162
+          trap_severity_level: "none"
+          usm_index: 6
+
+  - name: ipfilter policy is created or present
+    brocade_security_ipfilter_policy:
+      credential: "{{credential}}"
+      vfid: -1
+      ipfilter_policies:
+        - name: "ipv4_telnet_http"
+          ip_version: "IPv4"
+
+  - name: ipfilter rules are created or present
+    brocade_security_ipfilter_rule:
+      credential: "{{credential}}"
+      vfid: -1
+      ipfilter_rules:
+        - policy_name: "ipv4_telnet_http"
+          index: 1
+          destination_end_port: 22
+          destination_ip: "any"
+          destination_start_port: 22
+          permission: "permit"
+          protocol: "tcp"
+          source_ip: "any"
+          traffic_type: "INPUT"
+        - policy_name: "ipv4_telnet_http"
+          index: 2
+          destination_end_port: 23
+          destination_ip: "any"
+          destination_start_port: 23
+          permission: "deny"
+          protocol: "tcp"
+          source_ip: "any"
+          traffic_type: "INPUT"
+        - policy_name: "ipv4_telnet_http"
+          index: 3
+          destination_end_port: 80
+          destination_ip: "any"
+          destination_start_port: 80
+          permission: "permit"
+          protocol: "tcp"
+          source_ip: "any"
+          traffic_type: "INPUT"
+        - policy_name: "ipv4_telnet_http"
+          index: 4
+          destination_end_port: 443
+          destination_ip: "any"
+          destination_start_port: 443
+          permission: "permit"
+          protocol: "tcp"
+          source_ip: "any"
+          traffic_type: "INPUT"
+        - policy_name: "ipv4_telnet_http"
+          index: 5
+          destination_end_port: 161
+          destination_ip: "any"
+          destination_start_port: 161
+          permission: "permit"
+          protocol: "udp"
+          source_ip: "any"
+          traffic_type: "INPUT"
+        - policy_name: "ipv4_telnet_http"
+          index: 6
+          destination_end_port: 123
+          destination_ip: "any"
+          destination_start_port: 123
+          permission: "permit"
+          protocol: "udp"
+          source_ip: "any"
+          traffic_type: "INPUT"
+        - policy_name: "ipv4_telnet_http"
+          index: 7
+          destination_end_port: 1023
+          destination_ip: "any"
+          destination_start_port: 600
+          permission: "permit"
+          protocol: "tcp"
+          source_ip: "any"
+          traffic_type: "INPUT"
+        - policy_name: "ipv4_telnet_http"
+          index: 8
+          destination_end_port: 1023
+          destination_ip: "any"
+          destination_start_port: 600
+          permission: "permit"
+          protocol: "udp"
+          source_ip: "any"
+          traffic_type: "INPUT"
+        - policy_name: "ipv4_telnet_http"
+          index: 9
+          destination_end_port: 389
+          destination_ip: "any"
+          destination_start_port: 389
+          permission: "permit"
+          protocol: "tcp"
+          source_ip: "any"
+          traffic_type: "INPUT"
+        - policy_name: "ipv4_telnet_http"
+          index: 10
+          destination_end_port: 389
+          destination_ip: "any"
+          destination_start_port: 389
+          permission: "permit"
+          protocol: "udp"
+          source_ip: "any"
+          traffic_type: "INPUT"
+
+  - name: ipfilter policy is activated or active already
+    brocade_security_ipfilter_policy:
+      credential: "{{credential}}"
+      vfid: -1
+      active_policy: "ipv4_telnet_http"
+
+  - name: disable root & user
+    brocade_security_user_config:
+      credential: "{{credential}}"
+      vfid: -1
+      user_configs:
+        - name: "user"
+          account_enabled: False
+        - name: "root"
+          account_enabled: False
+
+  - name: add new account
+    brocade_security_user_config:
+      credential: "{{credential}}"
+      vfid: -1
+      user_configs:
+        - name: "myaccount"
+          password: "bXlwYXNzd29yZA=="
+          virtual_fabric_role_id_list:
+            role_id:
+              - "admin=1-128"
+          chassis_access_role: "admin"
+        - name: "youraccount"
+          password: "bXlwYXNzd29yZA=="
+          virtual_fabric_role_id_list:
+            role_id:
+              - "admin=1-128"
+          chassis_access_role: "admin"
+
+  - name: configure relay server
+    brocade_singleton_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-maps"
+      obj_name: "maps-config"
+      attributes:
+        relay_ip_address: "10.10.10.10"
+        domain_name: "d.com"
+        sender_address: "s@d.com"
+        recipient_address_list:
+          recipient_address:
+            - "r@d.com"
+            - "r@r.com"
