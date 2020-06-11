@@ -22,7 +22,8 @@ short_description: Brocade time clock server Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update time clock server configuration
+- Update time clock server configuration. Legacy implementation.
+  but still works. Recommends using brocade_singleton_obj(_facts) instead.
 
 options:
 

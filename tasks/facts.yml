@@ -24,8 +24,6 @@
       vfid: -1
       gather_subset:
         - brocade_zoning
-        - brocade_time_clock_server
-        - brocade_time_time_zone
         - brocade_security_ipfilter_rule
         - brocade_security_ipfilter_policy
         - brocade_security_user_config
@@ -85,6 +83,20 @@
       vfid: -1
       module_name: "brocade_snmp"
       obj_name: "system"
+
+  - name: gather facts for brocade_time_clock_server
+    brocade_singleton_obj_facts:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_time"
+      obj_name: "clock_server"
+
+  - name: gather facts for brocade_time_time_zone
+    brocade_singleton_obj_facts:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_time"
+      obj_name: "time_zone"
 
   - name: print ansible_facts gathered
     debug:

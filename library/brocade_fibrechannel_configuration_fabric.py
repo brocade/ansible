@@ -22,7 +22,8 @@ short_description: Brocade Fibre Channel fabric Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update fabric configuration
+- Update fabric configuration. Legacy implementation but still works.
+  Recommends using brocade_singleton_obj(_facts) instead.
 
 options:
 

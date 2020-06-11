@@ -115,20 +115,25 @@
       default_zone_access: noaccess
 
   - name: change all clock server configuration
-    brocade_time_clock_server:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      clock_server:
+      module_name: "brocade_time"
+      obj_name: "clock_server"
+      longer_timeout: 30
+      attributes:
         ntp_server_address:
           server_address:
             - "10.38.2.80"
             - "10.38.2.81"
 
   - name: change all time zone configuration
-    brocade_time_time_zone:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      time_zone:
+      module_name: "brocade_time"
+      obj_name: "time_zone"
+      attributes:
         name: "America/Los_Angeles"
 
   - name: change all audit configuration
@@ -181,8 +186,8 @@
     brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-snmp"
-      list_name: "v1-account"
+      module_name: "brocade_snmp"
+      list_name: "v1_account"
       longer_timeout: 30
       entries:
         - index: 1
@@ -202,8 +207,8 @@
     brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-snmp"
-      list_name: "v1-trap"
+      module_name: "brocade_snmp"
+      list_name: "v1_trap"
       all_entries: False
       entries:
         - index: 1
@@ -215,8 +220,8 @@
     brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-snmp"
-      list_name: "v3-account"
+      module_name: "brocade_snmp"
+      list_name: "v3_account"
       all_entries: False
       entries:
         - index: 1
@@ -234,8 +239,8 @@
     brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-snmp"
-      list_name: "v3-trap"
+      module_name: "brocade_snmp"
+      list_name: "v3_trap"
       entries:
         - trap_index: 1
           host: "10.10.10.31"
@@ -309,8 +314,8 @@
     brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-maps"
-      obj_name: "maps-config"
+      module_name: "brocade_maps"
+      obj_name: "maps_config"
       attributes:
         relay_ip_address: "10.10.10.11"
         domain_name: "dd.com"

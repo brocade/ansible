@@ -22,7 +22,8 @@ short_description: Brocade chassis Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update chassis configuration
+- Update chassis configuration. Legacy implementation but still works.
+  Recommends using brocade_singleton_obj(_facts) modules.
 
 options:
 

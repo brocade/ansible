@@ -22,7 +22,8 @@ short_description: Brocade Fibre Channel Switch Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update Fibre Channel switch configuration
+- Update Fibre Channel switch configuration. Legacy implementation
+  but still works. Recommends using brocade_list_obj(_facts) instead.
 
 options:
 

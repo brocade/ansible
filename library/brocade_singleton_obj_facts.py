@@ -48,10 +48,15 @@ options:
         required: false
     module_name:
         description:
-        - name of module. for example, brocade-security
+        - Yang module name. Hyphen or underscore are used interchangebly.
+          If the Yang module name is xy-z, either xy-z or xy_z are acceptable.
+        required: true
     obj_name:
         description:
-        - name of obj. for example, password under brocade-security
+        - Yang name for the object. Hyphen or underscore are used
+          interchangebly. If the Yang list name is xy-z, either
+          xy-z or xy_z are acceptable.
+        required: true
 
 '''
 

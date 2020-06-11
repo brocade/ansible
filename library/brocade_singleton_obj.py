@@ -22,7 +22,7 @@ short_description: Brocade generic handler for singleton_obj
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- userd for brocade-security/password object
+- Update list of attributes based on module name and obj name provided
 
 options:
 
@@ -48,10 +48,15 @@ options:
         required: false
     module_name:
         description:
-        - name of module. for example, brocade-security
+        - Yang module name. Hyphen or underscore are used interchangebly.
+          If the Yang module name is xy-z, either xy-z or xy_z are acceptable.
+        required: true
     obj_name:
         description:
-        - name of obj. for example, password under brocade-security
+        - Yang name for the object. Hyphen or underscore are used
+          interchangebly. If the Yang list name is xy-z, either
+          xy-z or xy_z are acceptable.
+        required: true
     longer_timeout:
         description:
         - If the operation requires longer timeout
@@ -59,7 +64,9 @@ options:
     attributes:
         description:
         - list of attributes for the object. names match rest attributes
-          with "-" replaced with "_"
+          with "-" replaced with "_". Using hyphen in the name
+          may result in errenously behavior based on ansible
+          parsing.
           - special node for "brocade-security" module "password" object
             "old_password" and "new_password" are in plain text
             if "user_name" is user account, only "new_password" is needed

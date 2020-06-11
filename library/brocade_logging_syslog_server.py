@@ -22,7 +22,8 @@ short_description: Brocade loggig syslog server Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update logging audit configuration
+- Update logging audit configuration. Legacy implementation but still works.
+  Recommends using brocade_singleton_obj(_facts) instead.
 
 options:
 

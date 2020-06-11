@@ -22,7 +22,8 @@ short_description: Brocade Fibre Channel port Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update port configuration
+- Update port configuration. Legacy implementation but still works.
+  Recommends using brocade_singleton_obj(_facts) instead.
 
 options:
 

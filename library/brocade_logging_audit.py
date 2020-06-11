@@ -22,7 +22,8 @@ short_description: Brocade loggig audit Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update logging audit configuration
+- Update logging audit configuration. Legacy implementation but still works.
+  recommends using brocade_singleton_obj(_facts) instead.
 
 options:
     credential:

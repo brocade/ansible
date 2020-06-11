@@ -22,8 +22,8 @@
     brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade_fibrechannel_switch"
-      list_name: "fibrechannel_switch"
+      module_name: "brocade-fibrechannel-switch"
+      list_name: "fibrechannel-switch"
       entries:
         - enabled_state: False
 
@@ -31,8 +31,8 @@
     brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade_fibrechannel_switch"
-      list_name: "fibrechannel_switch"
+      module_name: "brocade-fibrechannel-switch"
+      list_name: "fibrechannel-switch"
       entries:
         - user_friendly_name: "switch_name"
           fabric_user_friendly_name: "fabric_name"
@@ -48,8 +48,8 @@
     brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade_fibrechannel_switch"
-      list_name: "fibrechannel_switch"
+      module_name: "brocade-fibrechannel-switch"
+      list_name: "fibrechannel-switch"
       entries:
         - domain_name: "yahoo.com"
 
@@ -57,7 +57,7 @@
     brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade_fibrechannel_configuration"
+      module_name: "brocade-fibrechannel-configuration"
       obj_name: "fabric"
       attributes:
         insistent_domain_id_enabled: True
@@ -72,8 +72,8 @@
     brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade_fibrechannel_configuration"
-      obj_name: "port_configuration"
+      module_name: "brocade-fibrechannel-configuration"
+      obj_name: "port-configuration"
       attributes:
         dynamic_portname_format: "I.T.A.R"
         portname_mode: "dynamic"
@@ -83,8 +83,8 @@
     brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade_fibrechannel_switch"
-      list_name: "fibrechannel_switch"
+      module_name: "brocade-fibrechannel-switch"
+      list_name: "fibrechannel-switch"
       entries:
         - enabled_state: True
 
@@ -92,7 +92,7 @@
     brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade_chassis"
+      module_name: "brocade-chassis"
       obj_name: "chassis"
       attributes:
         chassis_user_friendly_name: "chassis_name"
@@ -102,7 +102,7 @@
     brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade_interface"
+      module_name: "brocade-interface"
       list_name: "fibrechannel"
       all_entries: False
       entries:
@@ -125,19 +125,24 @@
   # if using IP addresses that are not available as clock servers
   # the module may timeout returning failure
   - name: clock server configuration
-    brocade_time_clock_server:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      clock_server:
+      module_name: "brocade-time"
+      obj_name: "clock-server"
+      longer_timeout: 30
+      attributes:
         ntp_server_address:
           server_address:
             - "10.38.2.80"
 
   - name: time zone configuration
-    brocade_time_time_zone:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      time_zone:
+      module_name: "brocade-time"
+      obj_name: "time-zone"
+      attributes:
         name: "America/Chicago"
 
   - name: audit configuration
@@ -164,8 +169,8 @@
     brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade_logging"
-      list_name: "syslog_server"
+      module_name: "brocade-logging"
+      list_name: "syslog-server"
       entries:
         - port: 514
           secure_mode: False
@@ -175,7 +180,7 @@
     brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade_snmp"
+      module_name: "brocade-snmp"
       obj_name: "system"
       attributes:
         audit_interval: 60

@@ -47,11 +47,14 @@ options:
         required: false
     module_name:
         description:
-        - Yang module name
+        - Yang module name. Hyphen or underscore are used interchangebly.
+          If the Yang module name is xy-z, either xy-z or xy_z are acceptable.
         required: true
     list_name:
         description:
-        - Yang name for the list object
+        - Yang name for the list object. Hyphen or underscore are used
+          interchangebly. If the Yang list name is xy-z, either
+          xy-z or xy_z are acceptable.
         required: true
     longer_timeout:
         description:
@@ -73,7 +76,11 @@ options:
         required: false
     entries:
         description:
-        - List of objects
+        - List of objects. Name of each attributes within
+          each entries should match the Yang name except hyphen
+          is replaced with underscore. Using hyphen in the name
+          may result in errenously behavior based on Ansible
+          parsing.
         required: true
 
 '''

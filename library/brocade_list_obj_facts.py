@@ -48,15 +48,22 @@ options:
         required: false
     module_name:
         description:
-        - name of module. for example, brocade-security
+        - Yang module name. Hyphen or underscore are used interchangebly.
+          If the Yang module name is xy-z, either xy-z or xy_z are acceptable.
+        required: true
     obj_name:
         description:
-        - name of obj. for example, password under brocade-security
+        - Yang name for the list object. Hyphen or underscore are used
+          interchangebly. If the Yang list name is xy-z, either
+          xy-z or xy_z are acceptable.
+        required: true
     attributes:
         description:
         - list of attributes for the object to match to return.
-          names match rest attributes with "-" replaced with "_".
+          names match Yang rest attributes with "-" replaced with "_".
           If none is given, the module returns all valid entries.
+          Using hyphen in the name may result in errenously behavior
+          based on Ansible parsing.
 
 '''
 
