@@ -12,6 +12,7 @@ from ansible.module_utils.brocade_interface import to_fos_fc, to_human_fc
 from ansible.module_utils.brocade_chassis import chassis_get, chassis_patch
 from ansible.module_utils.brocade_fibrechannel_configuration import fabric_get, fabric_patch, port_configuration_get, port_configuration_patch
 from ansible.module_utils.brocade_fibrechannel_switch import to_human_switch, to_fos_switch, fc_switch_get, fc_switch_patch
+from ansible.module_utils.brocade_interface import to_human_fc, to_fos_fc, fc_port_get, fc_port_patch
 import base64
 
 __metaclass__ = type
@@ -199,6 +200,9 @@ list_keys = {
     "brocade_fibrechannel_switch": {
         "fibrechannel_switch" : ["name"],
     },
+    "brocade_interface": {
+        "fibrechannel" : ["name"],
+    },
 }
 
 def list_entry_keys_matched(e1, e2, module_name, list_name):
@@ -224,6 +228,8 @@ def list_entry_keys(module_name, list_name):
 def list_get(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, ssh_hostkeymust):
     if module_name == "brocade_fibrechannel_switch" and list_name == "fibrechannel_switch":
         return fc_switch_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust)
+    if module_name == "brocade_interface" and list_name == "fibrechannel":
+        return fc_port_get(fos_ip_addr, is_https, auth, vfid, result)
 
     return singleton_get(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, ssh_hostkeymust)
 
@@ -354,6 +360,8 @@ def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version
     """
     if module_name == "brocade_fibrechannel_switch" and list_name == "fibrechannel_switch":
         return fc_switch_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, entries[0], ssh_hostkeymust)
+    if module_name == "brocade_interface" and list_name == "fibrechannel":
+        return fc_port_patch(fos_ip_addr, is_https, auth, vfid, result, entries)
 
     full_url, validate_certs = full_url_get(is_https,
                                             fos_ip_addr,

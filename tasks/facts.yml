@@ -24,7 +24,6 @@
       vfid: -1
       gather_subset:
         - brocade_zoning
-        - brocade_interface_fibrechannel
         - brocade_time_clock_server
         - brocade_time_time_zone
         - brocade_logging_syslog_server
@@ -61,6 +60,13 @@
       vfid: -1
       module_name: "brocade_fibrechannel_switch"
       list_name: "fibrechannel_switch"
+
+  - name: gather facts for brocade_interface_fibrechannel
+    brocade_list_obj_facts:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_interface"
+      list_name: "fibrechannel"
 
   - name: print ansible_facts gathered
     debug:

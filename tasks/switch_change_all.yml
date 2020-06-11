@@ -20,26 +20,30 @@
   tasks:
 
   - name: disable switch
-    brocade_fibrechannel_switch:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      switch:
-        enabled_state: False
+      module_name: "brocade_fibrechannel_switch"
+      list_name: "fibrechannel_switch"
+      entries:
+        - enabled_state: False
 
   - name: change all switch configuration
-    brocade_fibrechannel_switch:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      switch:
-        user_friendly_name: "new_switch_name"
-        fabric_user_friendly_name: "new_fabric_name"
-        domain_id: 2
-        banner: "MORE AUTHORIZED USERS ONLY!"
-        dynamic_load_sharing: "disabled"
-        domain_name: "google.com"
-        dns_servers:
-          dns_server:
-            - "9.8.8.8"
+      module_name: "brocade_fibrechannel_switch"
+      list_name: "fibrechannel_switch"
+      entries:
+        - user_friendly_name: "new_switch_name"
+          fabric_user_friendly_name: "new_fabric_name"
+          domain_id: 2
+          banner: "MORE AUTHORIZED USERS ONLY!"
+          dynamic_load_sharing: "disabled"
+          domain_name: "google.com"
+          dns_servers:
+            dns_server:
+              - "9.8.8.8"
 
   - name: change all fabric configuration
     brocade_singleton_obj:
@@ -68,11 +72,13 @@
         credit_recovery_mode: "off"
 
   - name: enable switch
-    brocade_fibrechannel_switch:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      switch:
-        enabled_state: True
+      module_name: "brocade_fibrechannel_switch"
+      list_name: "fibrechannel_switch"
+      entries:
+        - enabled_state: True
 
   - name: change all chassis configuration
     brocade_singleton_obj:
@@ -85,10 +91,13 @@
         telnet_timeout: 60
 
   - name: Configure ports
-    brocade_interface_fibrechannel:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      ports:
+      module_name: "brocade_interface"
+      list_name: "fibrechannel"
+      all_entries: False
+      entries:
         - name: "0/0"
           enabled_state: True 
           npiv_pp_limit: 126

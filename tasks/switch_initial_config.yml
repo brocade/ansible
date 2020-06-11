@@ -99,10 +99,13 @@
         telnet_timeout: 30
 
   - name: FC ports configuration
-    brocade_interface_fibrechannel:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      ports:
+      module_name: "brocade_interface"
+      list_name: "fibrechannel"
+      all_entries: False
+      entries:
         - name: "0/0"
           enabled_state: False 
           npiv_pp_limit: 126
