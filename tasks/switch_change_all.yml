@@ -132,10 +132,12 @@
         name: "America/Los_Angeles"
 
   - name: change all audit configuration
-    brocade_logging_audit:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      audit:
+      module_name: "brocade_logging"
+      obj_name: "audit"
+      attributes:
         audit_enabled: False
         filter_class_list:
           filter_class:
