@@ -26,7 +26,6 @@
         - brocade_zoning
         - brocade_time_clock_server
         - brocade_time_time_zone
-        - brocade_snmp_system
         - brocade_security_ipfilter_rule
         - brocade_security_ipfilter_policy
         - brocade_security_user_config
@@ -79,6 +78,13 @@
       vfid: -1
       module_name: "brocade_logging"
       list_name: "syslog_server"
+
+  - name: gather facts for brocade_snmp_system
+    brocade_singleton_obj_facts:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_snmp"
+      obj_name: "system"
 
   - name: print ansible_facts gathered
     debug:

@@ -172,10 +172,12 @@
           server: "10.155.2.151"
 
   - name: snmp system configuration
-    brocade_snmp_system:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      snmp_system:
+      module_name: "brocade_snmp"
+      obj_name: "system"
+      attributes:
         audit_interval: 60
         contact: "Field Support."
         description: "DemoSwitch"
