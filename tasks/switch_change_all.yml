@@ -292,23 +292,19 @@
       delete_policies:
         - name: "ipv4_telnet_http"
 
-  - name: enable root & user
-    brocade_security_user_config:
+  - name: leave admin along, enable root & user and delete myaccount and youraccount
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      user_configs:
+      module_name: "brocade_security"
+      list_name: "user_config"
+      entries:
         - name: "user"
+          account_enabled: True
+        - name: "admin"
           account_enabled: True
         - name: "root"
           account_enabled: True
-
-  - name: delete accounts
-    brocade_security_user_config:
-      credential: "{{credential}}"
-      vfid: -1
-      delete_user_configs:
-        - name: "myaccount"
-        - name: "youraccount"
 
   - name: configure relay server
     brocade_singleton_obj:

@@ -13,6 +13,7 @@ from ansible.module_utils.brocade_chassis import chassis_get, chassis_patch
 from ansible.module_utils.brocade_fibrechannel_configuration import fabric_get, fabric_patch, port_configuration_get, port_configuration_patch
 from ansible.module_utils.brocade_fibrechannel_switch import to_human_switch, to_fos_switch, fc_switch_get, fc_switch_patch
 from ansible.module_utils.brocade_interface import to_human_fc, to_fos_fc, fc_port_get, fc_port_patch
+from ansible.module_utils.brocade_security import user_config_patch
 import base64
 
 __metaclass__ = type
@@ -117,11 +118,15 @@ def to_human_list(module_name, list_name, attributes_list, result):
         if module_name == "brocade_interface" and list_name == "fibrechannel":
             to_human_fc(attributes)
 
-        for k, v in attributes.items():
-            if module_name == "brocade_snmp" and list_name == "v3_account":
-                if k == "authentication_password" or k == "privacy_password":
-                    if str(v) != "None":
-                        attributes[k] = base64.b64decode(v)
+        if module_name == "brocade_snmp" and list_name == "v3_account":
+            if "authentication_password" in attributes:
+                pword = attributes["authentication_password"]
+                if str(pword) != "None":
+                    attributes["authentication_password"] = base64.b64decode(pword)
+            if "privacy_password" in attributes:
+                pword = attributes["privacy_password"]
+                if str(pword) != "None":
+                    attributes["privacy_password"] = base64.b64decode(pword)
 
         if module_name == "brocade_security" and list_name == "user_config":
             if "virtual_fabric_role_id_list" in attributes and "role_id" in attributes["virtual_fabric_role_id_list"]:
@@ -160,11 +165,15 @@ def to_fos_list(module_name, list_name, attributes_list, result):
     for attributes in attributes_list:
         human_to_yang(attributes)
 
-        for k, v in attributes.items():
-            if module_name == "brocade_snmp" and list_name == "v3_account":
-                if k == "authentication_password" or k == "privacy_password":
-                    if str(v) != "None":
-                        attributes[k] = base64.b64encode(v.encode('ascii')).decode('utf-8')
+        if module_name == "brocade_snmp" and list_name == "v3_account":
+            if "authentication-password" in attributes:
+                pword = attributes["authentication-password"]
+                if str(pword) != "None":
+                    attributes["authentication-password"] = base64.b64encode(pword.encode('ascii')).decode('utf-8')
+            if "privacy-password" in attributes:
+                pword = attributes["privacy-password"]
+                if str(pword) != "None":
+                    attributes["privacy-password"] = base64.b64encode(pword.encode('ascii')).decode('utf-8')
 
         if module_name == "brocade_interface" and list_name == "fibrechannel":
             to_fos_fc(attributes, result)
@@ -202,6 +211,9 @@ list_keys = {
     },
     "brocade_interface": {
         "fibrechannel" : ["name"],
+    },
+    "brocade_security": {
+        "user_config" : ["name"],
     },
 }
 
@@ -362,6 +374,8 @@ def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version
         return fc_switch_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, entries[0], ssh_hostkeymust)
     if module_name == "brocade_interface" and list_name == "fibrechannel":
         return fc_port_patch(fos_ip_addr, is_https, auth, vfid, result, entries)
+    if module_name == "brocade_security" and list_name == "user_config":
+        return user_config_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust)
 
     full_url, validate_certs = full_url_get(is_https,
                                             fos_ip_addr,

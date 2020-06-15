@@ -26,7 +26,6 @@
         - brocade_zoning
         - brocade_security_ipfilter_rule
         - brocade_security_ipfilter_policy
-        - brocade_security_user_config
 
   - name: gather facts for brocade_chassis_chassis
     brocade_singleton_obj_facts:
@@ -97,6 +96,13 @@
       vfid: -1
       module_name: "brocade_time"
       obj_name: "time_zone"
+
+  - name: gather facts for brocade_security_user_config
+    brocade_list_obj_facts:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_security"
+      list_name: "user_config"
 
   - name: print ansible_facts gathered
     debug:

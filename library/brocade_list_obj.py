@@ -68,11 +68,9 @@ options:
           is set to true, the entries is used to calculate the change
           of existing entryies, addition, and deletion. If
           all_entries is set to false, the entries is used to
-          calculate the change of existing entries only. i.e. 
-          the module will not attempt to delete objects that do
-          not show up in the entries and will not attempt to
-          add objects that do show up in the entries but does
-          not exist in FOS
+          calculate the change of existing entries and addition
+          of entries only. i.e.  the module will not attempt to
+          delete objects that do not show up in the entries.
         required: false
     entries:
         description:
@@ -224,6 +222,15 @@ def main():
                         diff_attributes[key] = entry[key]
                     diff_entries.append(diff_attributes)
 
+    if module_name == "brocade_security" and list_name == "user_config":
+        new_diff_entries = []
+        for diff_entry in diff_entries:
+            # password canot change using patch update
+            # any entries with password are popp'ed off.
+            if not "password" in diff_entry:
+                new_diff_entries.append(diff_entry)
+        diff_entries = new_diff_entries
+
     ret_code = to_fos_list(module_name, list_name, diff_entries, result)
     result["diff_retcode"] = ret_code
     if ret_code != 0:
@@ -300,7 +307,7 @@ def main():
 
         result["changed"] = True
 
-    if len(add_entries) > 0 and all_entries:
+    if len(add_entries) > 0:
         if not module.check_mode:
             ret_code = list_post(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, add_entries, ssh_hostkeymust)
             if ret_code != 0:

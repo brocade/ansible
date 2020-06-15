@@ -400,21 +400,18 @@
       vfid: -1
       active_policy: "ipv4_telnet_http"
 
-  - name: disable root & user
-    brocade_security_user_config:
+  - name: disable root & user, and add new accounts
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      user_configs:
+      module_name: "brocade-security"
+      list_name: "user-config"
+      all_entries: False
+      entries:
         - name: "user"
           account_enabled: False
         - name: "root"
           account_enabled: False
-
-  - name: add new account
-    brocade_security_user_config:
-      credential: "{{credential}}"
-      vfid: -1
-      user_configs:
         - name: "myaccount"
           password: "bXlwYXNzd29yZA=="
           virtual_fabric_role_id_list:
