@@ -24,7 +24,6 @@
       vfid: -1
       gather_subset:
         - brocade_zoning
-        - brocade_security_ipfilter_rule
         - brocade_security_ipfilter_policy
 
   - name: gather facts for brocade_chassis_chassis
@@ -103,6 +102,13 @@
       vfid: -1
       module_name: "brocade_security"
       list_name: "user_config"
+
+  - name: gather facts for brocade_security_ipfilter_rule
+    brocade_list_obj_facts:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_security"
+      list_name: "ipfilter_rule"
 
   - name: print ansible_facts gathered
     debug:

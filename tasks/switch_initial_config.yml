@@ -299,10 +299,13 @@
           ip_version: "IPv4"
 
   - name: ipfilter rules are created or present
-    brocade_security_ipfilter_rule:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      ipfilter_rules:
+      module_name: "brocade-security"
+      list_name: "ipfilter-rule"
+      all_entries: False
+      entries:
         - policy_name: "ipv4_telnet_http"
           index: 1
           destination_end_port: 22

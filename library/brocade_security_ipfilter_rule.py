@@ -22,7 +22,8 @@ short_description: Brocade security ipfilter rule Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update secuirty ipfilter rule configuration
+- Update secuirty ipfilter rule configuration. Legacy implementation
+  but still works. Recommends using brocade_list_obj(_facts) instead.
 
 options:
 

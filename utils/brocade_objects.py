@@ -214,6 +214,7 @@ list_keys = {
     },
     "brocade_security": {
         "user_config" : ["name"],
+        "ipfilter_rule": ["policy_name", "index"],
     },
 }
 
