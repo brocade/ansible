@@ -179,7 +179,6 @@ Although the module should apply to all objects in general, the following are th
 of modules and objects that have been verified based on the playbooks under tasks
 directory
 
-
 | module name | object name |
 | --- | --- |
 | brocade_chassis | chassis |
@@ -247,6 +246,23 @@ and ZYX for index of 2:
 
 Playing the above playbook to set the community name for two entries. Rest of the entries
 already exist on FOS are untouched.
+
+Although the module should apply to all objects in general, the following are the list
+of modules and objects that have been verified based on the playbooks under tasks
+directory
+
+| module name | list name |
+| --- | --- |
+| brocade_fibrechannel_switch | fibrechannel_switch |
+| brocade-interface | fibrechannel |
+| brocade_logging | syslog_server |
+| brocade-name-server | fibrechannel-name-server |
+| brocade-snmp | v1-account |
+| brocade-snmp | v1-trap |
+| brocade-snmp | v3-account |
+| brocade-snmp | v3-trap |
+| brocade_security | user_config |
+| brocade-security | ipfilter-rule |
 
 ### Contact ###
 
