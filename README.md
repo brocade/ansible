@@ -29,7 +29,8 @@ Step3: update ansible.cfg to point to utils directory for module_utils
 
 When creating Zoning playbooks, Zoning specific modules are used. This is to
 hide some of the Zoning specific operational complexities that would otherwise
-be exposed if using generic templates. However, most other 
+be exposed if using generic templates. However, most other REST FOS objects
+can be addressed by common template modules: brocade_single_obj and brocade_list_obj.
 
 #### Zoning ####
 
@@ -46,9 +47,48 @@ Zoning database contained BBB and CCC before the execution of the playbook,
 the result of the playbook will contain Aliases AAA, BBB, and CCC. CCC is not
 removed even though it is not mentioned in the playbook.
 
+Here is an example of a simple playbook of Alias to create Host1 Alias with two
+members and Target2 Alias with one member.
+
+```
+  - name: Create aliases
+    brocade_zoning_alias:
+      credential:
+        fos_ip_addr: 10.10.10.10
+        fos_user_name: admin
+        fos_password: password
+        https: False
+      vfid: -1
+      aliases:
+        - name: Host1
+          members:
+            - aa:11:11:11:11:11:11:11
+            - aa:22:22:22:22:22:22:22
+        - name: Target2
+          members:
+            - aa:44:44:44:44:44:44:44
+```
+
 Alias, Zone, or CFG entry is deleted only if aliases_to_delete, zones_to_delete
 or cfgs_to_delete variable is provided with a list of Alises, Zones or CFGs to delete.
-Please refer to tasks/zoning_zone_delete.yml for reference.
+
+Here is an example of a simple playbook of Alias to delete Host1 and Target2.
+
+```
+  - name: Delete aliases
+    brocade_zoning_alias:
+      credential:
+        fos_ip_addr: 10.10.10.10
+        fos_user_name: admin
+        fos_password: password
+        https: False
+      vfid: -1
+      aliases_to_delete:
+        - name: Host1
+        - name: Target2
+```
+
+Please refer to tasks/zoning_zone_delete.yml for additional reference.
 
 Alias, Zone, or CFG entry addition and deletion are mutually exclusive.
 
