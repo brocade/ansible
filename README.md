@@ -27,6 +27,9 @@ Step3: update ansible.cfg to point to utils directory for module_utils
 
 ### How to create plabyooks ###
 
+When creating Zoning playbooks, Zoning specific modules are used. This is to
+hide some of the Zoning specific operational complexities that would otherwise
+be exposed if using generic templates. However, most other 
 ## Zoning ##
 
 Using brocade_zoning_alias, brocade_zoning_zone, and brocade_zoning_cfg modules,
@@ -83,6 +86,53 @@ help, PyFOS based zoning_to_yml.py is provided to dump the existing FOS Zoning
 database in yml format. The screen output can be saved to a file and referenced
 in playbooks. Please refer to github.com/brocade/pyfos for PyFOS details and
 tasks/zonedb.yml and tasks/zoning_act.yml for reference.
+
+## Singleton object ##
+
+A singleton object refers to a FOS REST object that is only one of the kind on FOS switch.
+Yang definition of container is used to define this type of object. Using the Yang definition
+and brocade_singleton_obj module, playbooks can be created to update the object.
+
+All the Yang REST FOS models are published in github.com/brocade/yang.
+
+For example, brocade-chassis module contains an object named chassis. And chassis object
+contains a string type leaf named chassis-user-friendly-name.
+
+```
+module brocade-chassis {
+    container brocade-chassis {
+        container chassis {
+            leaf chassis-user-friendly-name {
+            }
+        }
+    }
+}
+```
+
+A playbook to set chassis-user-friendly-name to XYZ is created by, 
+
+1) use brocade_singleton_obj module
+2) provide the module_name to match the Yang REST FOS module name - brocade-chassis or brocade_chassis. "-" and "_" are interchangable as module_name.
+3) provide the obj_name to match the Yang REST FOS object name - chassis. As with module_name, "-" and "_" are interchangable as obj_name.
+4) provide leaf entry within attributes. Only one - chassis-user-friendly-name - is being referenced for the moment. Since Ansible variable should not contain "-", they are placed by "-".
+
+```
+  - name: chassis configuration
+    brocade_singleton_obj:
+      credential:
+        fos_ip_addr: 10.10.10.10
+        fos_user_name: admin
+        fos_password: password
+        https: False
+      vfid: -1
+      module_name: "brocade_chassis"
+      obj_name: "chassis"
+      attributes:
+        chassis_user_friendly_name: XYZ
+```
+
+Playing the above playbook to set the chassis-user-friendly-name to XYZ if different or 
+return no change if already set to XYZ. 
 
 ### Contact ###
 
