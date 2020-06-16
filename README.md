@@ -30,7 +30,8 @@ Step3: update ansible.cfg to point to utils directory for module_utils
 When creating Zoning playbooks, Zoning specific modules are used. This is to
 hide some of the Zoning specific operational complexities that would otherwise
 be exposed if using generic templates. However, most other 
-## Zoning ##
+
+# Zoning #
 
 Using brocade_zoning_alias, brocade_zoning_zone, and brocade_zoning_cfg modules,
 playbooks can be created to update Alias, Zone, or CFG in FOS Zoning database
@@ -87,7 +88,7 @@ database in yml format. The screen output can be saved to a file and referenced
 in playbooks. Please refer to github.com/brocade/pyfos for PyFOS details and
 tasks/zonedb.yml and tasks/zoning_act.yml for reference.
 
-## Singleton object ##
+# Singleton object #
 
 A singleton object refers to a FOS REST object that is only one of the kind on FOS switch.
 Yang definition of container is used to define this type of object. Using the Yang definition
@@ -134,7 +135,7 @@ To create a playbook to set chassis-user-friendly-name to XYZ is created by:
 Playing the above playbook to set the chassis-user-friendly-name to XYZ if different or 
 return no change if already set to XYZ. 
 
-## List object ##
+# List object #
 
 A list object refers to a FOS REST object that can contain multiple entries on FOS switch.
 Yang definition of list is used to define this type of object. Using the Yang definition
