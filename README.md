@@ -175,6 +175,23 @@ To create a playbook to set chassis-user-friendly-name to XYZ is created by:
 Playing the above playbook to set the chassis-user-friendly-name to XYZ if different or 
 return no change if already set to XYZ. 
 
+Although the module should apply to all objects in general, the following are the list
+of modules and objects that have been verified based on the playbooks under tasks
+directory
+
+
+| module name | object name |
+| --- | --- |
+| brocade_chassis | chassis |
+| brocade_fibrechannel_configuration | fabric |
+| brocade_fibrechannel_configuration | port_configuration |
+| brocade_logging | audit |
+| brocade-maps | maps-config |
+| brocade-security | password |
+| brocade-snmp | system |
+| brocade_time | clock_server |
+| brocade_time | time_zone |
+
 #### List object ####
 
 A list object refers to a FOS REST object that can contain multiple entries on FOS switch.
