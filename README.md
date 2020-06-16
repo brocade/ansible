@@ -96,7 +96,7 @@ and brocade_singleton_obj module, playbooks can be created to update the object.
 All the Yang REST FOS models are published in github.com/brocade/yang.
 
 For example, brocade-chassis module contains an object named chassis. And chassis object
-contains a string type leaf named chassis-user-friendly-name.
+contains a string type leaf named chassis-user-friendly-name, amoung other attributes.
 
 ```
 module brocade-chassis {
@@ -109,7 +109,7 @@ module brocade-chassis {
 }
 ```
 
-A playbook to set chassis-user-friendly-name to XYZ is created by, 
+To create a playbook to set chassis-user-friendly-name to XYZ is created by:
 
 1) use brocade_singleton_obj module
 2) provide the module_name to match the Yang REST FOS module name - brocade-chassis or brocade_chassis. "-" and "_" are interchangable as module_name.
@@ -133,6 +133,62 @@ A playbook to set chassis-user-friendly-name to XYZ is created by,
 
 Playing the above playbook to set the chassis-user-friendly-name to XYZ if different or 
 return no change if already set to XYZ. 
+
+## List object ##
+
+A list object refers to a FOS REST object that can contain multiple entries on FOS switch.
+Yang definition of list is used to define this type of object. Using the Yang definition
+and brocade_list_obj module, playbooks can be created to create, update, or delete the object.
+
+All the Yang REST FOS models are published in github.com/brocade/yang.
+
+For example, brocade-snmp module contains an object named v1-account. And v1-account object
+contains a key named index and a string type leaf named community-name, among other attributes.
+
+```
+module brocade-snmp {
+    container brocade-snmp {
+        list v1-account {
+            key "index";
+            leaf index {
+            }
+            leaf community-name {
+            }
+        }
+    }
+}
+```
+
+To create a playbook to set community-name to XYZ for an entry with index of 1,
+and ZYX for index of 2:
+
+1) use brocade_list_obj module
+2) provide the module_name to match the Yang REST FOS module name - brocade-snmp or brocade_snmp. "-" and "_" are interchangable as module_name.
+3) provide the list_name to match the Yang REST FOS object name - v1-account or v1_account. As with module_name, "-" and "_" are interchangable as list_name.
+4) provide an array within entries. Only key and community_string are being referenced for the moment. Since Ansible variable should not contain "-", they are placed by "-".
+5) if the array contains all the entries, all_entries variable can be left out or set to True. If so, entries in playbook but not in FOS are added, entries in both playbook and FOS are updated if different, and entries not in playbook but in FOS are deleted. If the array contains only subset of all entries, only addition and update are performed.
+
+```
+  - name: snmp configuration
+    brocade_list_obj:
+      credential:
+        fos_ip_addr: 10.10.10.10
+        fos_user_name: admin
+        fos_password: password
+        https: False
+      vfid: -1
+      module_name: "brocade_snmp"
+      obj_name: "v1_account"
+      all_entries: False
+      entries:
+        - index: 1 
+          community_name: XYZ
+        - index: 2
+          community_name: ZYX
+```
+
+Playing the above playbook to set the community name for two entries. Rest of the entries
+already exist on FOS are untouched.
 
 ### Contact ###
 
