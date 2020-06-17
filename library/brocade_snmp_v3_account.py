@@ -17,12 +17,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: brocade_fibrechannel_switch
-short_description: Brocade Fibre Channel Switch Configuration
+module: brocade_snmp_v3_account
+short_description: Brocade Fibre Channel SNMP v3 account configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update Fibre Channel switch configuration.
+- Update Fibre Channel SNMP v3 account
 
 options:
 
@@ -33,7 +33,6 @@ options:
           fos_user_name: login name of FOS switch REST API
           fos_password: password of FOS switch REST API
           https: True for HTTPS, self for self-signed HTTPS, or False for HTTP
-          ssh_hostkeymust: hostkeymust arguement for ssh attributes only. Default True.
         type: dict
         required: true
     vfid:
@@ -46,15 +45,10 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
-    switch:
+    v3_accounts:
         description:
-        - list of switch attributes. All writable attributes supported
+        - list of v3 accounts to be updated. All writable attributes supported
           by BSN REST API with - replaced with _.
-          Some examples are
-          - user_friendly_name - switch name in string
-          - fabric_user_friendly_name - fabric name in string
-          - banner - login banner in string
-          - domain_id - set the domain id of the switch
         required: true
 
 '''
@@ -72,35 +66,22 @@ EXAMPLES = """
       https: False
   tasks:
 
-  - name: disable switch before setting insistent domain id mode and domain id set
-    brocade_fibrechannel_switch:
-      credential: "{{credential}}"
-      vfid: -1
-      switch:
-        enabled_state: False
 
-  - name: initial switch configuration
-    brocade_fibrechannel_switch:
-      credential: "{{credential}}"
-      vfid: -1
-      switch:
-        user_friendly_name: "switch_name"
-        fabric_user_friendly_name: "fabric_name"
-        domain_id: 1
-        banner: "AUTHORIZED USERS ONLY!"
-        dynamic_load_sharing: "lossless-dls"
-        domain_name: "yahoo.com"
-        dns_servers:
-          dns_server:
-            - "8.8.8.8"
-            - "8.8.4.4"
-
-  - name: enable switch after setting insistent domain id mode
-    brocade_fibrechannel_switch:
-      credential: "{{credential}}"
-      vfid: -1
-      switch:
-        enabled_state: True
+  - name: snmp v3 accounts
+    brocade_snmp_v3_account:
+    credential: "{{credential}}"
+    vfid: -1
+    v3_accounts:
+      - index: 1
+        authentication_protocol: "md5"
+        manager_engine_id: "00:00:00:00:00:00:00:00:00"
+        privacy_protocol: "aes128"
+        user_name: "asc-test"
+      - index: 2
+        authentication_protocol: "sha"
+        manager_engine_id: "00:00:00:00:00:00:00:00:00"
+        privacy_protocol: "des"
+        user_name: "snmpadmin2"
 
 """
 
@@ -116,7 +97,7 @@ msg:
 
 
 """
-Brocade Fibre Channel switch Configuration
+Brocade Fibre Channel SNMP v3 account configuration
 """
 
 
@@ -133,7 +114,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
-        switch=dict(required=True, type='dict'))
+        v3_accounts=dict(required=True, type='list'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -147,15 +128,12 @@ def main():
     fos_user_name = input_params['credential']['fos_user_name']
     fos_password = input_params['credential']['fos_password']
     https = input_params['credential']['https']
-    ssh_hostkeymust = True
-    if 'ssh_hostkeymust' in input_params['credential']:
-        ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    switch = input_params['switch']
+    v3_accounts = input_params['v3_accounts']
     result = {"changed": False}
 
-    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_fibrechannel_switch", "fibrechannel_switch", [switch], True, None, result)
+    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_snmp", "v3_account", v3_accounts, False, None, result)
 
 
 if __name__ == '__main__':

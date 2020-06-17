@@ -22,8 +22,7 @@ short_description: Brocade security user config Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update security user config configuration. Legacy implementation
-  but still works. Recommends using brocade_list_obj(_facts) instead.
+- Update security user config configuration.
 
 
 options:

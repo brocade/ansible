@@ -19,39 +19,47 @@
   tasks:
 
   - name: disable switch before settings some attributes that require switch disable
-    brocade_fibrechannel_switch:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      switch:
-        enabled_state: False
+      module_name: "brocade-fibrechannel-switch"
+      list_name: "fibrechannel-switch"
+      entries:
+        - enabled_state: False
 
   - name: switch configuration
-    brocade_fibrechannel_switch:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      switch:
-        user_friendly_name: "switch_name"
-        fabric_user_friendly_name: "fabric_name"
-        domain_id: 1
-        banner: "AUTHORIZED USERS ONLY!"
-        dynamic_load_sharing: "lossless-dls"
-        dns_servers:
-          dns_server:
-            - "8.8.8.8"
-            - "8.8.4.4"
+      module_name: "brocade-fibrechannel-switch"
+      list_name: "fibrechannel-switch"
+      entries:
+        - user_friendly_name: "switch_name"
+          fabric_user_friendly_name: "fabric_name"
+          domain_id: 1
+          banner: "AUTHORIZED USERS ONLY!"
+          dynamic_load_sharing: "lossless-dls"
+          dns_servers:
+            dns_server:
+              - "8.8.8.8"
+              - "8.8.4.4"
 
   - name: switch configuration
-    brocade_fibrechannel_switch:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      switch:
-        domain_name: "yahoo.com"
+      module_name: "brocade-fibrechannel-switch"
+      list_name: "fibrechannel-switch"
+      entries:
+        - domain_name: "yahoo.com"
 
   - name: fabric configuration
-    brocade_fibrechannel_configuration_fabric:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      fabric:
+      module_name: "brocade-fibrechannel-configuration"
+      obj_name: "fabric"
+      attributes:
         insistent_domain_id_enabled: True
         in_order_delivery_enabled: False
         fabric_principal_enabled: True
@@ -61,34 +69,43 @@
 #  - debug: var=result
 
   - name: port configuration
-    brocade_fibrechannel_configuration_port_configuration:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      port_configuration:
+      module_name: "brocade-fibrechannel-configuration"
+      obj_name: "port-configuration"
+      attributes:
         dynamic_portname_format: "I.T.A.R"
         portname_mode: "dynamic"
         credit_recovery_mode: "onLrOnly"
 
   - name: enable switch after settings some attributes that require switch disable
-    brocade_fibrechannel_switch:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      switch:
-        enabled_state: True
+      module_name: "brocade-fibrechannel-switch"
+      list_name: "fibrechannel-switch"
+      entries:
+        - enabled_state: True
 
   - name: chassis configuration
-    brocade_chassis:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      chassis:
+      module_name: "brocade-chassis"
+      obj_name: "chassis"
+      attributes:
         chassis_user_friendly_name: "chassis_name"
         telnet_timeout: 30
 
   - name: FC ports configuration
-    brocade_interface_fibrechannel:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      ports:
+      module_name: "brocade-interface"
+      list_name: "fibrechannel"
+      all_entries: False
+      entries:
         - name: "0/0"
           enabled_state: False 
           npiv_pp_limit: 126
@@ -108,26 +125,33 @@
   # if using IP addresses that are not available as clock servers
   # the module may timeout returning failure
   - name: clock server configuration
-    brocade_time_clock_server:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      clock_server:
+      module_name: "brocade-time"
+      obj_name: "clock-server"
+      longer_timeout: 30
+      attributes:
         ntp_server_address:
           server_address:
             - "10.38.2.80"
 
   - name: time zone configuration
-    brocade_time_time_zone:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      time_zone:
+      module_name: "brocade-time"
+      obj_name: "time-zone"
+      attributes:
         name: "America/Chicago"
 
   - name: audit configuration
-    brocade_logging_audit:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      audit:
+      module_name: "brocade-logging"
+      obj_name: "audit"
+      attributes:
         audit_enabled: True
         filter_class_list:
           filter_class:
@@ -142,19 +166,23 @@
         severity_level: "info"
 
   - name: syslog configuration
-    brocade_logging_syslog_server:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      syslog_servers:
+      module_name: "brocade-logging"
+      list_name: "syslog-server"
+      entries:
         - port: 514
           secure_mode: False
           server: "10.155.2.151"
 
   - name: snmp system configuration
-    brocade_snmp_system:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      snmp_system:
+      module_name: "brocade-snmp"
+      obj_name: "system"
+      attributes:
         audit_interval: 60
         contact: "Field Support."
         description: "DemoSwitch"
@@ -166,10 +194,13 @@
         snmpv1_enabled: True
 
   - name: snmp v1 accounts
-    brocade_snmp_v1_account:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      v1_accounts:
+      module_name: "brocade-snmp"
+      list_name: "v1-account"
+      longer_timeout: 30
+      entries:
         - index: 1
           community_name: "secret code"
         - index: 2
@@ -184,20 +215,26 @@
           community_name: "FibreChannel"
 
   - name: snmp v1 traps
-    brocade_snmp_v1_trap:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      v1_traps:
+      module_name: "brocade-snmp"
+      list_name: "v1-trap"
+      all_entries: False
+      entries:
         - index: 1
           host: "10.10.10.10"
           port_number: 1010
           trap_severity_level: "warning"
 
   - name: snmp v3 accounts - setup non-password attributes
-    brocade_snmp_v3_account:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      v3_accounts:
+      module_name: "brocade-snmp"
+      list_name: "v3-account"
+      all_entries: False
+      entries:
         - index: 1
           authentication_protocol: "md5"
           manager_engine_id: "00:00:00:00:00:00:00:00:00"
@@ -210,10 +247,12 @@
           user_name: "snmpadmin2"
 
   - name: snmp v3 traps
-    brocade_snmp_v3_trap:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      v3_traps:
+      module_name: "brocade-snmp"
+      list_name: "v3-trap"
+      entries:
         - trap_index: 1
           host: "10.10.10.11"
           informs_enabled: true
@@ -260,10 +299,13 @@
           ip_version: "IPv4"
 
   - name: ipfilter rules are created or present
-    brocade_security_ipfilter_rule:
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      ipfilter_rules:
+      module_name: "brocade-security"
+      list_name: "ipfilter-rule"
+      all_entries: False
+      entries:
         - policy_name: "ipv4_telnet_http"
           index: 1
           destination_end_port: 22
@@ -361,21 +403,18 @@
       vfid: -1
       active_policy: "ipv4_telnet_http"
 
-  - name: disable root & user
-    brocade_security_user_config:
+  - name: disable root & user, and add new accounts
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      user_configs:
+      module_name: "brocade-security"
+      list_name: "user-config"
+      all_entries: False
+      entries:
         - name: "user"
           account_enabled: False
         - name: "root"
           account_enabled: False
-
-  - name: add new account
-    brocade_security_user_config:
-      credential: "{{credential}}"
-      vfid: -1
-      user_configs:
         - name: "myaccount"
           password: "bXlwYXNzd29yZA=="
           virtual_fabric_role_id_list:
@@ -390,10 +429,12 @@
           chassis_access_role: "admin"
 
   - name: configure relay server
-    brocade_maps_maps_config:
+    brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
-      maps_config:
+      module_name: "brocade-maps"
+      obj_name: "maps-config"
+      attributes:
         relay_ip_address: "10.10.10.10"
         domain_name: "d.com"
         sender_address: "s@d.com"

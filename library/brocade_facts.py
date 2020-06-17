@@ -22,10 +22,7 @@ short_description: Brocade facts gathering
 version_added: '2.6'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Gather FOS facts. Legacy implementation but still works.
-  Also, solely supports zoning & security related data facts gathering.
-  brocade_singleton_obj_facts or brocade_list_obj_facts are used for
-  most other objects.
+- Gather FOS facts.
 
 options:
 

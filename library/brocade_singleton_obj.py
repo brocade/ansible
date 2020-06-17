@@ -118,7 +118,7 @@ Brocade Fibre Channel switch Configuration
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
 from ansible.module_utils.brocade_yang import generate_diff, str_to_human, str_to_yang, is_full_human
-from ansible.module_utils.brocade_objects import singleton_patch, singleton_get, to_human_singleton, to_fos_singleton
+from ansible.module_utils.brocade_objects import singleton_patch, singleton_get, to_human_singleton, to_fos_singleton, singleton_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -159,86 +159,7 @@ def main():
     attributes = input_params['attributes']
     result = {"changed": False}
 
-    if not is_full_human(attributes, result):
-        module.exit_json(**result)
-
-    if vfid is None:
-        vfid = 128
-
-    ret_code, auth, fos_version = login(fos_ip_addr,
-                           fos_user_name, fos_password,
-                           https, throttle, result)
-    if ret_code != 0:
-        module.exit_json(**result)
-
-    result['ssh_hostkeymust'] = ssh_hostkeymust
-
-    ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
-                                       module_name, obj_name, fos_version,
-                                       https, auth, vfid, result,
-                                       ssh_hostkeymust)
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
-
-    resp_attributes = response["Response"][str_to_yang(obj_name)]
-
-    to_human_singleton(module_name, obj_name, resp_attributes)
-
-    diff_attributes = generate_diff(result, resp_attributes, attributes)
-
-    # any object specific special processing
-    if module_name == "brocade_maps" and obj_name == "maps_config":
-        # relay_ip_address and domain_name needs to be specifid
-        # at the same time based on FOS REST requirements
-        if "relay_ip_address" in diff_attributes and "domain_name" not in diff_attributes:
-            diff_attributes["domain_name"] = resp_attributes["domain_name"]
-            result["kept the same"] = "domain_name"
-        elif "relay_ip_address" not in diff_attributes and "domain_name" in diff_attributes:
-            diff_attributes["relay_ip_address"] = resp_attributes["relay_ip_address"]
-            result["kept the same"] = "relay_ip_address"
-
-        if "relay_ip_address" in diff_attributes and diff_attributes["relay_ip_address"] == None:
-            result["failed"] = True
-            result['msg'] = "must specify relay_ip_address if configured empty"
-            exit_after_login(fos_ip_addr, https, auth, result, module)
-        elif "domain_name" in diff_attributes and diff_attributes["domain_name"] == None:
-            result["failed"] = True
-            result['msg'] = "must specify domain_name if configured empty"
-            exit_after_login(fos_ip_addr, https, auth, result, module)
-
-    result["diff_attributes"] = diff_attributes
-    result["current_attributes"] = resp_attributes
-    result["new_attributes"] = attributes
-
-    if len(diff_attributes) > 0:
-        ret_code = to_fos_singleton(module_name, obj_name, diff_attributes, result)
-        if ret_code != 0:
-            exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        if not module.check_mode:
-            ret_code = 0
-            if longer_timeout != None:
-                ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
-                                       module_name, obj_name,
-                                       fos_version, https,
-                                       auth, vfid, result, diff_attributes,
-                                       ssh_hostkeymust, longer_timeout)
-            else:
-                ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
-                                       module_name, obj_name,
-                                       fos_version, https,
-                                       auth, vfid, result, diff_attributes,
-                                       ssh_hostkeymust)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        result["changed"] = True
-    else:
-        logout(fos_ip_addr, https, auth, result)
-        module.exit_json(**result)
-
-    logout(fos_ip_addr, https, auth, result)
-    module.exit_json(**result)
+    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, obj_name, longer_timeout, attributes, result)
 
 
 if __name__ == '__main__':
