@@ -155,7 +155,7 @@ def main():
     switch = input_params['switch']
     result = {"changed": False}
 
-    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_fibrechannel_switch", "fibrechannel_switch", [switch], True, None, result)
+    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_fibrechannel_switch", "fibrechannel_switch", [switch], False, None, result)
 
 
 if __name__ == '__main__':
