@@ -133,9 +133,10 @@ tasks/zonedb.yml and tasks/zoning_act.yml for reference.
 Here are the list of additional Ansible modules beyond Zoning. These modules
 typically take a dictionary or a list of dictionary. The dictionary contains
 attributes matching Yang REST leaf definitions. However, Ansible variables
-require "_" while "-" is used in Yang REST leaf definitions. So, the attributes
+require underscore while hyphen is used in Yang REST leaf definitions. So, the attributes
 within the dictionary should match Yang REST leaf definition while replacing
-"-" with "_".
+hyphen with underscore. i.e. my-leaf-name in Yang REST is converted to my_leaf_name
+within Ansible playbook.
 
 | Ansible module name | Description |
 | --- | --- |
