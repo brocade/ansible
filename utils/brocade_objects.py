@@ -458,6 +458,7 @@ def list_delete(login, password, fos_ip_addr, module_name, list_name, fos_versio
 
 
 def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, obj_name, longer_timeout, attributes, result):
+
     if not is_full_human(attributes, result):
         module.exit_json(**result)
 
@@ -541,6 +542,7 @@ def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
 
 
 def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, entries, all_entries, longer_timeout, result):
+
     if not is_full_human(entries, result):
         module.exit_json(**result)
 
@@ -685,6 +687,73 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
         result["changed"] = True
 
     if len(delete_entries) > 0 and all_entries:
+        if not module.check_mode:
+            ret_code = list_delete(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, delete_entries, ssh_hostkeymust)
+            if ret_code != 0:
+                exit_after_login(fos_ip_addr, https, auth, result, module)
+
+        result["changed"] = True
+
+    logout(fos_ip_addr, https, auth, result)
+    module.exit_json(**result)
+
+def list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, entries, all_entries, longer_timeout, result):
+
+    if not is_full_human(entries, result):
+        module.exit_json(**result)
+
+    if all_entries == None:
+        result["all_entries_default"] = all_entries
+        all_entries = True
+
+    if vfid is None:
+        vfid = 128
+
+    ret_code, auth, fos_version = login(fos_ip_addr,
+                           fos_user_name, fos_password,
+                           https, throttle, result)
+    if ret_code != 0:
+        module.exit_json(**result)
+
+    ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
+                                  module_name, list_name, fos_version,
+                                  https, auth, vfid, result,
+                                  ssh_hostkeymust)
+    if ret_code != 0:
+        exit_after_login(fos_ip_addr, https, auth, result, module)
+
+    current_entries = response["Response"][str_to_yang(list_name)]
+    if not isinstance(current_entries, list):
+        current_entries = [current_entries]
+
+    to_human_list(module_name, list_name, current_entries, result)
+
+    delete_entries = []
+    for entry in entries:
+
+        # check to see if the new entry matches any of the old ones
+        found = False
+        for current_entry in current_entries:
+            if list_entry_keys_matched(entry, current_entry, module_name, list_name):
+                found = True
+                break
+
+        if found:
+            new_entry = {}
+            for k, v in entry.items():
+                new_entry[k] = v
+            delete_entries.append(new_entry)
+
+    ret_code = to_fos_list(module_name, list_name, delete_entries, result)
+    result["add_retcode"] = ret_code
+    if ret_code != 0:
+        exit_after_login(fos_ip_addr, https, auth, result, module)
+
+    result["response"] = response
+    result["current_entries"] = current_entries
+    result["delete_entries"] = delete_entries
+
+    if len(delete_entries) > 0:
         if not module.check_mode:
             ret_code = list_delete(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, delete_entries, ssh_hostkeymust)
             if ret_code != 0:

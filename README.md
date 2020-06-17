@@ -128,7 +128,47 @@ database in yml format. The screen output can be saved to a file and referenced
 in playbooks. Please refer to github.com/brocade/pyfos for PyFOS details and
 tasks/zonedb.yml and tasks/zoning_act.yml for reference.
 
-#### Singleton object ####
+#### Yang module/object specific Ansible modules ####
+
+Here are the list of additional Ansible modules beyond Zoning. These modules
+typically take a dictionary or a list of dictionary. The dictionary contains
+attributes matching Yang REST leaf definitions. However, Ansible variables
+require "_" while "-" is used in Yang REST leaf definitions. So, the attributes
+within the dictionary should match Yang REST leaf definition while replacing
+"-" with "_".
+
+| Ansible module name | Description |
+| --- | --- |
+| brocade_chassis.py | update chassis attributes |
+| brocade_fibrechannel_configuration_fabric.py | update fabric configuration |
+| brocade_fibrechannel_configuration_port_configuration.py | update port configuration |
+| brocade_fibrechannel_switch.py | update switch configuration |
+| brocade_interface_fibrechannel.py | update FC port configuration |
+| brocade_logging_audit.py | update audit configuration |
+| brocade_logging_syslog_server.py | update syslog server configuration |
+| brocade_maps_maps_config.py | update MAPS configuration |
+| brocade_security_ipfilter_policy.py | update ip filter policy |
+| brocade_security_ipfilter_rule.py | update ip filter rule |
+| brocade_security_password.py | update password. Passwords are given in clear text |
+| brocade_security_user_config.py | update login accounts |
+| brocade_snmp_system.py | update snmp system attributes |
+| brocade_snmp_v1_account.py | update snmp v1 account |
+| brocade_snmp_v1_trap.py | update snmp v1 trap |
+| brocade_snmp_v3_account.py | update snmp v3 account |
+| brocade_snmp_v3_trap.py | update snmp v3 trap |
+| brocade_time_clock_server.py | update clock server configuration |
+| brocade_time_time_zone.py | update time zone |
+
+#### Template based Ansible modules ####
+
+REST Yang objects that have yet been addressed by Yang module/object specific
+Ansible modules, template based Ansible modules can be used to address them
+temporarily. Although template based Ansible modules should generally work
+well with most REST Yang modules, some RET Yang objects specific may not be
+handled properly. So, it is recommended that Yang module/object specific
+Ansible modules be used preferably.
+
+##### Singleton object #####
 
 A singleton object refers to a FOS REST object that is only one of the kind on FOS switch.
 Yang definition of container is used to define this type of object. Using the Yang definition
@@ -191,7 +231,7 @@ directory
 | brocade_time | clock_server |
 | brocade_time | time_zone |
 
-#### List object ####
+##### List object #####
 
 A list object refers to a FOS REST object that can contain multiple entries on FOS switch.
 Yang definition of list is used to define this type of object. Using the Yang definition
