@@ -45,7 +45,7 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
-    maps_configuration:
+    maps_config:
         description:
         - list of MAPS configuration attributes. All writable attributes supported
           by BSN REST API with - replaced with _.
