@@ -22,7 +22,7 @@ short_description: Brocade facts gathering
 version_added: '2.6'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Gather FOS facts
+- Gather FOS facts.
 
 options:
 

@@ -356,6 +356,12 @@ def to_human_user_config(attributes):
 
     yang_to_human(attributes)
 
+    if "virtual_fabric_role_id_list" in attributes and "role_id" in attributes["virtual_fabric_role_id_list"]:
+        if not isinstance(attributes["virtual_fabric_role_id_list"]["role_id"], list):
+            new_list = []
+            new_list.append(attributes["virtual_fabric_role_id_list"]["role_id"])
+            attributes["virtual_fabric_role_id_list"]["role_id"] = new_list
+
 def to_fos_user_config(attributes, result):
     human_to_yang(attributes)
 
@@ -404,12 +410,16 @@ def user_config_xml_str(result, users):
 
         for k, v in user.items():
             if k != "name":
-                if isinstance(v, list):
+                if isinstance(v, dict):
                     xml_str = xml_str + "<" + k + ">"
-                    for entry in v:
-                        for k1, v1 in entry.items():
-                            xml_str = xml_str + "<" + k1 + ">" +\
-                                str(v1) + "</" + k1 + ">"
+
+                    for k1, v1 in v.items():
+                        if isinstance(v1, list):
+                            for v2 in v1:
+                                xml_str = xml_str + "<" + k1 + ">" + str(v2) + "</" + k1 + ">"
+                        else:
+                            xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">"
+
                     xml_str = xml_str + "</" + k + ">"
                 else:
                     xml_str = xml_str + "<" + k + ">" +\

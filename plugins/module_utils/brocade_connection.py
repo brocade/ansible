@@ -20,7 +20,7 @@ __metaclass__ = type
 Brocade Connections utils
 """
 
-DEFAULT_THROTTLE = 32
+DEFAULT_THROTTLE = 4
 REST_LOGIN = "/rest/login"
 REST_LOGOUT = "/rest/logout"
 REST_SWITCH = "/rest/running/brocade-fibrechannel-switch/fibrechannel-switch"

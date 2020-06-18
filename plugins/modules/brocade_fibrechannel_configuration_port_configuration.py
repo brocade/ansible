@@ -22,7 +22,7 @@ short_description: Brocade Fibre Channel port Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update port configuration
+- Update port configuration.
 
 options:
 
@@ -95,9 +95,7 @@ Brocade Fibre Channel port Configuration
 """
 
 
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import generate_diff
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_fibrechannel_configuration import port_configuration_patch, port_configuration_get, to_human_port_configuration, to_fos_port_configuration
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_objects import singleton_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -132,51 +130,7 @@ def main():
     port_configuration = input_params['port_configuration']
     result = {"changed": False}
 
-    if vfid is None:
-        vfid = 128
-
-    ret_code, auth, fos_version = login(fos_ip_addr,
-                           fos_user_name, fos_password,
-                           https, throttle, result)
-    if ret_code != 0:
-        module.exit_json(**result)
-
-    ret_code, response = port_configuration_get(fos_user_name, fos_password,
-                                    fos_ip_addr, fos_version, https,
-                                    auth, vfid, result, ssh_hostkeymust)
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
-
-    resp_port_config = response["Response"]["port-configuration"]
-
-    to_human_port_configuration(resp_port_config)
-
-    diff_attributes = generate_diff(result, resp_port_config, port_configuration)
-
-    result["diff_attributes"] = diff_attributes
-    result["resp_port_config"] = resp_port_config
-    result["port_configuration"] = port_configuration
-
-    if len(diff_attributes) > 0:
-        ret_code = to_fos_port_configuration(diff_attributes, result)
-        if ret_code != 0:
-            exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        if not module.check_mode:
-            ret_code = port_configuration_patch(fos_user_name, fos_password,
-                                    fos_ip_addr, fos_version, https,
-                                    auth, vfid, result, diff_attributes,
-                                    ssh_hostkeymust)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        result["changed"] = True
-    else:
-        logout(fos_ip_addr, https, auth, result)
-        module.exit_json(**result)
-
-    logout(fos_ip_addr, https, auth, result)
-    module.exit_json(**result)
+    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_fibrechannel_configuration", "port_configuration", None, port_configuration, result)
 
 
 if __name__ == '__main__':

@@ -22,7 +22,7 @@ short_description: Brocade snmp system Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update snmp system configuration
+- Update snmp system configuration.
 
 options:
 
@@ -102,9 +102,7 @@ Brocade Fibre Channel snmp system Configuration
 """
 
 
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import generate_diff
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_snmp import system_patch, system_get, to_human_system, to_fos_system
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_objects import singleton_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -136,49 +134,7 @@ def main():
     snmp_system = input_params['snmp_system']
     result = {"changed": False}
 
-    if vfid is None:
-        vfid = 128
-
-    ret_code, auth, fos_version = login(fos_ip_addr,
-                           fos_user_name, fos_password,
-                           https, throttle, result)
-    if ret_code != 0:
-        module.exit_json(**result)
-
-    ret_code, response = system_get(fos_user_name, fos_password, fos_ip_addr,
-                                     fos_version, https, auth, vfid, result)
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
-
-    resp_system = response["Response"]["system"]
-
-    to_human_system(resp_system)
-
-    diff_attributes = generate_diff(result, resp_system, snmp_system)
-
-    result["diff_attributes"] = diff_attributes
-    result["resp_system"] = resp_system
-    result["snmp_system"] = snmp_system
-
-    if len(diff_attributes) > 0:
-        ret_code = to_fos_system(diff_attributes, result)
-        if ret_code != 0:
-            exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        if not module.check_mode:
-            ret_code = system_patch(fos_user_name, fos_password, fos_ip_addr,
-                                     fos_version, https,
-                                     auth, vfid, result, diff_attributes)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        result["changed"] = True
-    else:
-        logout(fos_ip_addr, https, auth, result)
-        module.exit_json(**result)
-
-    logout(fos_ip_addr, https, auth, result)
-    module.exit_json(**result)
+    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_snmp", "system", None, snmp_system, result)
 
 
 if __name__ == '__main__':

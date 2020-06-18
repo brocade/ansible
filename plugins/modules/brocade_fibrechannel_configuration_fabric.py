@@ -22,7 +22,7 @@ short_description: Brocade Fibre Channel fabric Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update fabric configuration
+- Update fabric configuration.
 
 options:
 
@@ -101,9 +101,7 @@ Brocade Fibre Channel switch Configuration
 """
 
 
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import generate_diff
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_fibrechannel_configuration import fabric_patch, fabric_get, to_human_fabric, to_fos_fabric
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_objects import singleton_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -138,50 +136,7 @@ def main():
     fabric = input_params['fabric']
     result = {"changed": False}
 
-    if vfid is None:
-        vfid = 128
-
-    ret_code, auth, fos_version = login(fos_ip_addr,
-                           fos_user_name, fos_password,
-                           https, throttle, result)
-    if ret_code != 0:
-        module.exit_json(**result)
-
-    ret_code, response = fabric_get(fos_user_name, fos_password,
-                                    fos_ip_addr, fos_version, https,
-                                    auth, vfid, result, ssh_hostkeymust)
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
-
-    resp_fabric = response["Response"]["fabric"]
-
-    to_human_fabric(resp_fabric)
-
-    diff_attributes = generate_diff(result, resp_fabric, fabric)
-    result["resp_fabric"] = resp_fabric
-    result["fabric"] = fabric
-    result["diff_attributes"] = diff_attributes
-
-    if len(diff_attributes) > 0:
-        ret_code = to_fos_fabric(diff_attributes, result)
-        if ret_code != 0:
-            exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        if not module.check_mode:
-            ret_code = fabric_patch(fos_user_name, fos_password,
-                                    fos_ip_addr, fos_version, https,
-                                    auth, vfid, result, diff_attributes,
-                                    ssh_hostkeymust)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        result["changed"] = True
-    else:
-        logout(fos_ip_addr, https, auth, result)
-        module.exit_json(**result)
-
-    logout(fos_ip_addr, https, auth, result)
-    module.exit_json(**result)
+    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_fibrechannel_configuration", "fabric", None, fabric, result)
 
 
 if __name__ == '__main__':

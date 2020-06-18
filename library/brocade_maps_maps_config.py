@@ -17,12 +17,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: brocade_security_password
-short_description: Brocade security password change
+module: brocade_maps_maps_config
+short_description: Brocade MAPS Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update password for a given user
+- Update MAPS configuration.
 
 options:
 
@@ -33,7 +33,6 @@ options:
           fos_user_name: login name of FOS switch REST API
           fos_password: password of FOS switch REST API
           https: True for HTTPS, self for self-signed HTTPS, or False for HTTP
-          ssh_hostkeymust: hostkeymust arguement for ssh attributes only. Default True.
         type: dict
         required: true
     vfid:
@@ -46,12 +45,12 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
-    password:
+    maps_config:
         description:
-        - password change attributes.
-          - old_password - old password
-          - user_name - name of the account. Base 64 encoded.
-          - new_password - new password. Base 64 encoded.
+        - list of MAPS configuration attributes. All writable attributes supported
+          by BSN REST API with - replaced with _.
+          Some examples are
+          - description - description string
         required: true
 
 '''
@@ -70,14 +69,19 @@ EXAMPLES = """
 
   tasks:
 
-  - name: change password
-    brocade_chassis:
+
+  - name: configure relay server
+    brocade_maps_maps_config:
       credential: "{{credential}}"
       vfid: -1
-      password:
-        user_name: user
-        old_password: xxxBase64Encoded
-        new_password: yyyBase64Encoded
+      maps_config:
+        relay_ip_address: "10.10.10.10"
+        domain_name: "d.com"
+        sender_address: "s@d.com"
+        recipient_address_list:
+        recipient_address:
+          - "r@d.com"
+          - "r@r.com"
 
 """
 
@@ -93,11 +97,11 @@ msg:
 
 
 """
-Brocade Fibre Channel switch Configuration
+Brocade Fibre Channel MAPS Configuration
 """
 
 
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_objects import singleton_helper
+from ansible.module_utils.brocade_objects import singleton_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -110,7 +114,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
-        password=dict(required=True, type='dict'))
+        maps_config=dict(required=True, type='dict'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -124,15 +128,12 @@ def main():
     fos_user_name = input_params['credential']['fos_user_name']
     fos_password = input_params['credential']['fos_password']
     https = input_params['credential']['https']
-    ssh_hostkeymust = True
-    if 'ssh_hostkeymust' in input_params['credential']:
-        ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    password = input_params['password']
+    maps_config = input_params['maps_config']
     result = {"changed": False}
 
-    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_security", "password", None, password, result)
+    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_maps", "maps_config", None, maps_config, result)
 
 
 if __name__ == '__main__':

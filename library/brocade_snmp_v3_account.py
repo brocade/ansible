@@ -17,12 +17,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: brocade_security_password
-short_description: Brocade security password change
+module: brocade_snmp_v3_account
+short_description: Brocade Fibre Channel SNMP v3 account configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update password for a given user
+- Update Fibre Channel SNMP v3 account
 
 options:
 
@@ -33,7 +33,6 @@ options:
           fos_user_name: login name of FOS switch REST API
           fos_password: password of FOS switch REST API
           https: True for HTTPS, self for self-signed HTTPS, or False for HTTP
-          ssh_hostkeymust: hostkeymust arguement for ssh attributes only. Default True.
         type: dict
         required: true
     vfid:
@@ -46,12 +45,10 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
-    password:
+    v3_accounts:
         description:
-        - password change attributes.
-          - old_password - old password
-          - user_name - name of the account. Base 64 encoded.
-          - new_password - new password. Base 64 encoded.
+        - list of v3 accounts to be updated. All writable attributes supported
+          by BSN REST API with - replaced with _.
         required: true
 
 '''
@@ -67,17 +64,24 @@ EXAMPLES = """
       fos_user_name: admin
       fos_password: xxxx
       https: False
-
   tasks:
 
-  - name: change password
-    brocade_chassis:
-      credential: "{{credential}}"
-      vfid: -1
-      password:
-        user_name: user
-        old_password: xxxBase64Encoded
-        new_password: yyyBase64Encoded
+
+  - name: snmp v3 accounts
+    brocade_snmp_v3_account:
+    credential: "{{credential}}"
+    vfid: -1
+    v3_accounts:
+      - index: 1
+        authentication_protocol: "md5"
+        manager_engine_id: "00:00:00:00:00:00:00:00:00"
+        privacy_protocol: "aes128"
+        user_name: "asc-test"
+      - index: 2
+        authentication_protocol: "sha"
+        manager_engine_id: "00:00:00:00:00:00:00:00:00"
+        privacy_protocol: "des"
+        user_name: "snmpadmin2"
 
 """
 
@@ -93,11 +97,11 @@ msg:
 
 
 """
-Brocade Fibre Channel switch Configuration
+Brocade Fibre Channel SNMP v3 account configuration
 """
 
 
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_objects import singleton_helper
+from ansible.module_utils.brocade_objects import list_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -110,7 +114,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
-        password=dict(required=True, type='dict'))
+        v3_accounts=dict(required=True, type='list'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -124,15 +128,12 @@ def main():
     fos_user_name = input_params['credential']['fos_user_name']
     fos_password = input_params['credential']['fos_password']
     https = input_params['credential']['https']
-    ssh_hostkeymust = True
-    if 'ssh_hostkeymust' in input_params['credential']:
-        ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    password = input_params['password']
+    v3_accounts = input_params['v3_accounts']
     result = {"changed": False}
 
-    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_security", "password", None, password, result)
+    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_snmp", "v3_account", v3_accounts, False, None, result)
 
 
 if __name__ == '__main__':

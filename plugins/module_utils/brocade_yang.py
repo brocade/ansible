@@ -13,24 +13,61 @@ __metaclass__ = type
 Brocade yang utilities
 """
 
+def str_to_yang(istring):
+    return istring.replace("_", "-")
+
+
+def str_to_human(istring):
+    return istring.replace("-", "_")
+
+
+def is_full_human(inputs, result):
+    if isinstance(inputs, list):
+        for entry in inputs:
+            if isinstance(entry, dict):
+                for k, v in entry.items():
+                    if "-" in k:
+                        result["failed"] = True
+                        result["msg"] = "user variable name " + k + " should not contain hyphen"
+                        return False
+                    elif isinstance(v, dict):
+                        for k1, v1 in v.items():
+                            if "-" in k1:
+                                result["failed"] = True
+                                result["msg"] = "user variable name " + k1 + " should not contain hyphen"
+                                return False
+    elif isinstance(inputs, dict):
+        for k, v in inputs.items():
+            if "-" in k:
+                result["failed"] = True
+                result["msg"] = "user variable name " + k + " should not contain hyphen"
+                return False
+            elif isinstance(v, dict):
+                for k1, v1 in v.items():
+                    if "-" in k1:
+                        result["failed"] = True
+                        result["msg"] = "user variable name " + k1 + " should not contain hyphen"
+                        return False
+    return True
+
 def yang_to_human(attributes):
     yang_attributes = {}
     for k, v in attributes.items():
         if isinstance(v, dict):
             dict_v = {}
             for k1, v1 in v.items():
-                dict_v[k1.replace("-", "_")] = v1
-            yang_attributes[k.replace("-", "_")] = dict_v
+                dict_v[str_to_human(k1)] = v1
+            yang_attributes[str_to_human(k)] = dict_v
         elif isinstance(v, list):
             new_list = []
             for entry in v:
                 new_dict = {}
                 for k1, v1 in entry.items():
-                    new_dict[k1.replace("-", "_")] = v1
+                    new_dict[str_to_human(k1)] = v1
                 new_list.append(new_dict)
-            yang_attributes[k.replace("-", "_")] = new_list
+            yang_attributes[str_to_human(k)] = new_list
         else:
-            yang_attributes[k.replace("-", "_")] = v
+            yang_attributes[str_to_human(k)] = v
 
     attributes.clear()
     for k, v in yang_attributes.items():
@@ -43,18 +80,18 @@ def human_to_yang(attributes):
         if isinstance(v, dict):
             dict_v = {}
             for k1, v1 in v.items():
-                dict_v[k1.replace("_", "-")] = v1
-            human_attributes[k.replace("_", "-")] = dict_v
+                dict_v[str_to_yang(k1)] = v1
+            human_attributes[str_to_yang(k)] = dict_v
         elif isinstance(v, list):
             new_list = []
             for entry in v:
                 new_dict = {}
                 for k1, v1 in entry.items():
-                    new_dict[k1.replace("_", "-")] = v1
+                    new_dict[str_to_yang(k1)] = v1
                 new_list.append(new_dict)
-            human_attributes[k.replace("_", "-")] = new_list
+            human_attributes[str_to_yang(k)] = new_list
         else:
-            human_attributes[k.replace("_", "-")] = v
+            human_attributes[str_to_yang(k)] = v
 
     attributes.clear()
     for k, v in human_attributes.items():

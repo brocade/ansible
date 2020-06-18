@@ -22,7 +22,7 @@ short_description: Brocade chassis Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update chassis configuration
+- Update chassis configuration.
 
 options:
 
@@ -95,10 +95,7 @@ msg:
 Brocade Fibre Channel switch Configuration
 """
 
-
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import generate_diff
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_chassis import chassis_patch, chassis_get, to_human_chassis, to_fos_chassis
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_objects import singleton_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -133,52 +130,7 @@ def main():
     chassis = input_params['chassis']
     result = {"changed": False}
 
-    if vfid is None:
-        vfid = 128
-
-    ret_code, auth, fos_version = login(fos_ip_addr,
-                           fos_user_name, fos_password,
-                           https, throttle, result)
-    if ret_code != 0:
-        module.exit_json(**result)
-
-    result['ssh_hostkeymust'] = ssh_hostkeymust
-
-    ret_code, response = chassis_get(fos_user_name, fos_password, fos_ip_addr,
-                                     fos_version, https, auth, vfid, result, ssh_hostkeymust)
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
-
-    resp_chassis = response["Response"]["chassis"]
-
-    to_human_chassis(resp_chassis)
-
-    diff_attributes = generate_diff(result, resp_chassis, chassis)
-
-    result["diff_attributes"] = diff_attributes
-    result["resp_chassis"] = resp_chassis
-    result["chassis"] = chassis
-
-    if len(diff_attributes) > 0:
-        ret_code = to_fos_chassis(diff_attributes, result)
-        if ret_code != 0:
-            exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        if not module.check_mode:
-            ret_code = chassis_patch(fos_user_name, fos_password, fos_ip_addr,
-                                     fos_version, https,
-                                     auth, vfid, result, diff_attributes,
-                                     ssh_hostkeymust)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        result["changed"] = True
-    else:
-        logout(fos_ip_addr, https, auth, result)
-        module.exit_json(**result)
-
-    logout(fos_ip_addr, https, auth, result)
-    module.exit_json(**result)
+    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_chassis", "chassis", None, chassis, result)
 
 
 if __name__ == '__main__':
