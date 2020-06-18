@@ -17,12 +17,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: brocade_logging_audit
-short_description: Brocade loggig syslog server Configuration
+module: brocade_snmp_v3_trap
+short_description: Brocade Fibre Channel SNMP v3 trap configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update logging audit configuration.
+- Update Fibre Channel SNMP v3 trap
 
 options:
 
@@ -45,10 +45,9 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
-    syslog_servers:
+    v3_traps:
         description:
-        - list of syslog server config data structure
-          All writable attributes supported
+        - list of v3 traps to be updated. All writable attributes supported
           by BSN REST API with - replaced with _.
         required: true
 
@@ -65,17 +64,20 @@ EXAMPLES = """
       fos_user_name: admin
       fos_password: xxxx
       https: False
-
   tasks:
 
-  - name: initial syslog configuration
-    brocade_logging_syslog_server:
-      credential: "{{credential}}"
-      vfid: -1
-      syslog_servers:
-        - port: 514
-          secure_mode: False
-          server: "10.155.2.151"
+
+  - name: snmp v3 traps
+    brocade_snmp_v3_trap:
+    credential: "{{credential}}"
+    vfid: -1
+    v3_traps:
+      - trap_index: 1
+        host: "10.10.10.11"
+        informs_enabled: true
+        port_number: 1011
+        trap_severity_level: "warning"
+        usm_index: 1
 
 """
 
@@ -91,7 +93,7 @@ msg:
 
 
 """
-Brocade Fibre Channel syslog server Configuration
+Brocade Fibre Channel SNMP v3 trap configuration
 """
 
 
@@ -108,7 +110,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
-        syslog_servers=dict(required=True, type='list'))
+        v3_traps=dict(required=True, type='list'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -124,10 +126,10 @@ def main():
     https = input_params['credential']['https']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    syslog_servers = input_params['syslog_servers']
+    v3_traps = input_params['v3_traps']
     result = {"changed": False}
 
-    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_logging", "syslog_server", syslog_servers, True, None, result)
+    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_snmp", "v3_trap", v3_traps, False, None, result)
 
 
 if __name__ == '__main__':

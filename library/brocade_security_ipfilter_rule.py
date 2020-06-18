@@ -22,7 +22,7 @@ short_description: Brocade security ipfilter rule Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update secuirty ipfilter rule configuration
+- Update secuirty ipfilter rule configuration.
 
 options:
 
@@ -196,9 +196,7 @@ Brocade Fibre Channel ipfilter rule Configuration
 """
 
 
-from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
-from ansible.module_utils.brocade_security import ipfilter_rule_patch, ipfilter_rule_post, ipfilter_rule_delete, ipfilter_rule_get, to_human_ipfilter_rule, to_fos_ipfilter_rule
+from ansible.module_utils.brocade_objects import list_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -230,114 +228,7 @@ def main():
     ipfilter_rules = input_params['ipfilter_rules']
     result = {"changed": False}
 
-    if vfid is None:
-        vfid = 128
-
-    ret_code, auth, fos_version = login(fos_ip_addr,
-                           fos_user_name, fos_password,
-                           https, throttle, result)
-    if ret_code != 0:
-        module.exit_json(**result)
-
-    ret_code, response = ipfilter_rule_get(
-        fos_ip_addr, https, auth, vfid, result)
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
-
-    resp_ir = response["Response"]["ipfilter-rule"]
-
-    if isinstance(resp_ir, list):
-        c_rules = resp_ir
-    else:
-        c_rules = [resp_ir]
-
-    # convert everything to human readable from REST
-    for c_rule in c_rules:
-        to_human_ipfilter_rule(c_rule)
-
-    diff_rules = []
-    for new_ir in ipfilter_rules:
-        for c_rule in c_rules:
-            if new_ir["policy_name"] == c_rule["policy_name"] and str(new_ir["index"]) == c_rule["index"]:
-                diff_attributes = generate_diff(result, c_rule, new_ir)
-                if len(diff_attributes) > 0:
-                    result["c_rule"] = c_rule
-                    diff_attributes["policy_name"] = new_ir["policy_name"]
-                    diff_attributes["index"] = new_ir["index"]
-                    ret_code = to_fos_ipfilter_rule(diff_attributes, result)
-                    result["retcode"] = ret_code
-                    if ret_code != 0:
-                        exit_after_login(fos_ip_addr, https, auth, result, module)
-
-                    diff_rules.append(diff_attributes)
-
-    add_rules = []
-    for new_ir in ipfilter_rules:
-        found = False
-        for c_rule in c_rules:
-            if new_ir["policy_name"] == c_rule["policy_name"] and str(new_ir["index"]) == c_rule["index"]:
-                found = True
-        if not found:
-            new_yang_rule = {}
-            for k, v in new_ir.items():
-                new_yang_rule[k] = v
-            ret_code = to_fos_ipfilter_rule(new_yang_rule, result)
-            result["retcode"] = ret_code
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
-
-            add_rules.append(new_yang_rule)
-
-    delete_rules = []
-    for c_rule in c_rules:
-        found = False
-        for new_ir in ipfilter_rules:
-            if new_ir["policy_name"] == c_rule["policy_name"] and str(new_ir["index"]) == c_rule["index"]:
-                found = True
-        if not found:
-            delete_rule = {}
-            delete_rule["policy-name"] = c_rule["policy_name"]
-            delete_rule["index"] = c_rule["index"]
-            delete_rules.append(delete_rule)
-
-    result["resp_ir"] = resp_ir
-    result["ipfilter_rules"] = ipfilter_rules
-    result["diff_rules"] = diff_rules
-    result["add_rules"] = add_rules
-    result["delete_rules"] = delete_rules
-
-    if len(diff_rules) > 0:
-        if not module.check_mode:
-            ret_code = ipfilter_rule_patch(
-                fos_ip_addr, https,
-                auth, vfid, result, diff_rules)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        result["changed"] = True
-
-    if len(add_rules) > 0:
-        if not module.check_mode:
-            ret_code = ipfilter_rule_post(
-                fos_ip_addr, https,
-                auth, vfid, result, add_rules)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        result["changed"] = True
-
-#    if len(delete_rules) > 0:
-#        if not module.check_mode:
-#            ret_code = ipfilter_rule_delete(
-#                fos_ip_addr, https,
-#                auth, vfid, result, delete_rules)
-#            if ret_code != 0:
-#                exit_after_login(fos_ip_addr, https, auth, result, module)
-#
-#        result["changed"] = True
-
-    logout(fos_ip_addr, https, auth, result)
-    module.exit_json(**result)
+    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_security", "ipfilter_rule", ipfilter_rules, False, None, result)
 
 
 if __name__ == '__main__':

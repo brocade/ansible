@@ -17,12 +17,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: brocade_logging_audit
-short_description: Brocade loggig syslog server Configuration
+module: brocade_snmp_v3_account
+short_description: Brocade Fibre Channel SNMP v3 account configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update logging audit configuration.
+- Update Fibre Channel SNMP v3 account
 
 options:
 
@@ -45,10 +45,9 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
-    syslog_servers:
+    v3_accounts:
         description:
-        - list of syslog server config data structure
-          All writable attributes supported
+        - list of v3 accounts to be updated. All writable attributes supported
           by BSN REST API with - replaced with _.
         required: true
 
@@ -65,17 +64,24 @@ EXAMPLES = """
       fos_user_name: admin
       fos_password: xxxx
       https: False
-
   tasks:
 
-  - name: initial syslog configuration
-    brocade_logging_syslog_server:
-      credential: "{{credential}}"
-      vfid: -1
-      syslog_servers:
-        - port: 514
-          secure_mode: False
-          server: "10.155.2.151"
+
+  - name: snmp v3 accounts
+    brocade_snmp_v3_account:
+    credential: "{{credential}}"
+    vfid: -1
+    v3_accounts:
+      - index: 1
+        authentication_protocol: "md5"
+        manager_engine_id: "00:00:00:00:00:00:00:00:00"
+        privacy_protocol: "aes128"
+        user_name: "asc-test"
+      - index: 2
+        authentication_protocol: "sha"
+        manager_engine_id: "00:00:00:00:00:00:00:00:00"
+        privacy_protocol: "des"
+        user_name: "snmpadmin2"
 
 """
 
@@ -91,7 +97,7 @@ msg:
 
 
 """
-Brocade Fibre Channel syslog server Configuration
+Brocade Fibre Channel SNMP v3 account configuration
 """
 
 
@@ -108,7 +114,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
-        syslog_servers=dict(required=True, type='list'))
+        v3_accounts=dict(required=True, type='list'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -124,10 +130,10 @@ def main():
     https = input_params['credential']['https']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    syslog_servers = input_params['syslog_servers']
+    v3_accounts = input_params['v3_accounts']
     result = {"changed": False}
 
-    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_logging", "syslog_server", syslog_servers, True, None, result)
+    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_snmp", "v3_account", v3_accounts, False, None, result)
 
 
 if __name__ == '__main__':

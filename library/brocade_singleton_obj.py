@@ -22,7 +22,7 @@ short_description: Brocade generic handler for singleton_obj
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- userd for brocade-security/password object
+- Update list of attributes based on module name and obj name provided
 
 options:
 
@@ -48,14 +48,25 @@ options:
         required: false
     module_name:
         description:
-        - name of module. for example, brocade-security
+        - Yang module name. Hyphen or underscore are used interchangebly.
+          If the Yang module name is xy-z, either xy-z or xy_z are acceptable.
+        required: true
     obj_name:
         description:
-        - name of obj. for example, password under brocade-security
+        - Yang name for the object. Hyphen or underscore are used
+          interchangebly. If the Yang list name is xy-z, either
+          xy-z or xy_z are acceptable.
+        required: true
+    longer_timeout:
+        description:
+        - If the operation requires longer timeout
+        required: false
     attributes:
         description:
         - list of attributes for the object. names match rest attributes
-          with "-" replaced with "_"
+          with "-" replaced with "_". Using hyphen in the name
+          may result in errenously behavior based on ansible
+          parsing.
           - special node for "brocade-security" module "password" object
             "old_password" and "new_password" are in plain text
             if "user_name" is user account, only "new_password" is needed
@@ -106,8 +117,8 @@ Brocade Fibre Channel switch Configuration
 
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
-from ansible.module_utils.brocade_objects import singleton_patch, singleton_get, to_human_singleton, to_fos_singleton
+from ansible.module_utils.brocade_yang import generate_diff, str_to_human, str_to_yang, is_full_human
+from ansible.module_utils.brocade_objects import singleton_patch, singleton_get, to_human_singleton, to_fos_singleton, singleton_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -122,6 +133,7 @@ def main():
         throttle=dict(required=False, type='float'),
         module_name=dict(required=True, type='str'),
         obj_name=dict(required=True, type='str'),
+        longer_timeout=dict(required=False, type='int'),
         attributes=dict(required=True, type='dict'))
 
     module = AnsibleModule(
@@ -141,80 +153,13 @@ def main():
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    module_name = input_params['module_name']
-    obj_name = input_params['obj_name']
+    module_name = str_to_human(input_params['module_name'])
+    obj_name = str_to_human(input_params['obj_name'])
+    longer_timeout = input_params['longer_timeout']
     attributes = input_params['attributes']
     result = {"changed": False}
 
-    if vfid is None:
-        vfid = 128
-
-    ret_code, auth, fos_version = login(fos_ip_addr,
-                           fos_user_name, fos_password,
-                           https, throttle, result)
-    if ret_code != 0:
-        module.exit_json(**result)
-
-    result['ssh_hostkeymust'] = ssh_hostkeymust
-
-    ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
-                                       module_name, obj_name, fos_version,
-                                       https, auth, vfid, result,
-                                       ssh_hostkeymust)
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
-
-    resp_attributes = response["Response"][obj_name]
-
-    to_human_singleton(module_name, obj_name, resp_attributes)
-
-    diff_attributes = generate_diff(result, resp_attributes, attributes)
-
-    # any object specific special processing
-    if module_name == "brocade-maps" and obj_name == "maps-config":
-        # relay_ip_address and domain_name needs to be specifid
-        # at the same time based on FOS REST requirements
-        if "relay_ip_address" in diff_attributes and "domain_name" not in diff_attributes:
-            diff_attributes["domain_name"] = resp_attributes["domain_name"]
-            result["kept the same"] = "domain_name"
-        elif "relay_ip_address" not in diff_attributes and "domain_name" in diff_attributes:
-            diff_attributes["relay_ip_address"] = resp_attributes["relay_ip_address"]
-            result["kept the same"] = "relay_ip_address"
-
-        if "relay_ip_address" in diff_attributes and diff_attributes["relay_ip_address"] == None:
-            result["failed"] = True
-            result['msg'] = "must specify relay_ip_address if configured empty"
-            exit_after_login(fos_ip_addr, https, auth, result, module)
-        elif "domain_name" in diff_attributes and diff_attributes["domain_name"] == None:
-            result["failed"] = True
-            result['msg'] = "must specify domain_name if configured empty"
-            exit_after_login(fos_ip_addr, https, auth, result, module)
-
-    result["diff_attributes"] = diff_attributes
-    result["resp_attributes"] = resp_attributes
-    result["attributes"] = attributes
-
-    if len(diff_attributes) > 0:
-        ret_code = to_fos_singleton(module_name, obj_name, diff_attributes, result)
-        if ret_code != 0:
-            exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        if not module.check_mode:
-            ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
-                                       module_name, obj_name,
-                                       fos_version, https,
-                                       auth, vfid, result, diff_attributes,
-                                       ssh_hostkeymust)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        result["changed"] = True
-    else:
-        logout(fos_ip_addr, https, auth, result)
-        module.exit_json(**result)
-
-    logout(fos_ip_addr, https, auth, result)
-    module.exit_json(**result)
+    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, obj_name, longer_timeout, attributes, result)
 
 
 if __name__ == '__main__':

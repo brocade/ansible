@@ -6,7 +6,7 @@
 
 from __future__ import (absolute_import, division, print_function)
 from ansible.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get
-from ansible.module_utils.brocade_yang import yang_to_human, human_to_yang
+from ansible.module_utils.brocade_yang import yang_to_human, human_to_yang, str_to_human
 
 __metaclass__ = type
 
@@ -53,50 +53,52 @@ def to_human_fc(port_config):
     # convert real boolean strings to boolean first
     # then convert the non 0/1 integers to boolean
     # then convert the 0/1 integers to boolean
+    yang_to_human(port_config)
+
     for k, v in port_config.items():
         if v == "true":
             port_config[k] = True
         elif v == "false":
             port_config[k] = False
 
-    if "enabled-state" in port_config:
-        if port_config["enabled-state"] == "2":
-            port_config["enabled-state"] = True
+    if "enabled_state" in port_config:
+        if port_config["enabled_state"] == "2":
+            port_config["enabled_state"] = True
         else:
-            port_config["enabled-state"] = False
+            port_config["enabled_state"] = False
 
     for attrib in zero_one_attributes:
-        if attrib in port_config:
-            if port_config[attrib] == "0":
-                port_config[attrib] = False
+        if str_to_human(attrib) in port_config:
+            if port_config[str_to_human(attrib)] == "0":
+                port_config[str_to_human(attrib)] = False
             else:
-                port_config[attrib] = True
+                port_config[str_to_human(attrib)] = True
 
-    if "los-tov-mode-enabled" in port_config:
-        if port_config["los-tov-mode-enabled"] == "0":
-            port_config["los-tov-mode-enabled"] = "Disabled"
-        elif port_config["los-tov-mode-enabled"] == "1":
-            port_config["los-tov-mode-enabled"] = "Fixed"
-        elif port_config["los-tov-mode-enabled"] == "2":
-            port_config["los-tov-mode-enabled"] = "FixedAuto"
+    if "los_tov_mode_enabled" in port_config:
+        if port_config["los_tov_mode_enabled"] == "0":
+            port_config["los_tov_mode_enabled"] = "Disabled"
+        elif port_config["los_tov_mode_enabled"] == "1":
+            port_config["los_tov_mode_enabled"] = "Fixed"
+        elif port_config["los_tov_mode_enabled"] == "2":
+            port_config["los_tov_mode_enabled"] = "FixedAuto"
 
-    if "long-distance" in port_config:
-        if port_config["long-distance"] == "0":
-            port_config["long-distance"] = "Disabled"
-        elif port_config["long-distance"] == "1":
-            port_config["long-distance"] = "L0"
-        elif port_config["long-distance"] == "2":
-            port_config["long-distance"] = "L1"
-        elif port_config["long-distance"] == "3":
-            port_config["long-distance"] = "L2"
-        elif port_config["long-distance"] == "4":
-            port_config["long-distance"] = "LE"
-        elif port_config["long-distance"] == "5":
-            port_config["long-distance"] = "L0.5"
-        elif port_config["long-distance"] == "6":
-            port_config["long-distance"] = "LD"
-        elif port_config["long-distance"] == "7":
-            port_config["long-distance"] = "LS"
+    if "long_distance" in port_config:
+        if port_config["long_distance"] == "0":
+            port_config["long_distance"] = "Disabled"
+        elif port_config["long_distance"] == "1":
+            port_config["long_distance"] = "L0"
+        elif port_config["long_distance"] == "2":
+            port_config["long_distance"] = "L1"
+        elif port_config["long_distance"] == "3":
+            port_config["long_distance"] = "L2"
+        elif port_config["long_distance"] == "4":
+            port_config["long_distance"] = "LE"
+        elif port_config["long_distance"] == "5":
+            port_config["long_distance"] = "L0.5"
+        elif port_config["long_distance"] == "6":
+            port_config["long_distance"] = "LD"
+        elif port_config["long_distance"] == "7":
+            port_config["long_distance"] = "LS"
 
     if "speed" in port_config:
         if port_config["speed"] == "32000000000":
@@ -115,8 +117,6 @@ def to_human_fc(port_config):
             port_config["speed"] = "1Gig"
         elif port_config["speed"] == "0":
             port_config["speed"] = "Auto"
-
-    yang_to_human(port_config)
 
 def to_fos_fc(port_config, result):
     human_to_yang(port_config)

@@ -22,7 +22,7 @@ short_description: Brocade Fibre Channel Switch Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update Fibre Channel switch configuration
+- Update Fibre Channel switch configuration.
 
 options:
 
@@ -120,9 +120,7 @@ Brocade Fibre Channel switch Configuration
 """
 
 
-from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
-from ansible.module_utils.brocade_fibrechannel_switch import fc_switch_patch, fc_switch_get, to_human_switch, to_fos_switch
+from ansible.module_utils.brocade_objects import list_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -157,74 +155,7 @@ def main():
     switch = input_params['switch']
     result = {"changed": False}
 
-    if vfid is None:
-        vfid = 128
-
-    ret_code, auth, fos_version = login(fos_ip_addr,
-                           fos_user_name, fos_password,
-                           https, throttle, result)
-    if ret_code != 0:
-        module.exit_json(**result)
-
-    ret_code, response = fc_switch_get(fos_user_name, fos_password, 
-        fos_ip_addr, fos_version, https, auth, vfid, result,
-        ssh_hostkeymust)
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
-
-    resp_switch = response["Response"]["fibrechannel-switch"]
-
-    to_human_switch(resp_switch)
-   
-    if "dns_servers" in resp_switch:
-        if resp_switch["dns_servers"] is not None and "dns_server" in resp_switch["dns_servers"]:
-            if not isinstance(resp_switch["dns_servers"]["dns_server"], list):
-                new_list = []
-                new_list.append(resp_switch["dns_servers"]["dns_server"])
-                resp_switch["dns_servers"]["dns_server"] = new_list
-
-    if "ip_address" in resp_switch:
-        if resp_switch["ip_address"] is not None and "ip_address" in resp_switch["ip_address"]:
-            if not isinstance(resp_switch["ip_address"]["ip_address"], list):
-                new_list = []
-                new_list.append(resp_switch["ip_address"]["ip_address"])
-                resp_switch["ip_address"]["ip_address"] = new_list
-
-    if "ip_static_gateway_list" in resp_switch:
-        if resp_switch["ip_static_gateway_list"] is not None and "ip_static_gateway" in resp_switch["ip_static_gateway_list"]:
-            if not isinstance(resp_switch["ip_static_gateway_list"]["ip_static_gateway"], list):
-                new_list = []
-                new_list.append(resp_switch["ip_static_gateway_list"]["ip_static_gateway"])
-                resp_switch["ip_static_gateway_list"]["ip_static_gateway"] = new_list
-
-    diff_attributes = generate_diff(result, resp_switch, switch)
-
-    result["diff_attributes"] = diff_attributes
-    result["resp_switch"] = resp_switch
-    result["switch"] = switch
-
-    if len(diff_attributes) > 0:
-        # let's add name key to it
-        diff_attributes["name"] = resp_switch["name"]
-        ret_code = to_fos_switch(diff_attributes, result)
-        if ret_code != 0:
-            exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        if not module.check_mode:
-            ret_code = fc_switch_patch(fos_user_name, fos_password,
-                                       fos_ip_addr, fos_version, https,
-                                       auth, vfid, result, diff_attributes,
-                                       ssh_hostkeymust)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        result["changed"] = True
-    else:
-        logout(fos_ip_addr, https, auth, result)
-        module.exit_json(**result)
-
-    logout(fos_ip_addr, https, auth, result)
-    module.exit_json(**result)
+    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_fibrechannel_switch", "fibrechannel_switch", [switch], False, None, result)
 
 
 if __name__ == '__main__':

@@ -17,12 +17,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: brocade_logging_audit
-short_description: Brocade loggig syslog server Configuration
+module: brocade_maps_maps_config
+short_description: Brocade MAPS Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update logging audit configuration.
+- Update MAPS configuration.
 
 options:
 
@@ -45,11 +45,12 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
-    syslog_servers:
+    maps_config:
         description:
-        - list of syslog server config data structure
-          All writable attributes supported
+        - list of MAPS configuration attributes. All writable attributes supported
           by BSN REST API with - replaced with _.
+          Some examples are
+          - description - description string
         required: true
 
 '''
@@ -68,14 +69,19 @@ EXAMPLES = """
 
   tasks:
 
-  - name: initial syslog configuration
-    brocade_logging_syslog_server:
+
+  - name: configure relay server
+    brocade_maps_maps_config:
       credential: "{{credential}}"
       vfid: -1
-      syslog_servers:
-        - port: 514
-          secure_mode: False
-          server: "10.155.2.151"
+      maps_config:
+        relay_ip_address: "10.10.10.10"
+        domain_name: "d.com"
+        sender_address: "s@d.com"
+        recipient_address_list:
+        recipient_address:
+          - "r@d.com"
+          - "r@r.com"
 
 """
 
@@ -91,11 +97,11 @@ msg:
 
 
 """
-Brocade Fibre Channel syslog server Configuration
+Brocade Fibre Channel MAPS Configuration
 """
 
 
-from ansible.module_utils.brocade_objects import list_helper
+from ansible.module_utils.brocade_objects import singleton_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -108,7 +114,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
-        syslog_servers=dict(required=True, type='list'))
+        maps_config=dict(required=True, type='dict'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -124,10 +130,10 @@ def main():
     https = input_params['credential']['https']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    syslog_servers = input_params['syslog_servers']
+    maps_config = input_params['maps_config']
     result = {"changed": False}
 
-    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_logging", "syslog_server", syslog_servers, True, None, result)
+    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_maps", "maps_config", None, maps_config, result)
 
 
 if __name__ == '__main__':

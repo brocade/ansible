@@ -22,7 +22,7 @@ short_description: Brocade time clock server Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update time clock server configuration
+- Update time clock server configuration.
 
 options:
 
@@ -98,9 +98,7 @@ Brocade Fibre Channel time clock server Configuration
 """
 
 
-from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_yang import generate_diff
-from ansible.module_utils.brocade_time import clock_server_patch, clock_server_get, to_human_clock_server, to_fos_clock_server
+from ansible.module_utils.brocade_objects import singleton_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -132,55 +130,7 @@ def main():
     clock_server = input_params['clock_server']
     result = {"changed": False}
 
-    if vfid is None:
-        vfid = 128
-
-    ret_code, auth, fos_version = login(fos_ip_addr,
-                           fos_user_name, fos_password,
-                           https, throttle, result)
-    if ret_code != 0:
-        module.exit_json(**result)
-
-    ret_code, response = clock_server_get(
-        fos_ip_addr, https, auth, vfid, result)
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
-
-    resp_clock = response["Response"]["clock-server"]
-
-    to_human_clock_server(resp_clock)
-
-    if "ntp_server_address" in resp_clock and "server_address" in resp_clock["ntp_server_address"]:
-        if not isinstance(resp_clock["ntp_server_address"]["server_address"], list):
-            new_list = []
-            new_list.append(resp_clock["ntp_server_address"]["server_address"])
-            resp_clock["ntp_server_address"]["server_address"] = new_list
-
-    diff_attributes = generate_diff(result, resp_clock, clock_server)
-
-    result["diff_attributes"] = diff_attributes
-    result["clock_server"] = clock_server
-    result["resp_clock"] = resp_clock
-
-    if len(diff_attributes) > 0:
-        ret_code = to_fos_clock_server(diff_attributes, result)
-        if ret_code != 0:
-            exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        if not module.check_mode:
-            ret_code = clock_server_patch(
-                fos_ip_addr, https,
-                auth, vfid, result, diff_attributes)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
-
-        result["changed"] = True
-    else:
-        logout(fos_ip_addr, https, auth, result)
-        module.exit_json(**result)
-
-    logout(fos_ip_addr, https, auth, result)
-    module.exit_json(**result)
+    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_time", "clock_server", None, clock_server, result)
 
 
 if __name__ == '__main__':

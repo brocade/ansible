@@ -35,13 +35,10 @@
         snmpv1_enabled: False
 
   - name: v1 accounts
-    brocade_list_obj:
+    brocade_snmp_v1_account:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-snmp"
-      list_name: "v1-account"
-      longer_timeout: 30
-      entries:
+      v1_accounts:
         - index: 1
           community_name: "Secret code new"
         - index: 2
@@ -56,26 +53,20 @@
           community_name: "FibreChannelNew"
 
   - name: v1 traps
-    brocade_list_obj:
+    brocade_snmp_v1_trap:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-snmp"
-      list_name: "v1-trap"
-      all_entries: False
-      entries:
+      v1_traps:
         - index: 1
           host: "10.10.10.12"
           port_number: 1002
           trap_severity_level: "warning"
 
   - name: v3 accounts - setup non-password attributes
-    brocade_list_obj:
+    brocade_snmp_v3_account:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-snmp"
-      list_name: "v3-account"
-      all_entries: False
-      entries:
+      v3_accounts:
         - index: 1
           authentication_protocol: "md5"
           manager_engine_id: "00:00:00:00:00:00:00:00:00"
@@ -88,12 +79,10 @@
           user_name: "snmpadmin2"
 
   - name: v3 traps
-    brocade_list_obj:
+    brocade_snmp_v3_trap:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-snmp"
-      list_name: "v3-trap"
-      entries:
+      v3_traps:
         - trap_index: 1
           host: "10.10.10.11"
           informs_enabled: true
@@ -132,13 +121,10 @@
           usm_index: 6
 
   - name: v3 accounts - set passwords. warning - password cannot be read. this task will always change.
-    brocade_list_obj:
+    brocade_snmp_v3_account:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-snmp"
-      list_name: "v3-account"
-      all_entries: False
-      entries:
+      v3_accounts:
         - index: 1
           authentication_password: "password1"
           privacy_password: "password1"

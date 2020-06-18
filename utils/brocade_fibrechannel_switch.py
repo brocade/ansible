@@ -24,25 +24,26 @@ def to_human_switch(switch_config):
     # convert all boolean strings to boolean
     # first. Then convert integer booleans
     # to boolean
+    yang_to_human(switch_config)
+
     for k, v in switch_config.items():
         if v == "true":
             switch_config[k] = True
         elif v == "false":
             switch_config[k] = False
 
-    if "enabled-state" in switch_config:
-        if switch_config["enabled-state"] == "3":
-            switch_config["enabled-state"] = False
+    if "enabled_state" in switch_config:
+        if switch_config["enabled_state"] == "3":
+            switch_config["enabled_state"] = False
         else:
-            switch_config["enabled-state"] = True
+            switch_config["enabled_state"] = True
 
-    if "ag-mode" in switch_config:
-        if switch_config["ag-mode"] == "1":
-            switch_config["ag-mode"] = True
+    if "ag_mode" in switch_config:
+        if switch_config["ag_mode"] == "1":
+            switch_config["ag_mode"] = True
         else:
-            switch_config["ag-mode"] = False
+            switch_config["ag_mode"] = False
 
-    yang_to_human(switch_config)
 
 def to_fos_switch(switch_config, result):
     human_to_yang(switch_config)

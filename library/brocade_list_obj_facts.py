@@ -48,15 +48,22 @@ options:
         required: false
     module_name:
         description:
-        - name of module. for example, brocade-security
+        - Yang module name. Hyphen or underscore are used interchangebly.
+          If the Yang module name is xy-z, either xy-z or xy_z are acceptable.
+        required: true
     obj_name:
         description:
-        - name of obj. for example, password under brocade-security
+        - Yang name for the list object. Hyphen or underscore are used
+          interchangebly. If the Yang list name is xy-z, either
+          xy-z or xy_z are acceptable.
+        required: true
     attributes:
         description:
         - list of attributes for the object to match to return.
-          names match rest attributes with "-" replaced with "_".
+          names match Yang rest attributes with "-" replaced with "_".
           If none is given, the module returns all valid entries.
+          Using hyphen in the name may result in errenously behavior
+          based on Ansible parsing.
 
 '''
 
@@ -106,6 +113,7 @@ Brocade Fibre Channel Port Configuration
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
 from ansible.module_utils.brocade_objects import list_get, to_human_list
+from ansible.module_utils.brocade_yang import str_to_human, str_to_yang
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -139,8 +147,8 @@ def main():
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    module_name = input_params['module_name']
-    list_name = input_params['list_name']
+    module_name = str_to_human(input_params['module_name'])
+    list_name = str_to_human(input_params['list_name'])
     attributes = input_params['attributes']
     result = {"changed": False}
 
@@ -165,7 +173,9 @@ def main():
         result["list_get"] = ret_code
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
-    obj_list = response["Response"][list_name]
+    obj_list = response["Response"][str_to_yang(list_name)]
+    if not isinstance(obj_list, list):
+        obj_list = [obj_list]
 
     to_human_list(module_name, list_name, obj_list, result)
 
