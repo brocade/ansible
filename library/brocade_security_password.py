@@ -29,11 +29,11 @@ options:
     credential:
         description:
         - login information including
-          fos_ip_addr: ip address of the FOS switch
-          fos_user_name: login name of FOS switch REST API
-          fos_password: password of FOS switch REST API
-          https: True for HTTPS, self for self-signed HTTPS, or False for HTTP
-          ssh_hostkeymust: hostkeymust arguement for ssh attributes only. Default True.
+          fos_ip_addr - ip address of the FOS switch
+          fos_user_name - login name of FOS switch REST API
+          fos_password - password of FOS switch REST API
+          https - True for HTTPS, self for self-signed HTTPS, or False for HTTP
+          ssh_hostkeymust - hostkeymust arguement for ssh attributes only. Default True.
         type: dict
         required: true
     vfid:
@@ -49,9 +49,9 @@ options:
     password:
         description:
         - password change attributes.
-          - old_password - old password
-          - user_name - name of the account. Base 64 encoded.
-          - new_password - new password. Base 64 encoded.
+          - user_name - name of the account.
+          - old_password - old password in clear text.
+          - new_password - new password in clear text.
         required: true
 
 '''
@@ -76,8 +76,8 @@ EXAMPLES = """
       vfid: -1
       password:
         user_name: user
-        old_password: xxxBase64Encoded
-        new_password: yyyBase64Encoded
+        old_password: oldpassword
+        new_password: newpassword
 
 """
 
