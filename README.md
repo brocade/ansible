@@ -10,7 +10,7 @@ custom ansible.cfg to be located within the root directory of the repo. Therefor
 these files are moved from their location within tasks directory in the
 mater branch to the root diretory in tower_awx branch.
 
-Tested with AWN 13.0.0.
+Tested with AWX 13.0.0.
 
 ### Usage ###
 
