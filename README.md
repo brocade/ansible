@@ -1,9 +1,9 @@
 Brocade Ansible reference example Modules and Playbooks - Tower/AWX structure
 =======
 
-This repository provides reference example Modules & Playbooks for Ansible
-to manage Fibre Channel switches running FOS 8.2.1c. Tested with Ansible
-2.9.0 running Python 3.5.2.
+This branch - tower_awx - in this repository provides reference example Modules
+& Playbooks for Ansible to manage Fibre Channel switches running FOS 8.2.1c.
+Tested with Ansible 2.9.0 running Python 3.5.2.
 
 Ansible Tower/AWX expects project structure to contain playbooks and customed
 ansible.cfg to be located within root directory. These files are moved moved
