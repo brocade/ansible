@@ -21,7 +21,7 @@
 # word, display task will only show something if a match is found.
 #
 
-- hosts: san_eng_zone_seed_san_a
+- hosts: localhost
   gather_facts: False
 
   vars:

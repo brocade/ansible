@@ -29,7 +29,7 @@
 #        active_cfg to be the correct enabled cfg name.
 
 
-- hosts: san_eng_zone_seed_san_a
+- hosts: localhost
   gather_facts: False
 
   vars:
