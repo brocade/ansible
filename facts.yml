@@ -6,12 +6,12 @@
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
-- hosts: san_eng_zone_seed_san_a
+- hosts: localhost
   gather_facts: False
 
   vars:
     credential:
-      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_ip_addr: 10.155.107.74
       fos_user_name: admin
       fos_password: fibranne
       https: False
