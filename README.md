@@ -5,6 +5,9 @@ This repository provides reference example Modules & Playbooks for Ansible
 to manage Fibre Channel switches running FOS 8.2.1c. Tested with Ansible
 2.9.0 running Python 3.5.2.
 
+For information on running the modules/playbooks in Tower/AWX environment,
+checkout tower_awx branch and refer to information on README on the branch.
+
 ### Installation ###
 
 Step1: clone the repository
