@@ -18,21 +18,21 @@
 
   tasks:
 
-  - name: copy Alias
+  - name: copy Alias Host1 to Host1_new
     brocade_zoning_copy:
       credential: "{{credential}}"
       vfid: -1
       object_name: Host1
       new_name: Host1_new
 
-  - name: copy Zone
+  - name: copy Zone Zone3 to Zone3_new
     brocade_zoning_copy:
       credential: "{{credential}}"
       vfid: -1
       object_name: Zone3
       new_name: Zone3_new
 
-  - name: copy CFG
+  - name: copy CFG cfg1 to cfg1_new
     brocade_zoning_copy:
       credential: "{{credential}}"
       vfid: -1
