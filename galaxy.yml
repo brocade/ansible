@@ -1,6 +1,6 @@
-namespace: daniel_chung_broadcom
+namespace: brocade
 name: fos
-version: 1.0.13
+version: 1.0.15
 readme: README.md
 authors:
   - Brocade Automation Team <Automation.BSN@broadcom.com>
@@ -12,6 +12,6 @@ tags:
   - fos
   - storage
 dependencies: {}
-repository: https://github.com/daniel-chung-broadcom/ansible-1
-documentation: https://github.com/daniel-chung-broadcom/ansible-1
-issues: https://github.com/daniel-chung-broadcom/ansible-1/issues
+repository: https://github.com/brocade/ansible
+documentation: https://github.com/brocade/ansible
+issues: https://github.com/brocade/ansible/issues

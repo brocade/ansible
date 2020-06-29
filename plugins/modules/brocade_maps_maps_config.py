@@ -17,12 +17,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: brocade_snmp_v3_account
-short_description: Brocade Fibre Channel SNMP v3 account configuration
+module: brocade_maps_maps_config
+short_description: Brocade MAPS Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update Fibre Channel SNMP v3 account
+- Update MAPS configuration.
 
 options:
 
@@ -45,10 +45,12 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
-    v3_accounts:
+    maps_config:
         description:
-        - list of v3 accounts to be updated. All writable attributes supported
+        - list of MAPS configuration attributes. All writable attributes supported
           by BSN REST API with - replaced with _.
+          Some examples are
+          - description - description string
         required: true
 
 '''
@@ -64,24 +66,22 @@ EXAMPLES = """
       fos_user_name: admin
       fos_password: xxxx
       https: False
+
   tasks:
 
 
-  - name: snmp v3 accounts
-    brocade_snmp_v3_account:
-    credential: "{{credential}}"
-    vfid: -1
-    v3_accounts:
-      - index: 1
-        authentication_protocol: "md5"
-        manager_engine_id: "00:00:00:00:00:00:00:00:00"
-        privacy_protocol: "aes128"
-        user_name: "asc-test"
-      - index: 2
-        authentication_protocol: "sha"
-        manager_engine_id: "00:00:00:00:00:00:00:00:00"
-        privacy_protocol: "des"
-        user_name: "snmpadmin2"
+  - name: configure relay server
+    brocade_maps_maps_config:
+      credential: "{{credential}}"
+      vfid: -1
+      maps_config:
+        relay_ip_address: "10.10.10.10"
+        domain_name: "d.com"
+        sender_address: "s@d.com"
+        recipient_address_list:
+        recipient_address:
+          - "r@d.com"
+          - "r@r.com"
 
 """
 
@@ -97,11 +97,11 @@ msg:
 
 
 """
-Brocade Fibre Channel SNMP v3 account configuration
+Brocade Fibre Channel MAPS Configuration
 """
 
 
-from ansible.module_utils.brocade_objects import list_helper
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_objects import singleton_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -114,7 +114,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
-        v3_accounts=dict(required=True, type='list'))
+        maps_config=dict(required=True, type='dict'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -130,10 +130,10 @@ def main():
     https = input_params['credential']['https']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    v3_accounts = input_params['v3_accounts']
+    maps_config = input_params['maps_config']
     result = {"changed": False}
 
-    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_snmp", "v3_account", v3_accounts, False, None, result)
+    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_maps", "maps_config", None, maps_config, result)
 
 
 if __name__ == '__main__':

@@ -17,12 +17,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: brocade_snmp_v1_account
-short_description: Brocade Fibre Channel SNMP v1 account configuration
+module: brocade_snmp_v1_trap
+short_description: Brocade Fibre Channel SNMP v1 trap configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update Fibre Channel SNMP v1 account
+- Update Fibre Channel SNMP v1 trap
 
 options:
 
@@ -45,9 +45,9 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
-    v1_accounts:
+    v1_traps:
         description:
-        - list of v1 accounts to be updated. All writable attributes supported
+        - list of v1 traps to be updated. All writable attributes supported
           by BSN REST API with - replaced with _.
         required: true
 
@@ -67,15 +67,15 @@ EXAMPLES = """
   tasks:
 
 
-  - name: snmp v1 accounts
-    brocade_snmp_v1_account:
+  - name: snmp v1 traps
+    brocade_snmp_v1_trap:
     credential: "{{credential}}"
     vfid: -1
-    v1_accounts:
+    v1_traps:
       - index: 1
-        community_name: "secret code"
-      - index: 2
-        community_name: "oem"
+        host: "10.10.10.10"
+        port_number: 1010
+        trap_severity_level: "warning"
 
 """
 
@@ -91,11 +91,11 @@ msg:
 
 
 """
-Brocade Fibre Channel SNMP v1 account configuration
+Brocade Fibre Channel SNMP v1 trap configuration
 """
 
 
-from ansible.module_utils.brocade_objects import list_helper
+from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_objects import list_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -108,7 +108,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
-        v1_accounts=dict(required=True, type='list'))
+        v1_traps=dict(required=True, type='list'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -124,10 +124,10 @@ def main():
     https = input_params['credential']['https']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    v1_accounts = input_params['v1_accounts']
+    v1_traps = input_params['v1_traps']
     result = {"changed": False}
 
-    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_snmp", "v1_account", v1_accounts, False, 30, result)
+    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_snmp", "v1_trap", v1_traps, False, None, result)
 
 
 if __name__ == '__main__':

@@ -44,7 +44,7 @@ The Brocade FOS collection consists of the latest versions of the FOS modules.
 - hosts: san_eng_zone_seed_san_a
   gather_facts: False
   collections:
-    - daniel_chung_broadcom.fos
+    - brocade.fos
 
   vars:
     credential:
