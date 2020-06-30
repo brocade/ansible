@@ -112,10 +112,10 @@ Brocade Fibre Channel ipfilter policy Configuration
 """
 
 
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import is_full_human
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_objects import list_helper, list_delete_helper
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_security import ipfilter_policy_patch, ipfilter_policy_get, to_human_ipfilter_policy, to_fos_ipfilter_policy
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import is_full_human
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import list_helper, list_delete_helper
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_security import ipfilter_policy_patch, ipfilter_policy_get, to_human_ipfilter_policy, to_fos_ipfilter_policy
 from ansible.module_utils.basic import AnsibleModule
 
 

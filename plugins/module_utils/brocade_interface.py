@@ -5,8 +5,8 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import yang_to_human, human_to_yang, str_to_human
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import yang_to_human, human_to_yang, str_to_human
 
 __metaclass__ = type
 

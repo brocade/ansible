@@ -5,16 +5,16 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object, url_post, url_delete
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import yang_to_human, human_to_yang, str_to_yang, str_to_human, generate_diff, is_full_human
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_ssh import ssh_and_configure
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_interface import to_fos_fc, to_human_fc
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_chassis import chassis_get, chassis_patch
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_fibrechannel_configuration import fabric_get, fabric_patch, port_configuration_get, port_configuration_patch
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_fibrechannel_switch import to_human_switch, to_fos_switch, fc_switch_get, fc_switch_patch
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_interface import to_human_fc, to_fos_fc, fc_port_get, fc_port_patch
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_security import user_config_patch
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object, url_post, url_delete
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import yang_to_human, human_to_yang, str_to_yang, str_to_human, generate_diff, is_full_human
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_ssh import ssh_and_configure
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_interface import to_fos_fc, to_human_fc
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_chassis import chassis_get, chassis_patch
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_fibrechannel_configuration import fabric_get, fabric_patch, port_configuration_get, port_configuration_patch
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_fibrechannel_switch import to_human_switch, to_fos_switch, fc_switch_get, fc_switch_patch
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_interface import to_human_fc, to_fos_fc, fc_port_get, fc_port_patch
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_security import user_config_patch
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
 import base64
 
 __metaclass__ = type

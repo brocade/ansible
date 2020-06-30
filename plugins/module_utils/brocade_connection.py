@@ -9,8 +9,8 @@ import base64
 import time
 import ansible.module_utils.urls as ansible_urls
 import ansible.module_utils.six.moves.urllib.error as urllib_error
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_xml import bsn_xmltodict
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_url import url_post, full_url_get, url_get_to_dict, url_helper
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_xml import bsn_xmltodict
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_url import url_post, full_url_get, url_get_to_dict, url_helper
 
 
 __metaclass__ = type

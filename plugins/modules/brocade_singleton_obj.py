@@ -116,9 +116,9 @@ Brocade Fibre Channel switch Configuration
 """
 
 
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_yang import generate_diff, str_to_human, str_to_yang, is_full_human
-from ansible_collections.daniel_chung_broadcom.fos.plugins.module_utils.brocade_objects import singleton_patch, singleton_get, to_human_singleton, to_fos_singleton, singleton_helper
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import generate_diff, str_to_human, str_to_yang, is_full_human
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import singleton_patch, singleton_get, to_human_singleton, to_fos_singleton, singleton_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
