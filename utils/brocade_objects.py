@@ -66,7 +66,7 @@ def to_fos_singleton(module_name, obj_name, attributes, result):
     return 0
 
 
-def singleton_get(login, password, fos_ip_addr, module_name, obj_name, fos_version, is_https, auth, vfid, result, ssh_hostkeymust):
+def singleton_get(login, password, fos_ip_addr, module_name, obj_name, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout=None):
     """
         retrieve existing user config configuration 
 
@@ -97,11 +97,11 @@ def singleton_get(login, password, fos_ip_addr, module_name, obj_name, fos_versi
                                             REST_PREFIX + module_name + "/" + obj_name)
 
     ret, resp = url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
-                                result, full_url)
+                                result, full_url, timeout)
 
     if ret == -2:
         # return empty dict. GET isn't supported
-        return 0, ({"Response" : {obj_name: {}}})
+        return 0, ({"Response" : {str_to_yang(obj_name): {}}})
 
     return ret, resp
 
@@ -240,13 +240,13 @@ def list_entry_keys(module_name, list_name):
 
     return []
 
-def list_get(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, ssh_hostkeymust):
+def list_get(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout):
     if module_name == "brocade_fibrechannel_switch" and list_name == "fibrechannel_switch":
         return fc_switch_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust)
     if module_name == "brocade_interface" and list_name == "fibrechannel":
         return fc_port_get(fos_ip_addr, is_https, auth, vfid, result)
 
-    return singleton_get(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, ssh_hostkeymust)
+    return singleton_get(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout)
 
 
 def singleton_xml_str(result, obj_name, attributes):
@@ -477,7 +477,7 @@ def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
     ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
                                        module_name, obj_name, fos_version,
                                        https, auth, vfid, result,
-                                       ssh_hostkeymust)
+                                       ssh_hostkeymust, longer_timeout)
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
@@ -563,7 +563,7 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
     ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
                                   module_name, list_name, fos_version,
                                   https, auth, vfid, result,
-                                  ssh_hostkeymust)
+                                  ssh_hostkeymust, longer_timeout)
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
@@ -719,7 +719,7 @@ def list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, 
     ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
                                   module_name, list_name, fos_version,
                                   https, auth, vfid, result,
-                                  ssh_hostkeymust)
+                                  ssh_hostkeymust, longer_timeout)
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
