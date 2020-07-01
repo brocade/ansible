@@ -28,7 +28,7 @@ Step3: update ansible.cfg to point to utils directory for module_utils
 
     Example available under tasks/ansible.cfg
 
-### How to create plabyooks ###
+### How to create playbooks ###
 
 When creating Zoning playbooks, Zoning specific modules are used. This is to
 hide some of the Zoning specific operational complexities that would otherwise
@@ -114,6 +114,12 @@ Please refer to tasks/zoning_zone_add.yml for default behavior reference,
 tasks/zoning_zone_members_add_only.yml for members_add_only
 reference and tasks/zoning_zone_members_remove_only.yml for members_remove_only
 reference.
+
+If interested in copying an existing Alias, Zone, or CFG to a new object,
+brocade_zoning_copy module is used. If any changes are detected in the Zoning
+object - for example, new member is added to a Zone - being copied from,
+the difference is newly applied to the destination object - i.e. the
+added member is added to the destination Zone if already created.
 
 During execution, each module will update the define configuration and either
 save or enable CFG depending on if a CFG is already active on FOS. If any
