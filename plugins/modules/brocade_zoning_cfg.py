@@ -34,10 +34,10 @@ options:
     credential:
         description:
         - login information including
-          fos_ip_addr: ip address of the FOS switch
-          fos_user_name: login name of FOS switch REST API
-          fos_password: password of FOS switch REST API
-          https: True for HTTPS, self for self-signed HTTPS, or False for HTTP
+          fos_ip_addr - ip address of the FOS switch
+          fos_user_name - login name of FOS switch REST API
+          fos_password - password of FOS switch REST API
+          https - True for HTTPS, self for self-signed HTTPS, or False for HTTP
         type: dict
         required: true
     vfid:
@@ -138,83 +138,7 @@ Brocade Zoning Cfgs
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_zoning import zoning_common, cfg_post, cfg_delete, cfg_get, process_member_diff
-
-
-def cfg_process_diff(result, cfgs, c_cfgs):
-    """
-    return the diff from expected cfgs vs. current cfgs
-
-    :param cfgs: list of expected cfgs
-    :type cfgs: list
-    :param c_cfgs: list of current cfgs
-    :type c_cfgs: list
-    :return: indicate if diff or the same
-    :rtype: bool
-    :return: list of cfgs with to be added members
-    :rtype: list
-    :return: list of cfgs with to be removed members
-    :rtype: list
-    """
-    post_cfgs = []
-    remove_cfgs = []
-    common_cfgs = []
-    for cfg in cfgs:
-        found_in_c = False
-        for c_cfg in c_cfgs:
-            if cfg["name"] == c_cfg["cfg-name"]:
-                found_in_c = True
-                added_members, removed_members, common_members = process_member_diff(
-                    result, cfg["members"], c_cfg["member-zone"]["zone-name"])
-
-                if len(added_members) > 0:
-                    post_cfg = {}
-                    post_cfg["name"] = cfg["name"]
-                    post_cfg["members"] = added_members
-                    post_cfgs.append(post_cfg)
-                if len(removed_members) > 0:
-                    remove_cfg = {}
-                    remove_cfg["name"] = cfg["name"]
-                    remove_cfg["members"] = removed_members
-                    remove_cfgs.append(remove_cfg)
-                if len(common_members) > 0:
-                    common_cfg = {}
-                    common_cfg["name"] = cfg["name"]
-                    common_cfg["members"] = common_members
-                    common_cfgs.append(common_cfg)
-                continue
-        if not found_in_c:
-            post_cfgs.append(cfg)
-
-    return 0, post_cfgs, remove_cfgs, common_cfgs
-
-
-def cfg_process_diff_to_delete(result, cfgs, c_cfgs):
-    """
-    return the diff from to delete cfgs vs. current cfgs
-
-    :param cfgs: list of expected cfgs
-    :type cfgs: list
-    :param c_cfgs: list of current cfgs
-    :type c_cfgs: list
-    :return: indicate if diff or the same
-    :rtype: bool
-    :return: list of cfgs to delete
-    :rtype: list
-    :return: list of cfgs with to be removed members
-    :rtype: list
-    """
-    delete_cfgs = []
-    for cfg in cfgs:
-        found_in_c = False
-        for c_cfg in c_cfgs:
-            if cfg["name"] == c_cfg["cfg-name"]:
-                found_in_c = True
-                break
-        if found_in_c:
-            delete_cfgs.append(cfg)
-
-    return 0, delete_cfgs
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_zoning import zoning_common, cfg_post, cfg_delete, cfg_get, cfg_process_diff, cfg_process_diff_to_delete
 
 
 def main():

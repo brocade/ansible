@@ -28,10 +28,10 @@ options:
     credential:
         description:
         - login information including
-          fos_ip_addr: ip address of the FOS switch
-          fos_user_name: login name of FOS switch REST API
-          fos_password: password of FOS switch REST API
-          https: True for HTTPS, self for self-signed HTTPS, or False for HTTP
+          fos_ip_addr - ip address of the FOS switch
+          fos_user_name - login name of FOS switch REST API
+          fos_password - password of FOS switch REST API
+          https - True for HTTPS, self for self-signed HTTPS, or False for HTTP
         type: dict
         required: true
     vfid:

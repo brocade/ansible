@@ -1,6 +1,6 @@
 namespace: brocade
 name: fos
-version: 1.0.15
+version: 1.0.16
 readme: README.md
 authors:
   - Brocade Automation Team <Automation.BSN@broadcom.com>

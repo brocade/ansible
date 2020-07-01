@@ -163,6 +163,29 @@ def url_delete(fos_ip_addr, is_https, auth, vfid, result, url, body):
 
     return 0
 
+messages_404 = [
+    "No entries found",
+    "No syslog servers are configured",
+    "No entries in Name Server",
+    "No ports have Trunk Area enabled",
+    "No trunking Links",
+    "No pause/continue configuration",
+    "No Rule violations found",
+    "RADIUS configuration does not exist.",
+    "TACACS+ configuration does not exist.",
+    "LDAP configuration does not exist.",
+    "Role Map Configuration does not exist",
+    "No public keys found"
+    ]
+
+empty_messages_400 = [
+    "Not supported on this platform",
+    "AG mode is not enabled",
+    "Extension not supported on this platform",
+    "No entries in the FDMI database",
+    "No licenses installed"
+    ]
+
 def url_helper(url, body, method, auth, result, validate_certs, timeout=DEFAULT_TO, credential=None):
     myheaders = {}
     if credential == None:   
@@ -184,7 +207,7 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout=DEFAULT_
         else:
             result[method + "_resp_data"] = e_data
 
-        if e.code == 404 and (root_dict["errors"]["error"]["error-message"] == "No entries found" or root_dict["errors"]["error"]["error-message"] == "No syslog servers are configured" or root_dict["errors"]["error"]["error-message"] == "No entries in Name Server"):
+        if e.code == 404 and root_dict["errors"]["error"]["error-message"] in messages_404:
             empty_list_resp = {}
             empty_list_resp["Response"] = {}
             empty_list_resp["Response"][os.path.basename(url)] = []
@@ -200,6 +223,9 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout=DEFAULT_
         elif e.code == 503:
             ret_val = -3
             result["myretry"] = True
+        elif e.code == 400 and root_dict["errors"]["error"]["error-message"] in empty_messages_400:
+            result["msg"] = root_dict["errors"]["error"]["error-message"]
+            ret_val = -2
         else:
             result["failed"] = True
             result["msg"] = method + " failed"
@@ -208,7 +234,7 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout=DEFAULT_
 
     return 0, 0, None, get_resp,
 
-def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url):
+def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url, timeout=None):
     """
         retrieve existing url content and return dict
 
@@ -232,13 +258,23 @@ def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url):
     if vfid is not None and vfid != -1:
         url = url + VF_ID + str(vfid)
 
-    retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs)
+    retval = 0
+    eret = 0
+    edict = {}
+    get_resp = {}
+    if timeout == None:
+        retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs)
+    else:
+        retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs, timeout = timeout)
     if retval == -1:
         if eret != -3:
             return eret, edict
         elif eret == -3:
             time.sleep(auth["throttle"])
-            retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs)
+            if timeout == None:
+                retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs)
+            else:
+                retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs, timeout = timeout)
             if retval == -1:
                 return eret, edict
 
