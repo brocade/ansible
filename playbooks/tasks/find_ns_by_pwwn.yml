@@ -1,0 +1,66 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+# This playbook is a reference example complete two operations
+#
+# 1) find a device in NS to display by matching to Port WWN (port_name)
+# 2) find a device in alias in Zoning DB to display by matching WWN
+#
+# wwn_to_search variable is referenced by both tasks
+#
+# Each operation is associated with a task to get the data
+# and another to display the data.
+#
+# If the matching Port WWN doesn't exist in the DB, the display task
+# will be "skiped". The same is true for alias display task. In other
+# word, display task will only show something if a match is found.
+#
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+  collections:
+    - brocade.fos
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: admin
+      fos_password: fibranne
+      https: False
+    wwn_to_search: "11:11:11:11:11:11:11:11"
+
+  tasks:
+
+  - name: gather device info
+    brocade_list_obj_facts:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade-name-server"
+      list_name: "fibrechannel-name-server"
+      attributes:
+        port_name: "{{wwn_to_search}}"
+
+  - name: print device information matching port_name
+    vars:
+      port_index: "{{ ansible_facts['fibrechannel-name-server'][0]['port_index'] }}"
+      port_wwn: "{{ ansible_facts['fibrechannel-name-server'][0]['port_name'] }}"
+      port_speed: "{{ ansible_facts['fibrechannel-name-server'][0]['link_speed'] }}"
+    debug:
+      msg: device with Port WWN of "{{port_wwn}}" is found at Port Indext of "{{ port_index }}". The device's speed is "{{port_speed}}"
+    when: ansible_facts['fibrechannel-name-server'][0]['port_name'] is defined
+
+  - name: gather device alias info
+    brocade_zoning_alias_facts_by_wwn:
+      credential: "{{credential}}"
+      vfid: -1
+      wwn: "{{wwn_to_search}}"
+
+  - name: print device alias information matching port_name
+    debug:
+      var: ansible_facts['alias']
+    when: ansible_facts['alias'] is defined

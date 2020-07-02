@@ -1,0 +1,42 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+  collections:
+    - brocade.fos
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: admin
+      fos_password: fibranne
+      https: False
+
+  tasks:
+
+  - name: copy Alias Host1 to Host1_new
+    brocade_zoning_copy:
+      credential: "{{credential}}"
+      vfid: -1
+      object_name: Host1
+      new_name: Host1_new
+
+  - name: copy Zone Zone3 to Zone3_new
+    brocade_zoning_copy:
+      credential: "{{credential}}"
+      vfid: -1
+      object_name: Zone3
+      new_name: Zone3_new
+
+  - name: copy CFG cfg1 to cfg1_new
+    brocade_zoning_copy:
+      credential: "{{credential}}"
+      vfid: -1
+      object_name: cfg1
+      new_name: cfg1_new

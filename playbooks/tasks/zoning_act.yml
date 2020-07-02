@@ -1,0 +1,75 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+# This playbook is an example of how to use zoning_to_xml.py
+# to generate a yml file that contains exising defined zone
+# db. After saving the output of the script to a file, the
+# file now contains the variables that can be referenced
+# by tasks defined below:
+#
+# example:
+#  note: zoning_to_xml.py requires PyFOS to be installed first.
+#        Details on how to install PyFOS is available under
+#        github.com/brocade/pyfos
+#
+#  bash prompt> ./zoning_to_xml.py -i xxx -L admin -P yyy > zonedb.yml
+#  note: output file name, zonedb.yml in this example, should match
+#        the file being included in zoning_act.yml playbook under vars_files.
+#        The resulting file contains the variables "aliaes", "zones",
+#        and "cfgs" that are being used by tasks within zoning_act.yml
+#
+#  bash prompt> ansible-playbook -i ../san-inventory zoning_act.yml
+#  note: this play will apply the zone database catpured in zonedb.yml.
+#        However, active_cfg variable is not captured by the script.
+#        So, zoning_act.yml playbook needs to be updated to set the
+#        active_cfg to be the correct enabled cfg name.
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+  collections:
+    - brocade.fos
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: admin
+      fos_password: fibranne
+      https: False
+
+  vars_files:
+    zonedb.yml
+
+  tasks:
+
+  - name: Create aliases
+    brocade_zoning_alias:
+      credential: "{{credential}}"
+      vfid: -1
+      aliases: "{{aliases}}"
+#      aliases_to_delete: "{{aliases_to_delete}}"
+
+  - name: Create zones
+    brocade_zoning_zone:
+      credential: "{{credential}}"
+      vfid: -1
+      zones: "{{zones}}"
+#      zones_to_delete: "{{zones_to_delete}}"
+
+  - name: Create cfgs
+    brocade_zoning_cfg:
+      credential: "{{credential}}"
+      vfid: -1
+      cfgs: "{{cfgs}}"
+#      cfgs_to_delete: "{{cfgs_to_delete}}"
+      active_cfg: newcfg2
+
+  - name: Default zoning
+    brocade_zoning_default_zone:
+      credential: "{{credential}}"
+      vfid: -1
+      default_zone_access: allaccess

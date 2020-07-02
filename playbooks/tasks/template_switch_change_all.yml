@@ -1,0 +1,326 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+  collections:
+    - brocade.fos
+
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: admin
+      fos_password: fibranne
+      https: False
+      ssh_hostkeymust: False
+
+  tasks:
+
+  - name: disable switch
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_fibrechannel_switch"
+      list_name: "fibrechannel_switch"
+      entries:
+        - enabled_state: False
+
+  - name: change all switch configuration
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_fibrechannel_switch"
+      list_name: "fibrechannel_switch"
+      entries:
+        - user_friendly_name: "new_switch_name"
+          fabric_user_friendly_name: "new_fabric_name"
+          domain_id: 2
+          banner: "MORE AUTHORIZED USERS ONLY!"
+          dynamic_load_sharing: "disabled"
+          domain_name: "google.com"
+          dns_servers:
+            dns_server:
+              - "9.8.8.8"
+
+  - name: change all fabric configuration
+    brocade_singleton_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_fibrechannel_configuration"
+      obj_name: "fabric"
+      attributes:
+        insistent_domain_id_enabled: False
+        in_order_delivery_enabled: True
+        fabric_principal_enabled: False
+        fabric_principal_priority: "0"
+    register: result
+
+#  - debug: var=result
+
+  - name: change all port configuration
+    brocade_singleton_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_fibrechannel_configuration"
+      obj_name: "port_configuration"
+      attributes:
+        dynamic_portname_format: "T.A.R"
+        portname_mode: "off"
+        credit_recovery_mode: "off"
+
+  - name: enable switch
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_fibrechannel_switch"
+      list_name: "fibrechannel_switch"
+      entries:
+        - enabled_state: True
+
+  - name: change all chassis configuration
+    brocade_singleton_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_chassis"
+      obj_name: "chassis"
+      attributes:
+        chassis_user_friendly_name: "new_chassis_name"
+        telnet_timeout: 60
+
+  - name: Configure ports
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_interface"
+      list_name: "fibrechannel"
+      all_entries: False
+      entries:
+        - name: "0/0"
+          enabled_state: True 
+          npiv_pp_limit: 126
+        - name: "0/1"
+          persistent_disable: False
+
+  # pause for 15 seconds to make sure fabric is stable for
+  # zoning commit
+  - pause: seconds=15
+
+  - name: change all zoning configuration
+    brocade_zoning_default_zone:
+      credential: "{{credential}}"
+      vfid: -1
+      default_zone_access: noaccess
+
+  - name: change all clock server configuration
+    brocade_singleton_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_time"
+      obj_name: "clock_server"
+      longer_timeout: 30
+      attributes:
+        ntp_server_address:
+          server_address:
+            - "10.38.2.80"
+            - "10.38.2.81"
+
+  - name: change all time zone configuration
+    brocade_singleton_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_time"
+      obj_name: "time_zone"
+      attributes:
+        name: "America/Los_Angeles"
+
+  - name: change all audit configuration
+    brocade_singleton_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_logging"
+      obj_name: "audit"
+      attributes:
+        audit_enabled: False
+        filter_class_list:
+          filter_class:
+          - "zone"
+          - "security"
+          - "configuration"
+          - "firmware"
+          - "fabric"
+          - "ls"
+        severity_level: "warning"
+
+  - name: change all syslog configuration
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_logging"
+      list_name: "syslog_server"
+      entries:
+        - port: 514
+          secure_mode: False
+          server: "10.155.2.152"
+
+  - name: change all snmp system configuration
+    brocade_singleton_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_snmp"
+      obj_name: "system"
+      attributes:
+        audit_interval: 60
+        contact: "more Field Support."
+        description: "more DemoSwitch"
+        encryption_enabled: True
+        informs_enabled: True
+        location: "more San Jose"
+        security_get_level: 0
+        security_set_level: 3
+        snmpv1_enabled: False
+
+  - name: snmp v1 accounts
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_snmp"
+      list_name: "v1_account"
+      longer_timeout: 30
+      entries:
+        - index: 1
+          community_name: "Secret code old"
+        - index: 2
+          community_name: "OrigEquipMfr old"
+        - index: 3
+          community_name: "private old"
+        - index: 4
+          community_name: "public old"
+        - index: 5
+          community_name: "common old"
+        - index: 6
+          community_name: "FibreChannel old"
+
+  - name: v1 traps
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_snmp"
+      list_name: "v1_trap"
+      all_entries: False
+      entries:
+        - index: 1
+          host: "10.10.10.22"
+          port_number: 1022
+          trap_severity_level: "critical"
+
+  - name: v3 accounts - setup non-password attributes
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_snmp"
+      list_name: "v3_account"
+      all_entries: False
+      entries:
+        - index: 1
+          authentication_protocol: "sha"
+          manager_engine_id: "00:00:00:00:00:00:00:00:00"
+          privacy_protocol: "des"
+          user_name: "snmpadmin11"
+        - index: 2
+          authentication_protocol: "md5"
+          manager_engine_id: "00:00:00:00:00:00:00:00:00"
+          privacy_protocol: "aes128"
+          user_name: "snmpadmin22"
+
+  - name: v3 traps
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_snmp"
+      list_name: "v3_trap"
+      entries:
+        - trap_index: 1
+          host: "10.10.10.31"
+          informs_enabled: false
+          port_number: 1031
+          trap_severity_level: "critical"
+          usm_index: 1
+        - trap_index: 2
+          host: "10.10.10.32"
+          informs_enabled: false
+          port_number: 1032
+          trap_severity_level: "warning"
+          usm_index: 2
+        - trap_index: 3
+          host: "0.0.0.0"
+          informs_enabled: false
+          port_number: 162
+          trap_severity_level: "none"
+          usm_index: 3
+        - trap_index: 4
+          host: "0.0.0.0"
+          informs_enabled: false
+          port_number: 162
+          trap_severity_level: "none"
+          usm_index: 4
+        - trap_index: 5
+          host: "0.0.0.0"
+          informs_enabled: false
+          port_number: 162
+          trap_severity_level: "none"
+          usm_index: 5
+        - trap_index: 6
+          host: "0.0.0.0"
+          informs_enabled: false
+          port_number: 162
+          trap_severity_level: "none"
+          usm_index: 6
+
+  - name: activate default ipv4 before deleting previously created custom policy
+    brocade_security_ipfilter_policy:
+      credential: "{{credential}}"
+      vfid: -1
+      active_policy: "default_ipv4"
+
+  - name: delete custom policy
+    brocade_security_ipfilter_policy:
+      credential: "{{credential}}"
+      vfid: -1
+      delete_policies:
+        - name: "ipv4_telnet_http"
+
+  - name: leave admin along, enable root & user and delete myaccount and youraccount
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_security"
+      list_name: "user_config"
+      entries:
+        - name: "user"
+          account_enabled: True
+        - name: "admin"
+          account_enabled: True
+        - name: "root"
+          account_enabled: True
+
+  - name: configure relay server
+    brocade_singleton_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_maps"
+      obj_name: "maps_config"
+      attributes:
+        relay_ip_address: "10.10.10.11"
+        domain_name: "dd.com"
+        sender_address: "s@dd.com"
+        recipient_address_list:
+          recipient_address:
+            - "r@dd.com"
+            - "r@rr.com"
+

@@ -1,32 +1,140 @@
-Brocade Ansible reference example Modules and Playbooks
-=======
+# Brocade FOS FC Collection
 
-This repository provides reference example Modules & Playbooks for Ansible
-to manage Fibre Channel switches running FOS 8.2.1c. Tested with Ansible
-2.9.0 running Python 3.5.2.
+The Brocade FOS collection consists of the latest versions of the FOS modules.
 
-For information on running the modules/playbooks in Tower/AWX environment,
-checkout tower_awx branch and refer to information on README on the branch.
+## Modules
 
-### Installation ###
+- brocade_chassis - Brocade chassis Configuration
+- brocade_facts - Brocade facts gathering
+- brocade_fibrechannel_configuration_fabric - Brocade Fibre Channel fabric Configuration
+- brocade_fibrechannel_configuration_port_configuration - Brocade Fibre Channel port Configuration
+- brocade_fibrechannel_switch - Brocade Fibre Channel Switch Configuration
+- brocade_interface_fibrechannel - Brocade Fibre Channel Port Configuration
+- brocade_logging_audit - Brocade loggig audit Configuration
+- brocade_logging_syslog_server - Brocade loggig syslog server Configuration
+- brocade_security_ipfilter_policy - Brocade security ipfilter policy Configuration
+- brocade_security_ipfilter_rule - Brocade security ipfilter rule Configuration
+- brocade_security_password - Brocade security password Configuration
+- brocade_security_user_config - Brocade security user config Configuration
+- brocade_snmp_system - Brocade snmp system Configuration
+- brocade_snmp_v1_account - Brocade snmp V1 account Configuration
+- brocade_snmp_v1_trap - Brocade snmp V1 trap Configuration
+- brocade_snmp_v3_account - Brocade snmp V3 account Configuration
+- brocade_snmp_v3_trap - Brocade snmp V3 trap Configuration
+- brocade_time_clock_server - Brocade time clock server Configuration
+- brocade_time_time_zone - Brocade time time zone Configuration
+- brocade_zoning_alias - Brocade Zoning Alias
+- brocade_zoning_cfg - Brocade Zoning Cfgs
+- brocade_zoning_copy - Copy Zoning object
+- brocade_zoning_default_zone - Brocade Zoning Default Zone Configuration
+- brocade_zoning_zone - Brocade Zoning Zones
 
-Step1: clone the repository
+- brocade_singleton_obj - generic template object to handle singleton REST object. Tested with password object
+- brocade_list_obj - generic template object to handle list REST object. Tested with snmp objects
 
-    HTTPS example:
+## Utilities
+- zoning_to_yaml.py - python script to output FOS zoning database in yaml to be used in zoning playbook (example, zoning_act.yml and zonedb.yml) using PyFOS
 
-        git clone https://github.com/brocade/ansible
+## Requirements
 
-Step2: Add library path ANSIBLE_LIBRARY variable
+- Ansible 2.9 or later
+- FOS running 8.2.1c or later
 
-    bash example:
+## Example Playbook using collection
+```yaml
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+  collections:
+    - brocade.fos
 
-        if the repository is cloned under /home/myaccount/ansible,
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: admin
+      fos_password: fibranne
+      https: False
+    aliases:
+      - name: Host1
+        members:
+          - 11:22:33:44:55:66:77:88
+      - name: Target1
+        members:
+          - 22:22:33:44:55:66:77:99      
+      - name: Target2
+        members:
+          - 22:22:33:44:55:66:77:aa
+      - name: Target3
+        members:
+          - 22:22:33:44:55:66:77:bb
+    aliases_to_delete:
+      - name: Target1
+      - name: Target2
+      - name: Target3
+    zones:
+      - name: NewZoneName
+        members:
+          - Host1
+          - Target1
+          - Target2
+      - name: NewZoneName2
+        members:
+          - Host1
+          - Target2
+      - name: NewZoneNameP
+        members:
+          - 11:22:33:44:55:66:77:88
+        principal_members:
+          - 22:22:33:44:55:66:77:88
+    zones_to_delete:
+      - name: NewZoneNameP
+      - name: NewZoneName2
+    cfgs:
+      - name: newcfg1
+        members:
+          - NewZoneName
+          - NewZoneName2
+      - name: newcfg2
+        members:
+          - NewZoneName
+          - NewZoneName2
+      - name: newcfg3
+        members:
+          - NewZoneName
+          - NewZoneName2
+    cfgs_to_delete:
+      - name: newcfg2
+      - name: newcfg3
 
-        export ANSIBLE_LIBRARY="/home/myaccount/ansible/library"
+  tasks:
 
-Step3: update ansible.cfg to point to utils directory for module_utils
+  - name: Create aliases
+    brocade_zoning_alias:
+      credential: "{{credential}}"
+      vfid: -1
+      aliases: "{{aliases}}"
+#      aliases_to_delete: "{{aliases_to_delete}}"
 
-    Example available under tasks/ansible.cfg
+  - name: Create zones
+    brocade_zoning_zone:
+      credential: "{{credential}}"
+      vfid: -1
+      zones: "{{zones}}"
+#      zones_to_delete: "{{zones_to_delete}}"
+
+  - name: Create cfgs
+    brocade_zoning_cfg:
+      credential: "{{credential}}"
+      vfid: -1
+      cfgs: "{{cfgs}}"
+#      cfgs_to_delete: "{{cfgs_to_delete}}"
+      active_cfg: newcfg2
+
+  - name: Default zoning
+    brocade_zoning_default_zone:
+      credential: "{{credential}}"
+      vfid: -1
+      default_zone_access: allaccess
+```
 
 ### How to create playbooks ###
 
@@ -35,7 +143,7 @@ hide some of the Zoning specific operational complexities that would otherwise
 be exposed if using generic templates. However, most other REST FOS objects
 can be addressed by common template modules: brocade_single_obj and brocade_list_obj.
 
-#### Zoning ####
+### Zoning
 
 Using brocade_zoning_alias, brocade_zoning_zone, and brocade_zoning_cfg modules,
 playbooks can be created to update Alias, Zone, or CFG in FOS Zoning database
@@ -137,7 +245,7 @@ database in yml format. The screen output can be saved to a file and referenced
 in playbooks. Please refer to github.com/brocade/pyfos for PyFOS details and
 tasks/zonedb.yml and tasks/zoning_act.yml for reference.
 
-#### Yang module/object specific Ansible modules ####
+### Yang module/object specific Ansible modules
 
 Here are the list of additional Ansible modules beyond Zoning. These modules
 typically take a dictionary or a list of dictionary. The dictionary contains
@@ -169,7 +277,7 @@ within Ansible playbook.
 | brocade_time_clock_server.py | update clock server configuration |
 | brocade_time_time_zone.py | update time zone |
 
-#### Template based Ansible modules ####
+### Template based Ansible modules
 
 REST Yang objects that have yet been addressed by Yang module/object specific
 Ansible modules, template based Ansible modules can be used to address them
@@ -178,7 +286,7 @@ well with most REST Yang modules, some RET Yang objects specific may not be
 handled properly. So, it is recommended that Yang module/object specific
 Ansible modules be used preferably.
 
-##### Singleton object #####
+#### Singleton object
 
 A singleton object refers to a FOS REST object that is only one of the kind on FOS switch.
 Yang definition of container is used to define this type of object. Using the Yang definition
@@ -241,7 +349,7 @@ directory
 | brocade_time | clock_server |
 | brocade_time | time_zone |
 
-##### List object #####
+#### List object
 
 A list object refers to a FOS REST object that can contain multiple entries on FOS switch.
 Yang definition of list is used to define this type of object. Using the Yang definition
@@ -314,6 +422,10 @@ directory
 | brocade_security | user_config |
 | brocade-security | ipfilter-rule |
 
-### Contact ###
+## License
 
-    Automation.BSN@broadcom.com
+[BSD-2-Clause](https://directory.fsf.org/wiki?title=License:FreeBSD)
+
+## Author
+
+This collection was created in 2019 by Brocade Automation Team
