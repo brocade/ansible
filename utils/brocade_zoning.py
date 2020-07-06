@@ -249,7 +249,7 @@ def zone_set(fos_ip_addr, is_https, auth, vfid, result, zones, method):
 
     zone_str = zone_str + "</defined-configuration>"
 
-#    result["zone_str"] = zone_str
+    result["zone_str"] = zone_str
 
     if method == "POST":
         return url_post(fos_ip_addr, is_https, auth, vfid, result,
@@ -544,6 +544,21 @@ def process_member_diff(result, members, current_members):
     return a_members, r_members, o_members
 
 
+def resp_to_list(resp, type_str):
+    if resp is None:
+        c_list = []
+    else:
+        if isinstance(resp["Response"][type_str], list):
+            c_list = resp["Response"][type_str]
+        else:
+            if resp["Response"][type_str] is None:
+                c_list = []
+            else:
+                c_list = [resp["Response"][type_str]]
+
+    return c_list
+
+
 def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                   members_add_only, members_remove_only,
                   to_delete_list, type_str, type_diff_processing,
@@ -599,16 +614,7 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
         result['msg'] = "failed to read from database"
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
-    if get_resp is None:
-        c_list = []
-    else:
-        if isinstance(get_resp["Response"][type_str], list):
-            c_list = get_resp["Response"][type_str]
-        else:
-            if get_resp["Response"][type_str] is None:
-                c_list = []
-            else:
-                c_list = [get_resp["Response"][type_str]]
+    c_list = resp_to_list(get_resp, type_str)
 
 #    result["input_list"] = input_list
 #    result["c_list"] = c_list
@@ -774,6 +780,82 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
     return 0
 
 
+def obj_to_yml(obj):
+    new_obj = {}
+    for k, v in obj.items():
+        if k == "alias-name" or k == "zone-name" or k == "cfg-name":
+            new_obj["name"] = v
+        if k == "zone-type":
+            new_obj[k] = v
+        if k == "member-zone" or k == "member-entry":
+            member_key = "members"
+            members = []
+
+            if "zone-name" in v:
+                members = v["zone-name"]
+            elif "entry-name" in v:
+                members = v["entry-name"]
+            elif "alias-entry-name" in v:
+                members = v["alias-entry-name"]
+
+            new_obj[member_key] = []
+
+            if isinstance(members, list):
+                for member in members:
+                    new_obj[member_key].append(member)
+            else:
+                new_obj[member_key].append(members)
+
+            if "principal-entry-name" in v:
+                members = v["principal-entry-name"]
+                member_key = "principal_members"
+
+                new_obj[member_key] = []
+
+                if isinstance(members, list):
+                    for member in members:
+                        new_obj[member_key].append(member)
+                else:
+                    new_obj[member_key].append(members)
+
+    return new_obj
+
+def zoning_find_pair_common(module, fos_ip_addr, https, auth, vfid, type_str, obj_name, new_name, result):
+    type_get = None
+    name = None
+    if type_str == "alias":
+        type_get = alias_get
+        name = "alias-name"
+    elif type_str == "zone":
+        type_get = zone_get
+        name = "zone-name"
+    elif type_str == "cfg":
+        type_get = cfg_get
+        name = "cfg-name"
+    else:
+        result["failed"] = True
+        result['msg'] = "invalid type string" + type_str
+        exit_after_login(fos_ip_addr, https, auth, result, module)
+
+    ret_code, get_resp = type_get(fos_ip_addr, https, auth, vfid, result)
+    if ret_code != 0:
+        result["failed"] = True
+        result['msg'] = "failed to read from database"
+        exit_after_login(fos_ip_addr, https, auth, result, module)
+
+    r_list = resp_to_list(get_resp, type_str)
+
+    obj_name_dict = {}
+    new_name_dict = {}
+    for obj in r_list:
+        if obj[name] == obj_name:
+            obj_name_dict = obj_to_yml(obj)
+        if obj[name] == new_name:
+            new_name_dict = obj_to_yml(obj)
+
+    return obj_name_dict, new_name_dict
+
+
 def defined_get(fos_ip_addr, is_https, auth, vfid, result):
     """
         retrieve all of defined Zone Database
@@ -851,3 +933,264 @@ def effective_patch(fos_ip_addr, is_https, auth,
     return (url_patch_single_object(fos_ip_addr, is_https, auth,
             vfid, result, full_effective_url,
             "effective-configuration", diff_attributes))
+
+
+def alias_process_diff(result, aliases, c_aliases):
+    """
+    return the diff from expected aliases vs. current aliases
+
+    :param aliases: list of expected aliases
+    :type aliases: list
+    :param c_aliases: list of current aliases
+    :type c_aliases: list
+    :return: indicate if diff or the same
+    :rtype: bool
+    :return: list of aliases with to be added members
+    :rtype: list
+    :return: list of aliases with to be removed members
+    :rtype: list
+    """
+    post_aliases = []
+    remove_aliases = []
+    common_aliases = []
+    for alias in aliases:
+        found_in_c = False
+        for c_alias in c_aliases:
+            if alias["name"] == c_alias["alias-name"]:
+                found_in_c = True
+                added_members, removed_members, common_members = process_member_diff(
+                    result, alias["members"],
+                    c_alias["member-entry"]["alias-entry-name"])
+
+                if len(added_members) > 0:
+                    post_alias = {}
+                    post_alias["name"] = alias["name"]
+                    post_alias["members"] = added_members
+                    post_aliases.append(post_alias)
+                if len(removed_members) > 0:
+                    remove_alias = {}
+                    remove_alias["name"] = alias["name"]
+                    remove_alias["members"] = removed_members
+                    remove_aliases.append(remove_alias)
+                if len(common_members) > 0:
+                    common_alias = {}
+                    common_alias["name"] = alias["name"]
+                    common_alias["members"] = common_members
+                    common_aliases.append(common_alias)
+                continue
+        if not found_in_c:
+            post_aliases.append(alias)
+
+    return 0, post_aliases, remove_aliases, common_aliases
+
+
+def alias_process_diff_to_delete(result, aliases, c_aliases):
+    """
+    return the diff from to delete aliases vs. current aliases
+
+    :param aliases: list of expected aliases
+    :type aliases: list
+    :param c_aliases: list of current aliases
+    :type c_aliases: list
+    :return: indicate if diff or the same
+    :rtype: bool
+    :return: list of aliases to delete
+    :rtype: list
+    :return: list of aliases with to be removed members
+    :rtype: list
+    """
+    delete_aliases = []
+    for alias in aliases:
+        found_in_c = False
+        for c_alias in c_aliases:
+            if alias["name"] == c_alias["alias-name"]:
+                found_in_c = True
+                break
+        if found_in_c:
+            delete_aliases.append(alias)
+
+    return 0, delete_aliases
+
+
+def zone_process_diff(result, zones, c_zones):
+    """
+    return the diff from expected zones vs. current zones
+
+    :param zones: list of expected zones
+    :type zones: list
+    :param c_zones: list of current zones
+    :type c_zones: list
+    :return: indicate if diff or the same
+    :rtype: bool
+    :return: list of zones with to be added members
+    :rtype: list
+    :return: list of zones with to be removed members
+    :rtype: list
+    """
+    post_zones = []
+    remove_zones = []
+    common_zones = []
+    for zone in zones:
+        found_in_c = False
+        for c_zone in c_zones:
+            if zone["name"] == c_zone["zone-name"]:
+                found_in_c = True
+                if ("members" in zone and "entry-name" in c_zone["member-entry"]):
+                    added_members, removed_members, common_members = process_member_diff(result, zone["members"], c_zone["member-entry"]["entry-name"])
+                elif ("members" in zone and "entry-name" not in c_zone["member-entry"]):
+                    added_members, removed_members, common_members = process_member_diff(result, zone["members"], [])
+                elif ("members" not in zone and "entry-name" in c_zone["member-entry"]):
+                    added_members, removed_members, common_members = process_member_diff(result, [], c_zone["member-entry"]["entry-name"])
+                else:
+                    added_members = []
+                    removed_members = []
+                    common_members = []
+
+                if ("principal_members" in zone and "principal-entry-name" in c_zone["member-entry"]):
+                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff( result, zone["principal_members"], c_zone["member-entry"] ["principal-entry-name"])
+                elif ("principal_members" in zone and "principal-entry-name" not in c_zone["member-entry"]):
+                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff( result, zone["principal_members"], [])
+                elif ("principal_members" not in zone and "principal-entry-name" in c_zone["member-entry"]):
+                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff( result, [], c_zone["member-entry"] ["principal-entry-name"])
+                else:
+                    added_pmembers = []
+                    removed_pmembers = []
+                    common_pmembers = []
+
+                if len(added_members) > 0 or len(added_pmembers) > 0:
+                    post_zone = {}
+                    post_zone["name"] = zone["name"]
+                    post_zone["zone_type"] = c_zone["zone-type"]
+                    if added_members:
+                        post_zone["members"] = added_members
+                    if added_pmembers:
+                        post_zone["principal_members"] = added_pmembers
+                    post_zones.append(post_zone)
+                if len(removed_members) > 0 or len(removed_pmembers) > 0:
+                    remove_zone = {}
+                    remove_zone["name"] = zone["name"]
+                    remove_zone["zone_type"] = c_zone["zone-type"]
+                    if removed_members:
+                        remove_zone["members"] = removed_members
+                    if removed_pmembers:
+                        remove_zone["principal_members"] = removed_pmembers
+                    remove_zones.append(remove_zone)
+                if len(common_members) > 0 or len(common_pmembers) > 0:
+                    common_zone = {}
+                    common_zone["name"] = zone["name"]
+                    common_zone["zone_type"] = c_zone["zone-type"]
+                    if common_members:
+                        common_zone["members"] = common_members
+                    if common_pmembers:
+                        common_zone["principal_members"] = common_pmembers
+                    common_zones.append(common_zone)
+                continue
+        if not found_in_c:
+            post_zones.append(zone)
+
+    return 0, post_zones, remove_zones, common_zones
+
+
+def zone_process_diff_to_delete(result, zones, c_zones):
+    """
+    return the diff from to delete zones vs. current zones
+
+    :param zones: list of expected zones
+    :type zones: list
+    :param c_zones: list of current zones
+    :type c_zones: list
+    :return: indicate if diff or the same
+    :rtype: bool
+    :return: list of zones to be deleted
+    :rtype: list
+    :return: list of zones with to be removed members
+    :rtype: list
+    """
+    delete_zones = []
+    for zone in zones:
+        found_in_c = False
+        for c_zone in c_zones:
+            if zone["name"] == c_zone["zone-name"]:
+                found_in_c = True
+                break
+        if found_in_c:
+            delete_zones.append(zone)
+
+    return 0, delete_zones
+
+
+def cfg_process_diff(result, cfgs, c_cfgs):
+    """
+    return the diff from expected cfgs vs. current cfgs
+
+    :param cfgs: list of expected cfgs
+    :type cfgs: list
+    :param c_cfgs: list of current cfgs
+    :type c_cfgs: list
+    :return: indicate if diff or the same
+    :rtype: bool
+    :return: list of cfgs with to be added members
+    :rtype: list
+    :return: list of cfgs with to be removed members
+    :rtype: list
+    """
+    post_cfgs = []
+    remove_cfgs = []
+    common_cfgs = []
+    for cfg in cfgs:
+        found_in_c = False
+        for c_cfg in c_cfgs:
+            if cfg["name"] == c_cfg["cfg-name"]:
+                found_in_c = True
+                added_members, removed_members, common_members = process_member_diff(
+                    result, cfg["members"], c_cfg["member-zone"]["zone-name"])
+
+                if len(added_members) > 0:
+                    post_cfg = {}
+                    post_cfg["name"] = cfg["name"]
+                    post_cfg["members"] = added_members
+                    post_cfgs.append(post_cfg)
+                if len(removed_members) > 0:
+                    remove_cfg = {}
+                    remove_cfg["name"] = cfg["name"]
+                    remove_cfg["members"] = removed_members
+                    remove_cfgs.append(remove_cfg)
+                if len(common_members) > 0:
+                    common_cfg = {}
+                    common_cfg["name"] = cfg["name"]
+                    common_cfg["members"] = common_members
+                    common_cfgs.append(common_cfg)
+                continue
+        if not found_in_c:
+            post_cfgs.append(cfg)
+
+    return 0, post_cfgs, remove_cfgs, common_cfgs
+
+
+def cfg_process_diff_to_delete(result, cfgs, c_cfgs):
+    """
+    return the diff from to delete cfgs vs. current cfgs
+
+    :param cfgs: list of expected cfgs
+    :type cfgs: list
+    :param c_cfgs: list of current cfgs
+    :type c_cfgs: list
+    :return: indicate if diff or the same
+    :rtype: bool
+    :return: list of cfgs to delete
+    :rtype: list
+    :return: list of cfgs with to be removed members
+    :rtype: list
+    """
+    delete_cfgs = []
+    for cfg in cfgs:
+        found_in_c = False
+        for c_cfg in c_cfgs:
+            if cfg["name"] == c_cfg["cfg-name"]:
+                found_in_c = True
+                break
+        if found_in_c:
+            delete_cfgs.append(cfg)
+
+    return 0, delete_cfgs
+

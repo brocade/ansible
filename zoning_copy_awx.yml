@@ -1,0 +1,28 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: localhost
+  gather_facts: False
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: admin
+      fos_password: fibranne
+      https: False
+    old_obj: Host1
+    new_obj: Host1_new
+
+  tasks:
+
+  - name: copy zoning object "{{old_obj}}" to "{{new_obj}}"
+    brocade_zoning_copy:
+      credential: "{{credential}}"
+      vfid: -1
+      object_name: "{{old_obj}}"
+      new_name: "{{new_obj}}"
