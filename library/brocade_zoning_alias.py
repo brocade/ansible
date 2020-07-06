@@ -34,10 +34,10 @@ options:
     credential:
         description:
         - login information including
-          fos_ip_addr: ip address of the FOS switch
-          fos_user_name: login name of FOS switch REST API
-          fos_password: password of FOS switch REST API
-          https: True for HTTPS, self for self-signed HTTPS, or False for HTTP
+          fos_ip_addr - ip address of the FOS switch
+          fos_user_name - login name of FOS switch REST API
+          fos_password - password of FOS switch REST API
+          https - True for HTTPS, self for self-signed HTTPS, or False for HTTP
         type: dict
         required: true
     vfid:
@@ -137,85 +137,7 @@ Brocade Zoning Alias
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_zoning import zoning_common, alias_post, alias_delete, alias_get,\
-    process_member_diff
-
-
-def alias_process_diff(result, aliases, c_aliases):
-    """
-    return the diff from expected aliases vs. current aliases
-
-    :param aliases: list of expected aliases
-    :type aliases: list
-    :param c_aliases: list of current aliases
-    :type c_aliases: list
-    :return: indicate if diff or the same
-    :rtype: bool
-    :return: list of aliases with to be added members
-    :rtype: list
-    :return: list of aliases with to be removed members
-    :rtype: list
-    """
-    post_aliases = []
-    remove_aliases = []
-    common_aliases = []
-    for alias in aliases:
-        found_in_c = False
-        for c_alias in c_aliases:
-            if alias["name"] == c_alias["alias-name"]:
-                found_in_c = True
-                added_members, removed_members, common_members = process_member_diff(
-                    result, alias["members"],
-                    c_alias["member-entry"]["alias-entry-name"])
-
-                if len(added_members) > 0:
-                    post_alias = {}
-                    post_alias["name"] = alias["name"]
-                    post_alias["members"] = added_members
-                    post_aliases.append(post_alias)
-                if len(removed_members) > 0:
-                    remove_alias = {}
-                    remove_alias["name"] = alias["name"]
-                    remove_alias["members"] = removed_members
-                    remove_aliases.append(remove_alias)
-                if len(common_members) > 0:
-                    common_alias = {}
-                    common_alias["name"] = alias["name"]
-                    common_alias["members"] = common_members
-                    common_aliases.append(common_alias)
-                continue
-        if not found_in_c:
-            post_aliases.append(alias)
-
-    return 0, post_aliases, remove_aliases, common_aliases
-
-
-def alias_process_diff_to_delete(result, aliases, c_aliases):
-    """
-    return the diff from to delete aliases vs. current aliases
-
-    :param aliases: list of expected aliases
-    :type aliases: list
-    :param c_aliases: list of current aliases
-    :type c_aliases: list
-    :return: indicate if diff or the same
-    :rtype: bool
-    :return: list of aliases to delete
-    :rtype: list
-    :return: list of aliases with to be removed members
-    :rtype: list
-    """
-    delete_aliases = []
-    for alias in aliases:
-        found_in_c = False
-        for c_alias in c_aliases:
-            if alias["name"] == c_alias["alias-name"]:
-                found_in_c = True
-                break
-        if found_in_c:
-            delete_aliases.append(alias)
-
-    return 0, delete_aliases
+from ansible.module_utils.brocade_zoning import zoning_common, alias_post, alias_delete, alias_get, alias_process_diff, alias_process_diff_to_delete
 
 
 def main():
