@@ -19,12 +19,14 @@ When creating a project within AWX, choose
 ```
 SCN TYPE to Git
 SCM URL to https://github.com/brocade/ansible.git
-SCM BRANCH/TAG/COMMIT to tower_awx
 ```
 
-When creating inventory, add to variables
+Next, create an inventory.
+Next, add a host to the inventory. Use san_eng_zone_seed_san_a in the host name field.
+Next, add the following to the variables for the host.
 
 ```
+ansible_connection: local
 fos_ip_addr: <IP address of FOS switch>
 fos_login: admin
 fos_password: <FOS password for admin>
