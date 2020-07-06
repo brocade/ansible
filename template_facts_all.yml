@@ -6,14 +6,14 @@
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
-- hosts: localhost
+- hosts: san_eng_zone_seed_san_a
   gather_facts: False
 
   vars:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: admin
-      fos_password: fibranne
+      fos_user_name: "{{fos_login}}"
+      fos_password: "{{fos_password}}"
       https: False
     obj_list:
       brocade_access_gateway:

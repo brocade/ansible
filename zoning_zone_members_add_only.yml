@@ -6,7 +6,7 @@
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
-- hosts: localhost
+- hosts: san_eng_zone_seed_san_a
   gather_facts: False
 
   vars:
