@@ -801,8 +801,8 @@ def obj_to_yml(obj):
             new_obj[member_key] = []
 
             if isinstance(members, list):
-                for zone in members:
-                    new_obj[member_key].append(zone)
+                for member in members:
+                    new_obj[member_key].append(member)
             else:
                 new_obj[member_key].append(members)
 
@@ -810,13 +810,13 @@ def obj_to_yml(obj):
                 members = v["principal-entry-name"]
                 member_key = "principal_members"
 
-            new_obj[member_key] = []
+                new_obj[member_key] = []
 
-            if isinstance(members, list):
-                for zone in members:
-                    new_obj[member_key].append(zone)
-            else:
-                new_obj[member_key].append(members)
+                if isinstance(members, list):
+                    for member in members:
+                        new_obj[member_key].append(member)
+                else:
+                    new_obj[member_key].append(members)
 
     return new_obj
 
