@@ -249,7 +249,7 @@ def zone_set(fos_ip_addr, is_https, auth, vfid, result, zones, method):
 
     zone_str = zone_str + "</defined-configuration>"
 
-#    result["zone_str"] = zone_str
+    result["zone_str"] = zone_str
 
     if method == "POST":
         return url_post(fos_ip_addr, is_https, auth, vfid, result,
@@ -787,24 +787,36 @@ def obj_to_yml(obj):
             new_obj["name"] = v
         if k == "zone-type":
             new_obj[k] = v
-        if k == "member-zone":
+        if k == "member-zone" or k == "member-entry":
+            member_key = "members"
+            members = []
+
             if "zone-name" in v:
-                new_obj["members"] = []
-                for zone in v["zone-name"]:
-                    new_obj["members"].append(zone)
-        if k == "member-entry":
-            if "entry-name" in v:
-                new_obj["members"] = []
-                for member in v["entry-name"]:
-                    new_obj["members"].append(member)
+                members = v["zone-name"]
+            elif "entry-name" in v:
+                members = v["entry-name"]
+            elif "alias-entry-name" in v:
+                members = v["alias-entry-name"]
+
+            new_obj[member_key] = []
+
+            if isinstance(members, list):
+                for member in members:
+                    new_obj[member_key].append(member)
+            else:
+                new_obj[member_key].append(members)
+
             if "principal-entry-name" in v:
-                new_obj["principal_members"] = []
-                for member in v["principal-entry-name"]:
-                    new_obj["principal_members"].append(member)
-            if "alias-entry-name" in v:
-                new_obj["members"] = []
-                for member in v["alias-entry-name"]:
-                    new_obj["members"].append(member)
+                members = v["principal-entry-name"]
+                member_key = "principal_members"
+
+                new_obj[member_key] = []
+
+                if isinstance(members, list):
+                    for member in members:
+                        new_obj[member_key].append(member)
+                else:
+                    new_obj[member_key].append(members)
 
     return new_obj
 
