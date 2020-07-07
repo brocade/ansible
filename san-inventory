@@ -1,1 +1,1 @@
-san_eng_zone_seed_san_a ansible_connection=local fos_ip_addr=10.155.107.74 fos_login=admin fos_password=fibranne
+san_eng_zone_seed_san_a ansible_connection=local fos_ip_addr=10.155.107.74 fos_login=admin fos_password=fibranne fos_https=False fos_ssh_hostkeymust=False
