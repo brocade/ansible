@@ -14,7 +14,7 @@
       fos_ip_addr: "{{fos_ip_addr}}"
       fos_user_name: "{{fos_login}}"
       fos_password: "{{fos_password}}"
-      https: False
+      https: "{{fos_https}}"
 
   tasks:
 

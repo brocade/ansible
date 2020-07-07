@@ -15,7 +15,6 @@
       fos_user_name: "{{fos_login}}"
       fos_password: "{{fos_password}}"
       https: "{{fos_https}}"
-      ssh_hostkeymust: "{{fos_ssh_hostkeymust}}"
 
   tasks:
 
