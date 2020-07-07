@@ -41,7 +41,7 @@ SCM URL to https://github.com/brocade/ansible.git
 ```
 
 Step 2: create an inventory.
-Step 3: add a host to the inventory. Use fos_rest_connect in the host name field.
+Step 3: add a host to the inventory. Use san_eng_zone_seed_san_a in the host name field.
 Step 4: add the following to the variables for the host.
 
 ```
@@ -70,7 +70,8 @@ Here are the examples of attributes using ssh.
 | Ansible module name | Attributes |
 | --- | --- |
 | brocade_chassis | telnet_timeout|
-| brocade_fibrechannel_configuration_fabric | fabric_principal_enabled,fabric_principal_priority,in_order_delivery_enabled|
+| brocade_fibrechannel_configuration_fabric | fabric_principal_enabled, fabric_principal_priority, in_order_delivery_enabled|
+| brocade_fibrechannel_configuration_port_configuration | credit_recovery_mode|
 | brocade_fibrechannel_switch | dynamic_load_sharing (pre 9.0 only)|
 | brocade_security_user_config | account_enabled (pre 9.0 only)|
 
