@@ -1,0 +1,22 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+
+  vars:
+    key_str: ASDeararAIUHI324324
+
+  tasks:
+
+  - name: add "{{fos_ip_addr}}" to known_hosts
+    known_hosts:
+      name: "{{fos_ip_addr}}"
+      key: 10.155.107.74,10.155.10.74 ssh-rsa ASDeararAIUHI324324
+      path: /etc/ssh/ssh_known_hosts
+      state: present
