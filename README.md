@@ -61,9 +61,7 @@ Primary connection to FOS for playbooks is FOS REST connection. However,
 Some playbook attributes use ssh connect to augment the fuctionality. When
 those attributes are specified in the playbooks, be sure that the FOS switch
 being used to connect is part of known hosts by where ansible-playbook is
-being executed or where AWX job is being executed. For example, if AWX is
-installed on a docker, the docker instance's known hosts should contain
-the FOS switch in order for ssh connection to work properly.
+being executed or where AWX job is being executed.
 
 Here are the examples of attributes using ssh.
 
@@ -74,6 +72,20 @@ Here are the examples of attributes using ssh.
 | brocade_fibrechannel_configuration_port_configuration | credit_recovery_mode|
 | brocade_fibrechannel_switch | dynamic_load_sharing (pre 9.0 only)|
 | brocade_security_user_config | account_enabled (pre 9.0 only)|
+
+If host key check is to be turned off, ssh_hostkey_must field in credential
+variable should be set to false. Here is an example of extra variables for
+AWX job template.
+
+
+```
+credential:
+  fos_ip_addr: "{{fos_ip_addr}}"
+  fos_user_name: "{{fos_user_name}}"
+  fos_password: "{{fos_password}}"
+  https: "{{fos_https}}"
+  ssh_hostkeymust: False
+```
 
 ### How to create playbooks ###
 
