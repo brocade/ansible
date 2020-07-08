@@ -29,7 +29,7 @@ Step3: update ansible.cfg to point to utils directory for module_utils
 
 tower_awx branch is now merged to master. Since playbooks and ansible.cfg
 are expected to be in the root directory for Tower/AWX, all playbooks
-and ansible.cfg are moved from task to root directory.
+and ansible.cfg are moved from tasks directory to root directory.
 
 #### Usage ####
 
@@ -41,7 +41,9 @@ SCM URL to https://github.com/brocade/ansible.git
 ```
 
 Step 2: create an inventory.
+
 Step 3: add a host to the inventory. Use san_eng_zone_seed_san_a in the host name field.
+
 Step 4: add the following to the variables for the host.
 
 ```
@@ -73,9 +75,9 @@ Here are the examples of attributes using ssh.
 | brocade_fibrechannel_switch | dynamic_load_sharing (pre 9.0 only)|
 | brocade_security_user_config | account_enabled (pre 9.0 only)|
 
-If host key check is to be turned off, ssh_hostkey_must field in credential
-variable should be set to false. Here is an example of extra variables for
-AWX job template.
+If host key check is to be turned off, ssh_hostkeymust field in credential
+variable should be set to false. Here is an example of how that can be done
+by defining credential variable in extra variables section for AWX job template.
 
 
 ```
