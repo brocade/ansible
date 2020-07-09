@@ -47,12 +47,12 @@
 
   - name: print device information matching port_name
     vars:
-      port_index: "{{ ansible_facts['fibrechannel-name-server'][0]['port_index'] }}"
-      port_wwn: "{{ ansible_facts['fibrechannel-name-server'][0]['port_name'] }}"
-      port_speed: "{{ ansible_facts['fibrechannel-name-server'][0]['link_speed'] }}"
+      port_index: "{{ ansible_facts['fibrechannel_name_server'][0]['port_index'] }}"
+      port_wwn: "{{ ansible_facts['fibrechannel_name_server'][0]['port_name'] }}"
+      port_speed: "{{ ansible_facts['fibrechannel_name_server'][0]['link_speed'] }}"
     debug:
       msg: device with Port WWN of "{{port_wwn}}" is found at Port Indext of "{{ port_index }}". The device's speed is "{{port_speed}}"
-    when: ansible_facts['fibrechannel-name-server'][0]['port_name'] is defined
+    when: ansible_facts['fibrechannel_name_server'][0]['port_name'] is defined
 
   - name: gather device alias info
     brocade_zoning_alias_facts_by_wwn:
