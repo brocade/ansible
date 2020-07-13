@@ -74,7 +74,7 @@ EXAMPLES = """
       gather_subset:
         - brocade_zoning
         - brocade_interface_fibrechannel
-        - brocade_chassis
+        - brocade_chassis_chassis
         - brocade_fibrechannel_configuration_fabric
         - brocade_fibrechannel_configuration_port_configuration
         - brocade_fibrechannel_switch
@@ -110,24 +110,16 @@ Brocade Fibre Channel Port Configuration
 
 
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_interface import fc_port_get, fc_port_stats_get, to_human_fc
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_zoning import defined_get, effective_get, to_human_zoning
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_chassis import chassis_get, to_human_chassis
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_fibrechannel_configuration import fabric_get, to_human_fabric, port_configuration_get, to_human_port_configuration
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_fibrechannel_switch import fc_switch_get, to_human_switch
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_time import clock_server_get, to_human_clock_server
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_time import time_zone_get, to_human_time_zone
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_logging import syslog_server_get, to_human_syslog_server
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_logging import audit_get, to_human_audit
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_snmp import system_get, to_human_system
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_security import ipfilter_rule_get, to_human_ipfilter_rule, ipfilter_policy_get, to_human_ipfilter_policy, user_config_get, to_human_user_config
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import singleton_get, list_get, to_human_singleton, to_human_list
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import str_to_yang
 from ansible.module_utils.basic import AnsibleModule
 
 
 valid_areas = [
     "brocade_zoning",
     "brocade_interface_fibrechannel",
-    "brocade_chassis",
+    "brocade_chassis_chassis",
     "brocade_fibrechannel_configuration_fabric",
     "brocade_fibrechannel_configuration_port_configuration",
     "brocade_fibrechannel_switch",
@@ -139,6 +131,7 @@ valid_areas = [
     "brocade_security_ipfilter_rule",
     "brocade_security_ipfilter_policy",
     "brocade_security_user_config",
+    "brocade_security_password_cfg",
     ]
 
 
@@ -186,37 +179,106 @@ def main():
 
     facts['ssh_hostkeymust'] = ssh_hostkeymust
 
+    if gather_subset is not None:
+        for subset in gather_subset:
+            if subset != "all" and subset not in valid_areas:
+                result["failed"] = True
+                result["msg"] = "Request for unknown module and object " + subset
+                logout(fos_ip_addr, https, auth, result)
+                module.exit_json(**result)
+
     for area in valid_areas:
-        if (
-                gather_subset is None or area in gather_subset or
-                "all" in gather_subset
-        ):
+        if (gather_subset is None or area in gather_subset or "all" in gather_subset):
+            get_list = False
+            get_singleton = False
+
             if area == "brocade_interface_fibrechannel":
-                ret_code, response = fc_port_get(
-                    fos_ip_addr, https, auth, vfid, result)
+                module_name = "brocade_interface"
+                list_name = "fibrechannel"
+                get_list = True
+            elif area == "brocade_fibrechannel_switch":
+                module_name = "brocade_fibrechannel_switch"
+                list_name = "fibrechannel_switch"
+                get_list = True
+            elif area == "brocade_logging_syslog_server":
+                module_name = "brocade_logging"
+                list_name = "syslog_server"
+                get_list = True
+            elif area == "brocade_security_ipfilter_rule":
+                module_name = "brocade_security"
+                list_name = "ipfilter_rule"
+                get_list = True
+            elif area == "brocade_security_ipfilter_policy":
+                module_name = "brocade_security"
+                list_name = "ipfilter_policy"
+                get_list = True
+            elif area == "brocade_security_user_config":
+                module_name = "brocade_security"
+                list_name = "user_config"
+                get_list = True
+            elif area == "brocade_security_password_cfg":
+                module_name = "brocade_security"
+                obj_name = "password_cfg"
+                get_singleton = True
+            elif area == "brocade_chassis_chassis":
+                module_name = "brocade_chassis"
+                obj_name = "chassis"
+                get_singleton = True
+            elif area == "brocade_fibrechannel_configuration_fabric":
+                module_name = "brocade_fibrechannel_configuration"
+                obj_name = "fabric"
+                get_singleton = True
+            elif area == "brocade_fibrechannel_configuration_port_configuration":
+                module_name = "brocade_fibrechannel_configuration"
+                obj_name = "port_configuration"
+                get_singleton = True
+            elif area == "brocade_time_clock_server":
+                module_name = "brocade_time"
+                obj_name = "clock_server"
+                get_singleton = True
+            elif area == "brocade_time_time_zone":
+                module_name = "brocade_time"
+                obj_name = "time_zone"
+                get_singleton = True
+            elif area == "brocade_logging_audit":
+                module_name = "brocade_logging"
+                obj_name = "audit"
+                get_singleton = True
+            elif area == "brocade_snmp_system":
+                module_name = "brocade_snmp"
+                obj_name = "system"
+                get_singleton = True
+
+            if get_singleton:
+                ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
+                                                   module_name, obj_name, fos_version,
+                                                   https, auth, vfid, result,
+                                                   ssh_hostkeymust)
                 if ret_code != 0:
+                    result[module_name + "_" + obj_name + "_get"] = ret_code
                     exit_after_login(fos_ip_addr, https, auth, result, module)
 
-                interface = {}
-                interface["fibrechannel"] = (
-                    response["Response"]["fibrechannel"]
-                )
+                obj = response["Response"][str_to_yang(obj_name)]
 
-                for port in interface["fibrechannel"]:
-                    to_human_fc(port)
+                to_human_singleton(module_name, obj_name, obj)
 
-                ret_code, response = fc_port_stats_get(
-                    fos_ip_addr, https, auth, vfid, result)
+                facts[area] = obj
+            elif get_list:
+                ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
+                                              module_name, list_name, fos_version,
+                                              https, auth, vfid, result,
+                                              ssh_hostkeymust, 300)
                 if ret_code != 0:
+                    result[module_name + "_" + list_name + "_get"] = ret_code
                     exit_after_login(fos_ip_addr, https, auth, result, module)
 
-                interface["fibrechannel-statistics"] = (
-                    response["Response"]["fibrechannel-statistics"]
-                )
+                obj_list = response["Response"][str_to_yang(list_name)]
+                if not isinstance(obj_list, list):
+                    obj_list = [obj_list]
 
-                facts[area] = interface
-
-            if area == "brocade_zoning":
+                to_human_list(module_name, list_name, obj_list, result)
+                facts[area] = obj_list
+            elif area == "brocade_zoning":
                 ret_code, response = defined_get(
                     fos_ip_addr, https, auth, vfid, result)
                 if ret_code != 0:
@@ -239,140 +301,6 @@ def main():
                 to_human_zoning(zoning["effective-configuration"])
 
                 facts[area] = zoning
-
-            if area == "brocade_chassis":
-                ret_code, response = chassis_get(fos_user_name, fos_password,
-                    fos_ip_addr, fos_version, https, auth, vfid, result,
-                    ssh_hostkeymust)
-                if ret_code != 0:
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
-
-                to_human_chassis(response["Response"]["chassis"])
-
-                facts[area] = response["Response"]["chassis"]
-
-            if area == "brocade_fibrechannel_configuration_fabric":
-                ret_code, response = fabric_get(fos_user_name, fos_password,
-                    fos_ip_addr, fos_version, https, auth, vfid, result,
-                    ssh_hostkeymust)
-                if ret_code != 0:
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
-
-                to_human_fabric(response["Response"]["fabric"])
-
-                facts[area] = response["Response"]["fabric"]
-
-            if area == "brocade_fibrechannel_configuration_port_configuration":
-                ret_code, response = port_configuration_get(fos_user_name,
-                    fos_password,
-                    fos_ip_addr, fos_version, https, auth, vfid, result,
-                    ssh_hostkeymust)
-                if ret_code != 0:
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
-
-                to_human_port_configuration(response["Response"]["port-configuration"])
-
-                facts[area] = response["Response"]["port-configuration"]
-
-            if area == "brocade_fibrechannel_switch":
-                ret_code, response = fc_switch_get(fos_user_name, fos_password,
-                    fos_ip_addr, fos_version, https, auth, vfid, result,
-                    ssh_hostkeymust)
-                if ret_code != 0:
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
-
-                to_human_switch(response["Response"]["fibrechannel-switch"])
-
-                facts[area] = response["Response"]["fibrechannel-switch"]
-
-            if area == "brocade_time_clock_server":
-                ret_code, response = clock_server_get(
-                    fos_ip_addr, https, auth, vfid, result)
-                if ret_code != 0:
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
-
-                to_human_clock_server(response["Response"]["clock-server"])
-
-                facts[area] = response["Response"]["clock-server"]
-
-            if area == "brocade_time_time_zone":
-                ret_code, response = time_zone_get(
-                    fos_ip_addr, https, auth, vfid, result)
-                if ret_code != 0:
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
-
-                to_human_time_zone(response["Response"]["time-zone"])
-
-                facts[area] = response["Response"]["time-zone"]
-
-            if area == "brocade_logging_syslog_server":
-                ret_code, response = syslog_server_get(
-                    fos_ip_addr, https, auth, vfid, result)
-                if ret_code != 0:
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
-
-                if isinstance(response["Response"]["syslog-server"], list):
-                    servers = response["Response"]["syslog-server"]
-                else:
-                    servers = [response["Response"]["syslog-server"]]
-
-                for server in servers:
-                    to_human_syslog_server(server)
-
-                facts[area] = servers
-
-            if area == "brocade_logging_audit":
-                ret_code, response = audit_get(
-                    fos_ip_addr, https, auth, vfid, result)
-                if ret_code != 0:
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
-
-                to_human_audit(response["Response"]["audit"])
-
-                facts[area] = response["Response"]["audit"]
-
-            if area == "brocade_snmp_system":
-                ret_code, response = system_get(fos_user_name, fos_password,
-                    fos_ip_addr, fos_version, https, auth, vfid, result)
-                if ret_code != 0:
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
-
-                to_human_system(response["Response"]["system"])
-
-                facts[area] = response["Response"]["system"]
-
-            if area == "brocade_security_ipfilter_rule":
-                ret_code, response = ipfilter_rule_get(
-                    fos_ip_addr, https, auth, vfid, result)
-                if ret_code != 0:
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
-
-                for rule in response["Response"]["ipfilter-rule"]:
-                    to_human_ipfilter_rule(rule)
-
-                facts[area] = response["Response"]["ipfilter-rule"]
-
-            if area == "brocade_security_ipfilter_policy":
-                ret_code, response = ipfilter_policy_get(
-                    fos_ip_addr, https, auth, vfid, result)
-                if ret_code != 0:
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
-
-                for rule in response["Response"]["ipfilter-policy"]:
-                    to_human_ipfilter_policy(rule)
-
-                facts[area] = response["Response"]["ipfilter-policy"]
-
-            if area == "brocade_security_user_config":
-                ret_code, response = user_config_get(
-                    fos_ip_addr, https, auth, vfid, result)
-                if ret_code != 0:
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
-
-                for rule in response["Response"]["user-config"]:
-                    to_human_user_config(rule)
-
-                facts[area] = response["Response"]["user-config"]
 
     result["ansible_facts"] = facts
 

@@ -17,26 +17,14 @@
       fos_user_name: "{{fos_user_name}}"
       fos_password: "{{fos_password}}"
       https: "{{fos_https}}"
+    old_obj: Host1
+    new_obj: Host1_new
 
   tasks:
 
-  - name: copy Alias Host1 to Host1_new
+  - name: copy zoning object "{{old_obj}}" to "{{new_obj}}"
     brocade_zoning_copy:
       credential: "{{credential}}"
       vfid: -1
-      object_name: Host1
-      new_name: Host1_new
-
-  - name: copy Zone Zone3 to Zone3_new
-    brocade_zoning_copy:
-      credential: "{{credential}}"
-      vfid: -1
-      object_name: Zone3
-      new_name: Zone3_new
-
-  - name: copy CFG cfg1 to cfg1_new
-    brocade_zoning_copy:
-      credential: "{{credential}}"
-      vfid: -1
-      object_name: cfg1
-      new_name: cfg1_new
+      object_name: "{{old_obj}}"
+      new_name: "{{new_obj}}"

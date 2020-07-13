@@ -14,9 +14,9 @@
   vars:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: admin
-      fos_password: fibranne
-      https: False
+      fos_user_name: "{{fos_user_name}}"
+      fos_password: "{{fos_password}}"
+      https: "{{fos_https}}"
     aliases_to_delete:
       - name: Host1
       - name: Target2
