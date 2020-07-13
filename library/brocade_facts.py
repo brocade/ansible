@@ -179,12 +179,13 @@ def main():
 
     facts['ssh_hostkeymust'] = ssh_hostkeymust
 
-    for subset in gather_subset:
-        if subset is not "all" and subset not in valid_areas:
-            result["failed"] = True
-            result["msg"] = "Request for unknown module and object " + subset
-            logout(fos_ip_addr, https, auth, result)
-            module.exit_json(**result)
+    if gather_subset is not None:
+        for subset in gather_subset:
+            if subset != "all" and subset not in valid_areas:
+                result["failed"] = True
+                result["msg"] = "Request for unknown module and object " + subset
+                logout(fos_ip_addr, https, auth, result)
+                module.exit_json(**result)
 
     for area in valid_areas:
         if (gather_subset is None or area in gather_subset or "all" in gather_subset):
