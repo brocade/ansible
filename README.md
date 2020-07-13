@@ -3,12 +3,9 @@ Brocade Ansible reference example Modules and Playbooks
 
 This repository provides reference example Modules & Playbooks for Ansible
 to manage Fibre Channel switches running FOS 8.2.1c. Tested with Ansible
-2.9.0 running Python 3.5.2.
+2.9.0 running Python 3.5.2. Also, Tested with AWX 13.0.0.
 
-For information on running the modules/playbooks in Tower/AWX environment,
-checkout tower_awx branch and refer to information on README on the branch.
-
-### Installation ###
+### Installation from Github.com ###
 
 Step1: clone the repository
 
@@ -26,7 +23,71 @@ Step2: Add library path ANSIBLE_LIBRARY variable
 
 Step3: update ansible.cfg to point to utils directory for module_utils
 
-    Example available under tasks/ansible.cfg
+    Example available under ansible.cfg
+
+### Tower/AWX ###
+
+tower_awx branch is now merged to master. Since playbooks and ansible.cfg
+are expected to be in the root directory for Tower/AWX, all playbooks
+and ansible.cfg are moved from tasks directory to root directory.
+
+#### Usage ####
+
+Step 1: create a project within AWX and choose
+
+```
+SCN TYPE to Git
+SCM URL to https://github.com/brocade/ansible.git
+```
+
+Step 2: create an inventory.
+
+Step 3: add a host to the inventory. Use san_eng_zone_seed_san_a in the host name field.
+
+Step 4: add the following to the variables for the host.
+
+```
+ansible_connection: local
+fos_ip_addr: <IP address of FOS switch>
+fos_user_name: admin
+fos_password: <FOS password for admin>
+https: <False/True>
+```
+
+These variables are used by playbooks available when choosing the project
+created above to connect to FOS switch.
+
+### Connection to FOS ###
+
+Primary connection to FOS for playbooks is FOS REST connection. However, 
+Some playbook attributes use ssh connect to augment the fuctionality. When
+those attributes are specified in the playbooks, be sure that the FOS switch
+being used to connect is part of known hosts by where ansible-playbook is
+being executed or where AWX job is being executed.
+
+Here are the examples of attributes using ssh.
+
+| Ansible module name | Attributes |
+| --- | --- |
+| brocade_chassis | telnet_timeout|
+| brocade_fibrechannel_configuration_fabric | fabric_principal_enabled, fabric_principal_priority, in_order_delivery_enabled|
+| brocade_fibrechannel_configuration_port_configuration | credit_recovery_mode|
+| brocade_fibrechannel_switch | dynamic_load_sharing (pre 9.0 only)|
+| brocade_security_user_config | account_enabled (pre 9.0 only)|
+
+If host key check is to be turned off, ssh_hostkeymust field in credential
+variable should be set to false. Here is an example of how that can be done
+by defining credential variable in extra variables section for AWX job template.
+
+
+```
+credential:
+  fos_ip_addr: "{{fos_ip_addr}}"
+  fos_user_name: "{{fos_user_name}}"
+  fos_password: "{{fos_password}}"
+  https: "{{fos_https}}"
+  ssh_hostkeymust: False
+```
 
 ### How to create playbooks ###
 

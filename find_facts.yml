@@ -12,9 +12,9 @@
   vars:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: admin
-      fos_password: fibranne
-      https: False
+      fos_user_name: "{{fos_user_name}}"
+      fos_password: "{{fos_password}}"
+      https: "{{fos_https}}"
 
   tasks:
 
@@ -22,10 +22,10 @@
     brocade_list_obj_facts:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-name-server"
-      list_name: "fibrechannel-name-server"
+      module_name: "brocade-interface"
+      list_name: "fibrechannel"
       attributes:
-        port_id: "0x110300"
+        name: "0/0"
 
   - name: print ansible_facts gathered
     debug:

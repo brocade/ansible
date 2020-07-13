@@ -12,18 +12,21 @@
   vars:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: admin
-      fos_password: password3
-      https: False
-      ssh_hostkeymust: False
+      fos_user_name: "{{fos_user_name}}"
+      fos_password: "{{fos_password}}"
+      https: "{{fos_https}}"
 
   tasks:
 
-  - name: change password
-    brocade_security_password:
+  - name: gather facts
+    brocade_list_obj_facts:
       credential: "{{credential}}"
       vfid: -1
-      password:
-        user_name: "admin"
-        old_password: "password3"
-        new_password: "password4"
+      module_name: "brocade-name-server"
+      list_name: "fibrechannel-name-server"
+      attributes:
+        port_id: "0x110300"
+
+  - name: print ansible_facts gathered
+    debug:
+      var: ansible_facts
