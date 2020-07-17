@@ -56,6 +56,10 @@ def to_fos_singleton(module_name, obj_name, attributes, result):
             if k == "new-password":
                 attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
 
+        if module_name == "brocade_security" and obj_name == "security_certificate_action":
+            if k == "remote-user-password":
+                attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
+
     for k, v in attributes.items():
         if isinstance(v, bool):
             if v == True:
@@ -91,6 +95,10 @@ def singleton_get(login, password, fos_ip_addr, module_name, obj_name, fos_versi
 
     if module_name == "brocade_fibrechannel_configuration" and obj_name == "port_configuration":
         return port_configuration_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust)
+
+    # get is not support for this module. Just return empty
+    if module_name == "brocade_security" and obj_name == "security_certificate_action":
+        return 0, ({"Response" : {str_to_yang(obj_name): {}}})
 
     full_url, validate_certs = full_url_get(is_https,
                                             fos_ip_addr,
