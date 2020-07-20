@@ -40,7 +40,7 @@ def full_url_get(is_https, fos_ip_addr, path):
         return HTTP + fos_ip_addr + str_to_yang(path), False
 
 
-def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body):
+def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body, longer_timeout=None):
     """
         general function to post for a given url
 
@@ -64,15 +64,26 @@ def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body):
     if vfid is not None and vfid != -1:
         url = url + VF_ID + str(vfid)
 
-    retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs)
-    if retval == -1:
-        if eret != -3:
-            return eret
-        elif eret == -3:
-            time.sleep(auth["throttle"])
-            retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs)
-            if retval == -1:
+    if longer_timeout == None:
+        retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs)
+        if retval == -1:
+            if eret != -3:
                 return eret
+            elif eret == -3:
+                time.sleep(auth["throttle"])
+                retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs)
+                if retval == -1:
+                    return eret
+    else:
+        retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs,timeout=longer_timeout)
+        if retval == -1:
+            if eret != -3:
+                return eret
+            elif eret == -3:
+                time.sleep(auth["throttle"])
+                retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs, timeout=longer_timeout)
+                if retval == -1:
+                    return eret
 
     return 0
 
@@ -118,7 +129,7 @@ def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, longer_timeo
                 return eret
             elif eret == -3:
                 time.sleep(auth["throttle"])
-                retval, eret, delete, resp = url_helper(url, body, "PATCH", auth, result, validate_certs)
+                retval, eret, delete, resp = url_helper(url, body, "PATCH", auth, result, validate_certs, timeout=longer_timeout)
                 if retval == -1:
                     return eret
 

@@ -99,6 +99,8 @@ def singleton_get(login, password, fos_ip_addr, module_name, obj_name, fos_versi
     # get is not support for this module. Just return empty
     if module_name == "brocade_security" and obj_name == "security_certificate_action":
         return 0, ({"Response" : {str_to_yang(obj_name): {}}})
+    if module_name == "brocade_security" and obj_name == "security_certificate_generate":
+        return 0, ({"Response" : {str_to_yang(obj_name): {}}})
 
     full_url, validate_certs = full_url_get(is_https,
                                             fos_ip_addr,
@@ -318,6 +320,14 @@ def singleton_patch(login, password, fos_ip_addr, module_name, obj_name, fos_ver
     xml_str = singleton_xml_str(result, obj_name, new_attributes)
 
     result["patch_obj_str"] = xml_str
+
+    if module_name == "brocade_security" and obj_name == "security_certificate_generate":
+        if longer_timeout == None:
+            return url_post(fos_ip_addr, is_https, auth, vfid, result,
+                            full_url, xml_str)
+        else:
+            return url_post(fos_ip_addr, is_https, auth, vfid, result,
+                            full_url, xml_str, longer_timeout)
 
     if longer_timeout == None:
         return url_patch(fos_ip_addr, is_https, auth, vfid, result,

@@ -15,20 +15,35 @@
       fos_user_name: "{{fos_user_name}}"
       fos_password: "{{fos_password}}"
       https: "{{fos_https}}"
+    generate_inputs:
+      certificate_entity: csr
+      certificate_type: https
+      country_name: US
+      state_name: CA
+      locality_name: SJ
+      organization_name: Broadcom
+      unit_name: BSN
+      domain_name: 10.155.107.74
     action_inputs:
       remote_user_name: user_name
       remote_host_ip: host_ip
-      remote_user_password: user_password_in_clear_text
-      remote_directory: directory_of_cert
+      remote_user_password: password
+      remote_directory: diretory
       protocol: scp
-      certificate_entity: cert
+      certificate_entity: csr
       certificate_type: https
-      certificate_name: cert_name
-      operation: import
+      operation: export
 
   tasks:
 
-  - name: Cert installation. Existing cert is not compared. This task will always change.
+  - name: CSR generation. Existing CSR is not compared. This task will always change.
+    brocade_security_security_certificate_generate:
+      credential: "{{credential}}"
+      vfid: -1
+      generate_inputs: "{{generate_inputs}}"
+
+
+  - name: CSR export. Existing CSR is not compared. This task will always change.
     brocade_security_security_certificate_action:
       credential: "{{credential}}"
       vfid: -1

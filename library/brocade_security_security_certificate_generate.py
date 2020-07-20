@@ -17,12 +17,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: brocade_security_security_certificate_action
+module: brocade_security_security_certificate_generate
 short_description: Brocade security password change
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Use to install certificate
+- Use to generate CSR or CERT
 
 options:
 
@@ -46,9 +46,9 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
-    action_inputs:
+    generate_inputs:
         description:
-        - action attributes
+        - Attributes used to generate CSR or CERT
         required: true
 
 '''
@@ -68,10 +68,10 @@ EXAMPLES = """
   tasks:
 
   - name: change password
-    brocade_security_security_certificate_action:
+    brocade_security_security_certificate_generate:
       credential: "{{credential}}"
       vfid: -1
-      action_inputs:
+      generate_inputs:
 
 """
 
@@ -104,7 +104,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
-        action_inputs=dict(required=True, type='dict'))
+        generate_inputs=dict(required=True, type='dict'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -123,10 +123,10 @@ def main():
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    action_inputs = input_params['action_inputs']
+    generate_inputs = input_params['generate_inputs']
     result = {"changed": False}
 
-    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_security", "security_certificate_action", 300, action_inputs, result)
+    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_security", "security_certificate_generate", 300, generate_inputs, result)
 
 
 if __name__ == '__main__':
