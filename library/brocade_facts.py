@@ -57,10 +57,14 @@ options:
             brocade_fibrechannel_configuration_fabric
             brocade_fibrechannel_configuration_port_configuration
             brocade_fibrechannel_switch
+            brocade_fibrechannel_trunk_trunk
+            brocade_fibrechannel_trunk_performance
+            brocade_fibrechannel_trunk_trunk_area
             brocade_time_clock_server
             brocade_time_time_zone
             brocade_logging_syslog_server
             brocade_logging_audit
+            brocade_media_media_rdp
             brocade_snmp_system
             brocade_security_ipfilter_rule
             brocade_security_ipfilter_policy
@@ -139,10 +143,14 @@ valid_areas = [
     "brocade_fibrechannel_configuration_fabric",
     "brocade_fibrechannel_configuration_port_configuration",
     "brocade_fibrechannel_switch",
+    "brocade_fibrechannel_trunk_trunk",
+    "brocade_fibrechannel_trunk_performance",
+    "brocade_fibrechannel_trunk_trunk_area",
     "brocade_time_clock_server",
     "brocade_time_time_zone",
     "brocade_logging_syslog_server",
     "brocade_logging_audit",
+    "brocade_media_media_rdp",
     "brocade_snmp_system",
     "brocade_security_ipfilter_rule",
     "brocade_security_ipfilter_policy",
@@ -237,6 +245,22 @@ def main():
                 module_name = "brocade_security"
                 list_name = "security_certificate"
                 get_list = True
+            elif area == "brocade_media_media_rdp":
+                module_name = "brocade_media"
+                list_name = "media_rdp"
+                get_list = True
+            elif area == "brocade_fibrechannel_trunk_trunk":
+                module_name = "brocade_fibrechannel_trunk"
+                list_name = "trunk"
+                get_list = True
+            elif area == "brocade_fibrechannel_trunk_performance":
+                module_name = "brocade_fibrechannel_trunk"
+                list_name = "performance"
+                get_list = True
+            elif area == "brocade_fibrechannel_trunk_trunk_area":
+                module_name = "brocade_fibrechannel_trunk"
+                list_name = "trunk_area"
+                get_list = True
             elif area == "brocade_security_password_cfg":
                 module_name = "brocade_security"
                 obj_name = "password_cfg"
@@ -295,7 +319,10 @@ def main():
 
                 obj_list = response["Response"][str_to_yang(list_name)]
                 if not isinstance(obj_list, list):
-                    obj_list = [obj_list]
+                    if obj_list is None:
+                        obj_list = []
+                    else:
+                        obj_list = [obj_list]
 
                 to_human_list(module_name, list_name, obj_list, result)
                 facts[area] = obj_list

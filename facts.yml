@@ -29,10 +29,14 @@
         - brocade_fibrechannel_configuration_fabric
         - brocade_fibrechannel_configuration_port_configuration
         - brocade_fibrechannel_switch
+        - brocade_fibrechannel_trunk_trunk
+        - brocade_fibrechannel_trunk_performance
+        - brocade_fibrechannel_trunk_trunk_area
         - brocade_time_clock_server
         - brocade_time_time_zone
         - brocade_logging_syslog_server
         - brocade_logging_audit
+        - brocade_media_media_rdp
         - brocade_snmp_system
         - brocade_security_ipfilter_rule
         - brocade_security_ipfilter_policy

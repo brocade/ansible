@@ -118,6 +118,24 @@ def to_human_fc(port_config):
         elif port_config["speed"] == "0":
             port_config["speed"] = "Auto"
 
+    if "max_speed" in port_config:
+        if port_config["max_speed"] == "32000000000":
+            port_config["max_speed"] = "32Gig"
+        elif port_config["max_speed"] == "16000000000":
+            port_config["max_speed"] = "16Gig"
+        elif port_config["max_speed"] == "10000000000":
+            port_config["max_speed"] = "10Gig"
+        elif port_config["max_speed"] == "8000000000":
+            port_config["max_speed"] = "8Gig"
+        elif port_config["max_speed"] == "4000000000":
+            port_config["max_speed"] = "4Gig"
+        elif port_config["max_speed"] == "2000000000":
+            port_config["max_speed"] = "2Gig"
+        elif port_config["max_speed"] == "1000000000":
+            port_config["max_speed"] = "1Gig"
+        elif port_config["max_speed"] == "0":
+            port_config["max_speed"] = "Auto"
+
 def to_fos_fc(port_config, result):
     human_to_yang(port_config)
 
@@ -207,6 +225,28 @@ def to_fos_fc(port_config, result):
         else:
             result["failed"] = True
             result["msg"] = "speed converted to unknown value"
+            return -1
+
+    if "max_speed" in port_config:
+        if port_config["max_speed"] == "32Gig":
+            port_config["max_speed"] = "32000000000"
+        elif port_config["max_speed"] == "16Gig":
+            port_config["max_speed"] = "16000000000"
+        elif port_config["max_speed"] == "8Gig":
+            port_config["max_speed"] = "8000000000"
+        elif port_config["max_speed"] == "10Gig":
+            port_config["max_speed"] = "10000000000"
+        elif port_config["max_speed"] == "4Gig":
+            port_config["max_speed"] = "4000000000"
+        elif port_config["max_speed"] == "2Gig":
+            port_config["max_speed"] = "2000000000"
+        elif port_config["max_speed"] == "1Gig":
+            port_config["max_speed"] = "1000000000"
+        elif port_config["max_speed"] == "Auto":
+            port_config["max_speed"] = "0"
+        else:
+            result["failed"] = True
+            result["msg"] = "max_speed converted to unknown value"
             return -1
 
     return 0
