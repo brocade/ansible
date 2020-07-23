@@ -15,14 +15,21 @@
       fos_user_name: "{{fos_user_name}}"
       fos_password: "{{fos_password}}"
       https: "{{fos_https}}"
-    old_obj: Host1
-    new_obj: Host1_new
+    action_inputs:
+      remote_user_name: user_name
+      remote_host_ip: host_ip
+      remote_user_password: user_password_in_clear_text
+      remote_directory: directory_of_cert
+      protocol: scp
+      certificate_entity: cert
+      certificate_type: https
+      certificate_name: cert_name
+      operation: import
 
   tasks:
 
-  - name: copy zoning object "{{old_obj}}" to "{{new_obj}}"
-    brocade_zoning_copy:
+  - name: Cert installation. Existing cert is not compared. This task will always change.
+    brocade_security_security_certificate_action:
       credential: "{{credential}}"
       vfid: -1
-      object_name: "{{old_obj}}"
-      new_name: "{{new_obj}}"
+      action_inputs: "{{action_inputs}}"

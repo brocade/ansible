@@ -19,13 +19,11 @@
   tasks:
 
   - name: gather facts
-    brocade_list_obj_facts:
+    brocade_facts:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-interface"
-      list_name: "fibrechannel"
-      attributes:
-        name: "0/0"
+      gather_subset:
+        - brocade_security_security_certificate
 
   - name: print ansible_facts gathered
     debug:

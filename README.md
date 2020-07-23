@@ -51,7 +51,7 @@ ansible_connection: local
 fos_ip_addr: <IP address of FOS switch>
 fos_user_name: admin
 fos_password: <FOS password for admin>
-https: <False/True>
+https: <False/True/self>
 ```
 
 These variables are used by playbooks available when choosing the project
