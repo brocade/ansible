@@ -45,7 +45,13 @@ options:
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds.
+        - rest throttling delay in seconds to retry once more if
+          server is busy.
+        required: false
+    timeout:
+        description:
+        - rest timeout in seconds for operations taking longer than
+          default timeout.
         required: false
     user_configs:
         description:
@@ -141,6 +147,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
+        timeout=dict(required=False, type='float'),
         user_configs=dict(required=False, type='list'),
         delete_user_configs=dict(required=False, type='list'))
 
@@ -160,6 +167,7 @@ def main():
     if 'ssh_hostkeymust' in input_params['credential']:
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
+    timeout = input_params['timeout']
     vfid = input_params['vfid']
     user_configs = input_params['user_configs']
     delete_user_configs = input_params['delete_user_configs']
@@ -170,10 +178,10 @@ def main():
     # user config creation or update does not happen at the same
     # time
     if delete_user_configs != None:
-        return list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_security", "user_config", delete_user_configs, True, None, result)
+        return list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_security", "user_config", delete_user_configs, True, result, timeout)
 
 
-    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_security", "user_config", user_configs, False, None, result)
+    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_security", "user_config", user_configs, False, result, timeout)
 
 
 if __name__ == '__main__':

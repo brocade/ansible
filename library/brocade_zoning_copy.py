@@ -50,7 +50,13 @@ options:
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds.
+        - rest throttling delay in seconds to retry once more if
+          server is busy.
+        required: false
+    timeout:
+        description:
+        - rest timeout in seconds for operations taking longer than
+          default timeout.
         required: false
     object_name:
         description:
@@ -116,6 +122,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
+        timeout=dict(required=False, type='float'),
         object_name=dict(required=True, type='str'),
         new_name=dict(required=True, type='str'))
 
@@ -132,6 +139,7 @@ def main():
     fos_password = input_params['credential']['fos_password']
     https = input_params['credential']['https']
     throttle = input_params['throttle']
+    timeout = input_params['timeout']
     vfid = input_params['vfid']
     object_name = input_params['object_name']
     new_name = input_params['new_name']
@@ -146,7 +154,7 @@ def main():
     if ret_code != 0:
         module.exit_json(**result)
 
-    object_name_dict, new_name_dict = zoning_find_pair_common(module, fos_ip_addr, https, auth, vfid, "alias", object_name, new_name, result)
+    object_name_dict, new_name_dict = zoning_find_pair_common(module, fos_ip_addr, https, auth, vfid, "alias", object_name, new_name, result, timeout)
 
     result["object_name_dict"] = object_name_dict
     result["new_name_dict"] = new_name_dict
@@ -158,11 +166,11 @@ def main():
         zoning_common(fos_ip_addr, https, auth, vfid, result, module, obj_list,
                   False, False, None, "alias",
                   alias_process_diff, alias_process_diff_to_delete, alias_get,
-                  alias_post, alias_delete, None)
+                  alias_post, alias_delete, None, timeout)
         ret_code = logout(fos_ip_addr, https, auth, result)
         module.exit_json(**result)
 
-    object_name_dict, new_name_dict = zoning_find_pair_common(module, fos_ip_addr, https, auth, vfid, "zone", object_name, new_name, result)
+    object_name_dict, new_name_dict = zoning_find_pair_common(module, fos_ip_addr, https, auth, vfid, "zone", object_name, new_name, result, timeout)
 
     result["object_name_dict"] = object_name_dict
     result["new_name_dict"] = new_name_dict
@@ -180,11 +188,11 @@ def main():
         zoning_common(fos_ip_addr, https, auth, vfid, result, module, obj_list,
                   False, False, None, "zone",
                   zone_process_diff, zone_process_diff_to_delete, zone_get,
-                  zone_post, zone_delete, None)
+                  zone_post, zone_delete, None, timeout)
         ret_code = logout(fos_ip_addr, https, auth, result)
         module.exit_json(**result)
 
-    object_name_dict, new_name_dict = zoning_find_pair_common(module, fos_ip_addr, https, auth, vfid, "cfg", object_name, new_name, result)
+    object_name_dict, new_name_dict = zoning_find_pair_common(module, fos_ip_addr, https, auth, vfid, "cfg", object_name, new_name, result, timeout)
 
     result["object_name_dict"] = object_name_dict
     result["new_name_dict"] = new_name_dict
@@ -196,7 +204,7 @@ def main():
         zoning_common(fos_ip_addr, https, auth, vfid, result, module, obj_list,
                   False, False, None, "cfg",
                   cfg_process_diff, cfg_process_diff_to_delete, cfg_get,
-                  cfg_post, cfg_delete, None)
+                  cfg_post, cfg_delete, None, timeout)
         ret_code = logout(fos_ip_addr, https, auth, result)
         module.exit_json(**result)
 

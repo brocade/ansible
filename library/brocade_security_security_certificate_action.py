@@ -44,7 +44,13 @@ options:
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds.
+        - rest throttling delay in seconds to retry once more if
+          server is busy.
+        required: false
+    timeout:
+        description:
+        - rest timeout in seconds for operations taking longer than
+          default timeout.
         required: false
     action_inputs:
         description:
@@ -104,6 +110,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
+        timeout=dict(required=False, type='float'),
         action_inputs=dict(required=True, type='dict'))
 
     module = AnsibleModule(
@@ -122,11 +129,12 @@ def main():
     if 'ssh_hostkeymust' in input_params['credential']:
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
+    timeout = input_params['timeout']
     vfid = input_params['vfid']
     action_inputs = input_params['action_inputs']
     result = {"changed": False}
 
-    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_security", "security_certificate_action", 300, action_inputs, result)
+    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_security", "security_certificate_action", action_inputs, result, timeout)
 
 
 if __name__ == '__main__':

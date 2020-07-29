@@ -40,7 +40,7 @@ def full_url_get(is_https, fos_ip_addr, path):
         return HTTP + fos_ip_addr + str_to_yang(path), False
 
 
-def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body, longer_timeout=None):
+def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout=None):
     """
         general function to post for a given url
 
@@ -64,7 +64,7 @@ def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body, longer_timeou
     if vfid is not None and vfid != -1:
         url = url + VF_ID + str(vfid)
 
-    if longer_timeout == None:
+    if timeout == None:
         retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs)
         if retval == -1:
             if eret != -3:
@@ -75,20 +75,20 @@ def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body, longer_timeou
                 if retval == -1:
                     return eret
     else:
-        retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs,timeout=longer_timeout)
+        retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs, timeout=timeout)
         if retval == -1:
             if eret != -3:
                 return eret
             elif eret == -3:
                 time.sleep(auth["throttle"])
-                retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs, timeout=longer_timeout)
+                retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs, timeout=timeout)
                 if retval == -1:
                     return eret
 
     return 0
 
 
-def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, longer_timeout = None):
+def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout=None):
     """
         general function to patch for a given url
 
@@ -112,7 +112,7 @@ def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, longer_timeo
     if vfid is not None and vfid != -1:
         url = url + VF_ID + str(vfid)
 
-    if longer_timeout == None:
+    if timeout == None:
         retval, eret, edict, resp = url_helper(url, body, "PATCH", auth, result, validate_certs)
         if retval == -1:
             if eret != -3:
@@ -123,13 +123,13 @@ def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, longer_timeo
                 if retval == -1:
                     return eret
     else:
-        retval, eret, edict, resp = url_helper(url, body, "PATCH", auth, result, validate_certs, timeout=longer_timeout)
+        retval, eret, edict, resp = url_helper(url, body, "PATCH", auth, result, validate_certs, timeout=timeout)
         if retval == -1:
             if eret != -3:
                 return eret
             elif eret == -3:
                 time.sleep(auth["throttle"])
-                retval, eret, delete, resp = url_helper(url, body, "PATCH", auth, result, validate_certs, timeout=longer_timeout)
+                retval, eret, delete, resp = url_helper(url, body, "PATCH", auth, result, validate_certs, timeout=timeout)
                 if retval == -1:
                     return eret
 
@@ -138,7 +138,7 @@ def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, longer_timeo
     return 0
 
 
-def url_delete(fos_ip_addr, is_https, auth, vfid, result, url, body):
+def url_delete(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout=None):
     """
         general function to delete for a given url
 
@@ -162,13 +162,13 @@ def url_delete(fos_ip_addr, is_https, auth, vfid, result, url, body):
     if vfid is not None and vfid != -1:
         url = url + VF_ID + str(vfid)
 
-    retval, eret, edict, delete_resp = url_helper(url, body, "DELETE", auth, result, validate_certs)
+    retval, eret, edict, delete_resp = url_helper(url, body, "DELETE", auth, result, validate_certs, timeout)
     if retval == -1:
         if eret != -3:
             return eret
         elif eret == -3:
             time.sleep(auth["throttle"])
-            retval, eret, delete, delete_resp = url_helper(url, body, "DELETE", auth, result, validate_certs)
+            retval, eret, delete, delete_resp = url_helper(url, body, "DELETE", auth, result, validate_certs, timeout)
             if retval == -1:
                 return eret
 
@@ -276,7 +276,7 @@ def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url, timeout=None
     if timeout == None:
         retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs)
     else:
-        retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs, timeout = timeout)
+        retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs, timeout=timeout)
     if retval == -1:
         if eret != -3:
             return eret, edict
@@ -285,7 +285,7 @@ def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url, timeout=None
             if timeout == None:
                 retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs)
             else:
-                retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs, timeout = timeout)
+                retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs, timeout=timeout)
             if retval == -1:
                 return eret, edict
 
@@ -300,7 +300,7 @@ def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url, timeout=None
 
 
 def url_patch_single_object(fos_ip_addr, is_https, auth, vfid,
-                            result, url, obj_name, diff_attributes, longer_timeout = None):
+                            result, url, obj_name, diff_attributes, timeout=None):
     """
         update existing switch configurations
 
@@ -342,9 +342,9 @@ def url_patch_single_object(fos_ip_addr, is_https, auth, vfid,
     result["url"] = url
     result["diff_str"] = diff_str
 
-    if longer_timeout == None:
+    if timeout == None:
         return url_patch(fos_ip_addr, is_https, auth, vfid, result,
                          url, diff_str)
     else:
         return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                         url, diff_str, longer_timeout)
+                         url, diff_str, timeout)

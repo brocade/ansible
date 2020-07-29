@@ -44,7 +44,13 @@ options:
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds.
+        - rest throttling delay in seconds to retry once more if
+          server is busy.
+        required: false
+    timeout:
+        description:
+        - rest timeout in seconds for operations taking longer than
+          default timeout.
         required: false
     module_name:
         description:
@@ -116,6 +122,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
+        timeout=dict(required=False, type='float'),
         module_name=dict(required=True, type='str'),
         obj_name=dict(required=True, type='str'))
 
@@ -135,6 +142,7 @@ def main():
     if 'ssh_hostkeymust' in input_params['credential']:
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
+    timeout = input_params['timeout']
     vfid = input_params['vfid']
     module_name = str_to_human(input_params['module_name'])
     obj_name = str_to_human(input_params['obj_name'])
@@ -156,7 +164,7 @@ def main():
     ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
                                   module_name, obj_name, fos_version,
                                   https, auth, vfid, result,
-                                  ssh_hostkeymust)
+                                  ssh_hostkeymust, timeout)
     if ret_code != 0:
         result["singleton_get"] = ret_code
         exit_after_login(fos_ip_addr, https, auth, result, module)

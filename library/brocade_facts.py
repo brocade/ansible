@@ -44,7 +44,13 @@ options:
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds.
+        - rest throttling delay in seconds to retry once more if
+          server is busy.
+        required: false
+    timeout:
+        description:
+        - rest timeout in seconds for operations taking longer than
+          default timeout.
         required: false
     gather_subset:
         description:
@@ -169,6 +175,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
+        timeout=dict(required=False, type='float'),
         gather_subset=dict(required=True, type='list'))
 
     module = AnsibleModule(
@@ -187,6 +194,7 @@ def main():
     if 'ssh_hostkeymust' in input_params['credential']:
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
+    timeout = input_params['timeout']
     vfid = input_params['vfid']
     gather_subset = input_params['gather_subset']
     result = {"changed": False}
@@ -298,7 +306,7 @@ def main():
                 ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
                                                    module_name, obj_name, fos_version,
                                                    https, auth, vfid, result,
-                                                   ssh_hostkeymust)
+                                                   ssh_hostkeymust, timeout)
                 if ret_code != 0:
                     result[module_name + "_" + obj_name + "_get"] = ret_code
                     exit_after_login(fos_ip_addr, https, auth, result, module)
@@ -312,7 +320,7 @@ def main():
                 ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
                                               module_name, list_name, fos_version,
                                               https, auth, vfid, result,
-                                              ssh_hostkeymust, 300)
+                                              ssh_hostkeymust, timeout)
                 if ret_code != 0:
                     result[module_name + "_" + list_name + "_get"] = ret_code
                     exit_after_login(fos_ip_addr, https, auth, result, module)
@@ -328,7 +336,7 @@ def main():
                 facts[area] = obj_list
             elif area == "brocade_zoning":
                 ret_code, response = defined_get(
-                    fos_ip_addr, https, auth, vfid, result)
+                    fos_ip_addr, https, auth, vfid, result, timeout)
                 if ret_code != 0:
                     exit_after_login(fos_ip_addr, https, auth, result, module)
 
@@ -338,7 +346,7 @@ def main():
                 )
 
                 ret_code, response = effective_get(
-                    fos_ip_addr, https, auth, vfid, result)
+                    fos_ip_addr, https, auth, vfid, result, timeout)
                 if ret_code != 0:
                     exit_after_login(fos_ip_addr, https, auth, result, module)
 

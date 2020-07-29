@@ -111,6 +111,7 @@
     brocade_snmp_v1_account:
       credential: "{{credential}}"
       vfid: -1
+      timeout: 30
       v1_accounts: "{{v1_accounts}}"
 
   - name: v1 traps

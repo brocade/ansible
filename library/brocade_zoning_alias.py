@@ -48,7 +48,13 @@ options:
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds.
+        - rest throttling delay in seconds to retry once more if
+          server is busy.
+        required: false
+    timeout:
+        description:
+        - rest timeout in seconds for operations taking longer than
+          default timeout.
         required: false
     aliases:
         description:
@@ -149,6 +155,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
+        timeout=dict(required=False, type='float'),
         aliases=dict(required=False, type='list'),
         members_add_only=dict(required=False, type='bool'),
         members_remove_only=dict(required=False, type='bool'),
@@ -167,6 +174,7 @@ def main():
     fos_password = input_params['credential']['fos_password']
     https = input_params['credential']['https']
     throttle = input_params['throttle']
+    timeout = input_params['timeout']
     vfid = input_params['vfid']
     aliases = input_params['aliases']
     members_add_only = input_params['members_add_only']
@@ -187,7 +195,7 @@ def main():
                   members_add_only, members_remove_only, aliases_to_delete, "alias",
                   alias_process_diff, alias_process_diff_to_delete,
                   alias_get, alias_post, alias_delete,
-                  None)
+                  None, timeout)
 
     ret_code = logout(fos_ip_addr, https, auth, result)
     module.exit_json(**result)

@@ -62,7 +62,7 @@ def to_fos_zoning(zoning_config, result):
     return 0
 
 
-def cfgname_checksum_get(fos_ip_addr, is_https, auth, vfid, result):
+def cfgname_checksum_get(fos_ip_addr, is_https, auth, vfid, result, timeout):
     """
         Gets the current cfgname and checksum of the effective config
 
@@ -85,7 +85,7 @@ def cfgname_checksum_get(fos_ip_addr, is_https, auth, vfid, result):
 
     ret_code, effective_resp = url_get_to_dict(fos_ip_addr, is_https,
                                                auth, vfid, result,
-                                               full_effective_url)
+                                               full_effective_url, timeout)
     if ret_code == -1:
         result["failed"] = True
         result["msg"] = "url_get_to_dict failed"
@@ -101,7 +101,7 @@ def cfgname_checksum_get(fos_ip_addr, is_https, auth, vfid, result):
     return 0, cfgname, effective_config["checksum"]
 
 
-def cfg_save(fos_ip_addr, is_https, auth, vfid, result, checksum):
+def cfg_save(fos_ip_addr, is_https, auth, vfid, result, checksum, timeout):
     """
         save current transaction buffer
 
@@ -125,11 +125,11 @@ def cfg_save(fos_ip_addr, is_https, auth, vfid, result, checksum):
     save_str = "<effective-configuration><checksum>" + checksum +\
         "</checksum><cfg-action>1</cfg-action></effective-configuration>"
     return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                     full_effective_url, save_str)
+                     full_effective_url, save_str, timeout)
 
 
 def cfg_enable(fos_ip_addr, is_https, auth, vfid,
-               result, checksum, active_cfg):
+               result, checksum, active_cfg, timeout):
     """
         enable a particular cfg
 
@@ -156,10 +156,10 @@ def cfg_enable(fos_ip_addr, is_https, auth, vfid,
         "</checksum><cfg-name>" + active_cfg +\
         "</cfg-name></effective-configuration>"
     return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                     full_effective_url, save_str)
+                     full_effective_url, save_str, timeout)
 
 
-def cfg_abort(fos_ip_addr, is_https, auth, vfid, result):
+def cfg_abort(fos_ip_addr, is_https, auth, vfid, result, timeout):
     """
         abort zoning transacdtion
 
@@ -181,22 +181,22 @@ def cfg_abort(fos_ip_addr, is_https, auth, vfid, result):
     abort_str = "<effective-configuration><cfg-action>"\
         "4</cfg-action></effective-configuration>"
     return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                     full_effective_url, abort_str)
+                     full_effective_url, abort_str, timeout)
 
 
-def zone_post(fos_ip_addr, is_https, auth, vfid, result, zones):
-    return zone_set(fos_ip_addr, is_https, auth, vfid, result, zones, "POST")
+def zone_post(fos_ip_addr, is_https, auth, vfid, result, zones, timeout):
+    return zone_set(fos_ip_addr, is_https, auth, vfid, result, zones, "POST", timeout)
 
 
-def zone_patch(fos_ip_addr, is_https, auth, vfid, result, zones):
-    return zone_set(fos_ip_addr, is_https, auth, vfid, result, zones, "PATCH")
+def zone_patch(fos_ip_addr, is_https, auth, vfid, result, zones, timeout):
+    return zone_set(fos_ip_addr, is_https, auth, vfid, result, zones, "PATCH", timeout)
 
 
-def zone_delete(fos_ip_addr, is_https, auth, vfid, result, zones):
-    return zone_set(fos_ip_addr, is_https, auth, vfid, result, zones, "DELETE")
+def zone_delete(fos_ip_addr, is_https, auth, vfid, result, zones, timeout):
+    return zone_set(fos_ip_addr, is_https, auth, vfid, result, zones, "DELETE", timeout)
 
 
-def zone_set(fos_ip_addr, is_https, auth, vfid, result, zones, method):
+def zone_set(fos_ip_addr, is_https, auth, vfid, result, zones, method, timeout):
     """
         set zones in Zone Database
 
@@ -253,13 +253,13 @@ def zone_set(fos_ip_addr, is_https, auth, vfid, result, zones, method):
 
     if method == "POST":
         return url_post(fos_ip_addr, is_https, auth, vfid, result,
-                        full_defined_url, zone_str)
+                        full_defined_url, zone_str, timeout)
     elif method == "PATCH":
         return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                         full_defined_url, zone_str)
+                         full_defined_url, zone_str, timeout)
     elif method == "DELETE":
         return url_delete(fos_ip_addr, is_https, auth, vfid, result,
-                          full_defined_url, zone_str)
+                          full_defined_url, zone_str, timeout)
     else:
         result["invalid method"] = method
         result["failed"] = True
@@ -267,7 +267,7 @@ def zone_set(fos_ip_addr, is_https, auth, vfid, result, zones, method):
         return -1
 
 
-def zone_get(fos_ip_addr, is_https, auth, vfid, result):
+def zone_get(fos_ip_addr, is_https, auth, vfid, result, timeout):
     """
         retrieve existing zones
 
@@ -289,25 +289,25 @@ def zone_get(fos_ip_addr, is_https, auth, vfid, result):
                                                     REST_DEFINED + "/zone")
 
     return url_get_to_dict(fos_ip_addr, is_https, auth,
-                           vfid, result, full_defined_url)
+                           vfid, result, full_defined_url, timeout)
 
 
-def alias_post(fos_ip_addr, is_https, auth, vfid, result, aliases):
+def alias_post(fos_ip_addr, is_https, auth, vfid, result, aliases, timeout):
     return alias_set(fos_ip_addr, is_https, auth,
-                     vfid, result, aliases, "POST")
+                     vfid, result, aliases, "POST", timeout)
 
 
-def alias_patch(fos_ip_addr, is_https, auth, vfid, result, aliases):
+def alias_patch(fos_ip_addr, is_https, auth, vfid, result, aliases, timeout):
     return alias_set(fos_ip_addr, is_https, auth,
-                     vfid, result, aliases, "PATCH")
+                     vfid, result, aliases, "PATCH", timeout)
 
 
-def alias_delete(fos_ip_addr, is_https, auth, vfid, result, aliases):
+def alias_delete(fos_ip_addr, is_https, auth, vfid, result, aliases, timeout):
     return alias_set(fos_ip_addr, is_https, auth,
-                     vfid, result, aliases, "DELETE")
+                     vfid, result, aliases, "DELETE", timeout)
 
 
-def alias_set(fos_ip_addr, is_https, auth, vfid, result, aliases, method):
+def alias_set(fos_ip_addr, is_https, auth, vfid, result, aliases, method, timeout):
     """
         set aliases in Zone Database
 
@@ -350,13 +350,13 @@ def alias_set(fos_ip_addr, is_https, auth, vfid, result, aliases, method):
 
     if method == "POST":
         return url_post(fos_ip_addr, is_https, auth, vfid, result,
-                        full_defined_url, alias_str)
+                        full_defined_url, alias_str, timeout)
     elif method == "PATCH":
         return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                         full_defined_url, alias_str)
+                         full_defined_url, alias_str, timeout)
     elif method == "DELETE":
         return url_delete(fos_ip_addr, is_https, auth, vfid, result,
-                          full_defined_url, alias_str)
+                          full_defined_url, alias_str, timeout)
     else:
         result["invalid method"] = method
         result["failed"] = True
@@ -364,7 +364,7 @@ def alias_set(fos_ip_addr, is_https, auth, vfid, result, aliases, method):
         return -1
 
 
-def alias_get(fos_ip_addr, is_https, auth, vfid, result):
+def alias_get(fos_ip_addr, is_https, auth, vfid, result, timeout):
     """
         retrieve existing aliases
 
@@ -386,22 +386,22 @@ def alias_get(fos_ip_addr, is_https, auth, vfid, result):
                                                     REST_DEFINED + "/alias")
 
     return url_get_to_dict(fos_ip_addr, is_https, auth,
-                           vfid, result, full_defined_url)
+                           vfid, result, full_defined_url, timeout)
 
 
-def cfg_post(fos_ip_addr, is_https, auth, vfid, result, cfgs):
-    return cfg_set(fos_ip_addr, is_https, auth, vfid, result, cfgs, "POST")
+def cfg_post(fos_ip_addr, is_https, auth, vfid, result, cfgs, timeout):
+    return cfg_set(fos_ip_addr, is_https, auth, vfid, result, cfgs, "POST", timeout)
 
 
-def cfg_patch(fos_ip_addr, is_https, auth, vfid, result, cfgs):
-    return cfg_set(fos_ip_addr, is_https, auth, vfid, result, cfgs, "PATCH")
+def cfg_patch(fos_ip_addr, is_https, auth, vfid, result, cfgs, timeout):
+    return cfg_set(fos_ip_addr, is_https, auth, vfid, result, cfgs, "PATCH", timeout)
 
 
-def cfg_delete(fos_ip_addr, is_https, auth, vfid, result, cfgs):
-    return cfg_set(fos_ip_addr, is_https, auth, vfid, result, cfgs, "DELETE")
+def cfg_delete(fos_ip_addr, is_https, auth, vfid, result, cfgs, timeout):
+    return cfg_set(fos_ip_addr, is_https, auth, vfid, result, cfgs, "DELETE", timeout)
 
 
-def cfg_set(fos_ip_addr, is_https, auth, vfid, result, cfgs, method):
+def cfg_set(fos_ip_addr, is_https, auth, vfid, result, cfgs, method, timeout):
     """
         set cfgs in Zone Database
 
@@ -442,13 +442,13 @@ def cfg_set(fos_ip_addr, is_https, auth, vfid, result, cfgs, method):
 
     if method == "POST":
         return url_post(fos_ip_addr, is_https, auth, vfid, result,
-                        full_defined_url, cfg_str)
+                        full_defined_url, cfg_str, timeout)
     elif method == "PATCH":
         return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                         full_defined_url, cfg_str)
+                         full_defined_url, cfg_str, timeout)
     elif method == "DELETE":
         return url_delete(fos_ip_addr, is_https, auth, vfid, result,
-                          full_defined_url, cfg_str)
+                          full_defined_url, cfg_str, timeout)
     else:
         result["invalid method"] = method
         result["failed"] = True
@@ -456,7 +456,7 @@ def cfg_set(fos_ip_addr, is_https, auth, vfid, result, cfgs, method):
         return -1
 
 
-def cfg_get(fos_ip_addr, is_https, auth, vfid, result):
+def cfg_get(fos_ip_addr, is_https, auth, vfid, result, timeout):
     """
         retrieve existing cfgs
 
@@ -478,7 +478,7 @@ def cfg_get(fos_ip_addr, is_https, auth, vfid, result):
                                                     REST_DEFINED + "/cfg")
 
     return url_get_to_dict(fos_ip_addr, is_https, auth,
-                           vfid, result, full_defined_url)
+                           vfid, result, full_defined_url, timeout)
 
 
 def is_wwn(member):
@@ -563,7 +563,7 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                   members_add_only, members_remove_only,
                   to_delete_list, type_str, type_diff_processing,
                   type_diff_processing_to_delete, type_get,
-                  type_post, type_delete, active_cfg):
+                  type_post, type_delete, active_cfg, timeout):
     """
         common flow of zone database updates.
 
@@ -601,14 +601,14 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
 
     ret_code, cfgname, checksum = cfgname_checksum_get(fos_ip_addr,
                                                        https, auth,
-                                                       vfid, result)
+                                                       vfid, result, timeout)
     if ret_code != 0:
         result["failed"] = True
         result['msg'] = "failed to checksum"
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
     ret_code, get_resp = type_get(fos_ip_addr,
-                                  https, auth, vfid, result)
+                                  https, auth, vfid, result, timeout)
     if ret_code != 0:
         result["failed"] = True
         result['msg'] = "failed to read from database"
@@ -645,10 +645,10 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
         if len(post_list) > 0 and (members_remove_only == None or members_remove_only == False):
             if not module.check_mode:
                 ret_code = type_post(fos_ip_addr, https, auth, vfid,
-                                     result, post_list)
+                                     result, post_list, timeout)
                 if ret_code != 0:
                     ret_code = cfg_abort(fos_ip_addr, https,
-                                         auth, vfid, result)
+                                         auth, vfid, result, timeout)
                     result["failed"] = True
                     result['msg'] = "HTTP POST failed"
                     exit_after_login(fos_ip_addr, https, auth, result, module)
@@ -658,10 +658,10 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
         if len(remove_list) > 0 and (members_add_only == False or members_add_only == None) and (members_remove_only == None or members_remove_only == False):
             if not module.check_mode:
                 ret_code = type_delete(fos_ip_addr, https, auth, vfid,
-                                       result, remove_list)
+                                       result, remove_list, timeout)
                 if ret_code != 0:
                     ret_code = cfg_abort(fos_ip_addr, https,
-                                         auth, vfid, result)
+                                         auth, vfid, result, timeout)
                     result["failed"] = True
                     result['msg'] = "HTTP DELETE failed"
                     exit_after_login(fos_ip_addr, https, auth, result, module)
@@ -671,10 +671,10 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
         if len(common_list) > 0 and (members_remove_only == True):
             if not module.check_mode:
                 ret_code = type_delete(fos_ip_addr, https, auth, vfid,
-                                       result, common_list)
+                                       result, common_list, timeout)
                 if ret_code != 0:
                     ret_code = cfg_abort(fos_ip_addr, https,
-                                         auth, vfid, result)
+                                         auth, vfid, result, timeout)
                     result["failed"] = True
                     result['msg'] = "HTTP DELETE common failed"
                     exit_after_login(fos_ip_addr, https, auth, result, module)
@@ -691,14 +691,14 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                     if cfgname is not None:
                         failed_msg = "CFG ENABLE failed"
                         ret_code = cfg_enable(fos_ip_addr, https, auth, vfid,
-                                            result, checksum, cfgname)
+                                            result, checksum, cfgname, timeout)
                     else:
                         failed_msg = "CFG SAVE failed"
                         ret_code = cfg_save(fos_ip_addr, https, auth, vfid,
-                                        result, checksum)
+                                        result, checksum, timeout)
                     if ret_code != 0:
                         ret_code = cfg_abort(fos_ip_addr, https,
-                                             auth, vfid, result)
+                                             auth, vfid, result, timeout)
                         result['msg'] = failed_msg
                         result["failed"] = True
                         exit_after_login(fos_ip_addr, https, auth,
@@ -709,10 +709,10 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
             if need_to_save or cfgname != active_cfg:
                 if not module.check_mode:
                     ret_code = cfg_enable(fos_ip_addr, https, auth, vfid,
-                                        result, checksum, active_cfg)
+                                        result, checksum, active_cfg, timeout)
                     if ret_code != 0:
                         ret_code = cfg_abort(fos_ip_addr, https,
-                                            auth, vfid, result)
+                                            auth, vfid, result, timeout)
                         result['msg'] = "CFG ENABLE failed"
                         result["failed"] = True
                         exit_after_login(fos_ip_addr, https, auth, result, module)
@@ -733,9 +733,9 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
 
         if not module.check_mode:
             ret_code = type_delete(fos_ip_addr, https, auth, vfid,
-                                   result, delete_list)
+                                   result, delete_list, timeout)
             if ret_code != 0:
-                ret_code = cfg_abort(fos_ip_addr, https, auth, vfid, result)
+                ret_code = cfg_abort(fos_ip_addr, https, auth, vfid, result, timeout)
                 result["failed"] = True
                 result['msg'] = "HTTP DELETE failed"
                 exit_after_login(fos_ip_addr, https, auth, result, module)
@@ -750,14 +750,14 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                     if cfgname is not None:
                         failed_msg = "CFG ENABLE failed"
                         ret_code = cfg_enable(fos_ip_addr, https, auth, vfid,
-                                            result, checksum, cfgname)
+                                            result, checksum, cfgname, timeout)
                     else:
                         failed_msg = "CFG SAVE failed"
                         ret_code = cfg_save(fos_ip_addr, https, auth, vfid,
-                                        result, checksum)
+                                        result, checksum, timeout)
                     if ret_code != 0:
                         ret_code = cfg_abort(fos_ip_addr, https, auth,
-                                             vfid, result)
+                                             vfid, result, timeout)
                         result["failed"] = True
                         result['msg'] = failed_msg
                         exit_after_login(fos_ip_addr, https, auth,
@@ -767,10 +767,10 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
         else:
             if not module.check_mode:
                 ret_code = cfg_enable(fos_ip_addr, https, auth, vfid,
-                                      result, checksum, active_cfg)
+                                      result, checksum, active_cfg, timeout)
                 if ret_code != 0:
                     ret_code = cfg_abort(fos_ip_addr, https,
-                                         auth, result)
+                                         auth, result, timeout)
                     result["failed"] = True
                     result['msg'] = "CFG ENABLE failed"
                     exit_after_login(fos_ip_addr, https, auth, result, module)
@@ -820,7 +820,7 @@ def obj_to_yml(obj):
 
     return new_obj
 
-def zoning_find_pair_common(module, fos_ip_addr, https, auth, vfid, type_str, obj_name, new_name, result):
+def zoning_find_pair_common(module, fos_ip_addr, https, auth, vfid, type_str, obj_name, new_name, result, timeout):
     type_get = None
     name = None
     if type_str == "alias":
@@ -837,7 +837,7 @@ def zoning_find_pair_common(module, fos_ip_addr, https, auth, vfid, type_str, ob
         result['msg'] = "invalid type string" + type_str
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
-    ret_code, get_resp = type_get(fos_ip_addr, https, auth, vfid, result)
+    ret_code, get_resp = type_get(fos_ip_addr, https, auth, vfid, result, timeout)
     if ret_code != 0:
         result["failed"] = True
         result['msg'] = "failed to read from database"
@@ -856,7 +856,7 @@ def zoning_find_pair_common(module, fos_ip_addr, https, auth, vfid, type_str, ob
     return obj_name_dict, new_name_dict
 
 
-def defined_get(fos_ip_addr, is_https, auth, vfid, result):
+def defined_get(fos_ip_addr, is_https, auth, vfid, result, timeout):
     """
         retrieve all of defined Zone Database
 
@@ -878,10 +878,10 @@ def defined_get(fos_ip_addr, is_https, auth, vfid, result):
                                                     REST_DEFINED)
 
     return url_get_to_dict(fos_ip_addr, is_https, auth,
-                           vfid, result, full_defined_url)
+                           vfid, result, full_defined_url, timeout)
 
 
-def effective_get(fos_ip_addr, is_https, auth, vfid, result):
+def effective_get(fos_ip_addr, is_https, auth, vfid, result, timeout):
     """
         retrieve all of effective Zone Database
 
@@ -903,11 +903,11 @@ def effective_get(fos_ip_addr, is_https, auth, vfid, result):
                                                       REST_EFFECTIVE)
 
     return url_get_to_dict(fos_ip_addr, is_https, auth,
-                           vfid, result, full_effective_url)
+                           vfid, result, full_effective_url, timeout)
 
 
 def effective_patch(fos_ip_addr, is_https, auth,
-                    vfid, result, diff_attributes):
+                    vfid, result, diff_attributes, timeout):
     """
         update existing switch configurations
 
@@ -932,7 +932,7 @@ def effective_patch(fos_ip_addr, is_https, auth,
 
     return (url_patch_single_object(fos_ip_addr, is_https, auth,
             vfid, result, full_effective_url,
-            "effective-configuration", diff_attributes))
+            "effective-configuration", diff_attributes, timeout))
 
 
 def alias_process_diff(result, aliases, c_aliases):
