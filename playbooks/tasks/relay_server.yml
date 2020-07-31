@@ -17,6 +17,14 @@
       fos_user_name: "{{fos_user_name}}"
       fos_password: "{{fos_password}}"
       https: "{{fos_https}}"
+    maps_config:
+      relay_ip_address: "10.10.10.11"
+      domain_name: "dd.com"
+      sender_address: "s@dd.com"
+      recipient_address_list:
+        recipient_address:
+          - "r@dd.com"
+          - "r@rr.com"
 
   tasks:
 
@@ -24,11 +32,4 @@
     brocade_maps_maps_config:
       credential: "{{credential}}"
       vfid: -1
-      maps_config:
-        relay_ip_address: "10.10.10.11"
-        domain_name: "dd.com"
-        sender_address: "s@dd.com"
-        recipient_address_list:
-          recipient_address:
-           - "r@dd.com"
-           - "r@rr.com"
+      maps_config: "{{maps_config}}"

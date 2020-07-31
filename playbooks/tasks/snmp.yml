@@ -17,6 +17,89 @@
       fos_user_name: "{{fos_user_name}}"
       fos_password: "{{fos_password}}"
       https: "{{fos_https}}"
+    snmp_system:
+      audit_interval: 60
+      contact: "more Field Support."
+      description: "more DemoSwitch"
+      encryption_enabled: True
+      informs_enabled: True
+      location: "more San Jose"
+      security_get_level: 0
+      security_set_level: 3
+      snmpv1_enabled: False
+    v1_accounts:
+      - index: 1
+        community_name: "Secret code new"
+      - index: 2
+        community_name: "OrigEquipMfr new"
+      - index: 3
+        community_name: "private"
+      - index: 4
+        community_name: "public"
+      - index: 5
+        community_name: "common"
+      - index: 6
+        community_name: "FibreChannelNew"
+    v1_traps:
+      - index: 1
+        host: "10.10.10.12"
+        port_number: 1002
+        trap_severity_level: "warning"
+    v3_accounts:
+      - index: 1
+        authentication_protocol: "md5"
+        manager_engine_id: "00:00:00:00:00:00:00:00:00"
+        privacy_protocol: "aes128"
+        user_name: "asc-test"
+      - index: 2
+        authentication_protocol: "sha"
+        manager_engine_id: "00:00:00:00:00:00:00:00:00"
+        privacy_protocol: "des"
+        user_name: "snmpadmin2"
+    v3_traps:
+      - trap_index: 1
+        host: "10.10.10.11"
+        informs_enabled: true
+        port_number: 1011
+        trap_severity_level: "warning"
+        usm_index: 1
+      - trap_index: 2
+        host: "10.10.10.10"
+        informs_enabled: false
+        port_number: 1010
+        trap_severity_level: "critical"
+        usm_index: 2
+      - trap_index: 3
+        host: "0.0.0.0"
+        informs_enabled: false
+        port_number: 162
+        trap_severity_level: "none"
+        usm_index: 3
+      - trap_index: 4
+        host: "0.0.0.0"
+        informs_enabled: false
+        port_number: 162
+        trap_severity_level: "none"
+        usm_index: 4
+      - trap_index: 5
+        host: "0.0.0.0"
+        informs_enabled: false
+        port_number: 162
+        trap_severity_level: "none"
+        usm_index: 5
+      - trap_index: 6
+        host: "0.0.0.0"
+        informs_enabled: false
+        port_number: 162
+        trap_severity_level: "none"
+        usm_index: 6
+    v3_accounts_passwords_only:
+      - index: 1
+        authentication_password: "password1"
+        privacy_password: "password1"
+      - index: 2
+        authentication_password: "password2"
+        privacy_password: "password"
 
   tasks:
 
@@ -24,111 +107,34 @@
     brocade_snmp_system:
       credential: "{{credential}}"
       vfid: -1
-      snmp_system:
-        audit_interval: 60
-        contact: "more Field Support."
-        description: "more DemoSwitch"
-        encryption_enabled: True
-        informs_enabled: True
-        location: "more San Jose"
-        security_get_level: 0
-        security_set_level: 3
-        snmpv1_enabled: False
+      snmp_system: "{{snmp_system}}"
 
   - name: v1 accounts
     brocade_snmp_v1_account:
       credential: "{{credential}}"
       vfid: -1
-      v1_accounts:
-        - index: 1
-          community_name: "Secret code new"
-        - index: 2
-          community_name: "OrigEquipMfr new"
-        - index: 3
-          community_name: "private"
-        - index: 4
-          community_name: "public"
-        - index: 5
-          community_name: "common"
-        - index: 6
-          community_name: "FibreChannelNew"
+      v1_accounts: "{{v1_accounts}}"
 
   - name: v1 traps
     brocade_snmp_v1_trap:
       credential: "{{credential}}"
       vfid: -1
-      v1_traps:
-        - index: 1
-          host: "10.10.10.12"
-          port_number: 1002
-          trap_severity_level: "warning"
+      v1_traps: "{{v1_traps}}"
 
   - name: v3 accounts - setup non-password attributes
     brocade_snmp_v3_account:
       credential: "{{credential}}"
       vfid: -1
-      v3_accounts:
-        - index: 1
-          authentication_protocol: "md5"
-          manager_engine_id: "00:00:00:00:00:00:00:00:00"
-          privacy_protocol: "aes128"
-          user_name: "asc-test"
-        - index: 2
-          authentication_protocol: "sha"
-          manager_engine_id: "00:00:00:00:00:00:00:00:00"
-          privacy_protocol: "des"
-          user_name: "snmpadmin2"
+      v3_accounts: "{{v3_accounts}}"
 
   - name: v3 traps
     brocade_snmp_v3_trap:
       credential: "{{credential}}"
       vfid: -1
-      v3_traps:
-        - trap_index: 1
-          host: "10.10.10.11"
-          informs_enabled: true
-          port_number: 1011
-          trap_severity_level: "warning"
-          usm_index: 1
-        - trap_index: 2
-          host: "10.10.10.10"
-          informs_enabled: false
-          port_number: 1010
-          trap_severity_level: "critical"
-          usm_index: 2
-        - trap_index: 3
-          host: "0.0.0.0"
-          informs_enabled: false
-          port_number: 162
-          trap_severity_level: "none"
-          usm_index: 3
-        - trap_index: 4
-          host: "0.0.0.0"
-          informs_enabled: false
-          port_number: 162
-          trap_severity_level: "none"
-          usm_index: 4
-        - trap_index: 5
-          host: "0.0.0.0"
-          informs_enabled: false
-          port_number: 162
-          trap_severity_level: "none"
-          usm_index: 5
-        - trap_index: 6
-          host: "0.0.0.0"
-          informs_enabled: false
-          port_number: 162
-          trap_severity_level: "none"
-          usm_index: 6
+      v3_traps: "{{v3_traps}}"
 
   - name: v3 accounts - set passwords. warning - password cannot be read. this task will always change.
     brocade_snmp_v3_account:
       credential: "{{credential}}"
       vfid: -1
-      v3_accounts:
-        - index: 1
-          authentication_password: "password1"
-          privacy_password: "password1"
-        - index: 2
-          authentication_password: "password2"
-          privacy_password: "password"
+      v3_accounts: "{{v3_accounts_passwords_only}}"

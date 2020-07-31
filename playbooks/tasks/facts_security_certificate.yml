@@ -17,14 +17,16 @@
       fos_user_name: "{{fos_user_name}}"
       fos_password: "{{fos_password}}"
       https: "{{fos_https}}"
-    old_obj: Host1
-    new_obj: Host1_new
 
   tasks:
 
-  - name: copy zoning object "{{old_obj}}" to "{{new_obj}}"
-    brocade_zoning_copy:
+  - name: gather facts
+    brocade_facts:
       credential: "{{credential}}"
       vfid: -1
-      object_name: "{{old_obj}}"
-      new_name: "{{new_obj}}"
+      gather_subset:
+        - brocade_security_security_certificate
+
+  - name: print ansible_facts gathered
+    debug:
+      var: ansible_facts

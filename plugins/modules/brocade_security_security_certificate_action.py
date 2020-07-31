@@ -17,12 +17,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: brocade_security_password
+module: brocade_security_security_certificate_action
 short_description: Brocade security password change
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update password for a given user
+- Use to install certificate
 
 options:
 
@@ -46,12 +46,9 @@ options:
         description:
         - rest throttling delay in seconds.
         required: false
-    password:
+    action_inputs:
         description:
-        - password change attributes.
-          - user_name - name of the account.
-          - old_password - old password in clear text.
-          - new_password - new password in clear text.
+        - action attributes
         required: true
 
 '''
@@ -71,13 +68,10 @@ EXAMPLES = """
   tasks:
 
   - name: change password
-    brocade_security_password:
+    brocade_security_security_certificate_action:
       credential: "{{credential}}"
       vfid: -1
-      password:
-        user_name: user
-        old_password: oldpassword
-        new_password: newpassword
+      action_inputs:
 
 """
 
@@ -110,7 +104,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
-        password=dict(required=True, type='dict'))
+        action_inputs=dict(required=True, type='dict'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -129,10 +123,10 @@ def main():
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     vfid = input_params['vfid']
-    password = input_params['password']
+    action_inputs = input_params['action_inputs']
     result = {"changed": False}
 
-    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_security", "password", None, password, result)
+    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_security", "security_certificate_action", 300, action_inputs, result)
 
 
 if __name__ == '__main__':

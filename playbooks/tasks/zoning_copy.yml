@@ -17,26 +17,20 @@
       fos_user_name: "{{fos_user_name}}"
       fos_password: "{{fos_password}}"
       https: "{{fos_https}}"
+    copy_list:
+      - current: Host1
+        new: Host1_new
+      - current: Zone3
+        new: Zone3_new
+      - current: cfg1
+        new: cfg1_new
 
   tasks:
 
-  - name: copy Alias Host1 to Host1_new
+  - name: walk through the copy_list and copy from current to new
     brocade_zoning_copy:
       credential: "{{credential}}"
       vfid: -1
-      object_name: Host1
-      new_name: Host1_new
-
-  - name: copy Zone Zone3 to Zone3_new
-    brocade_zoning_copy:
-      credential: "{{credential}}"
-      vfid: -1
-      object_name: Zone3
-      new_name: Zone3_new
-
-  - name: copy CFG cfg1 to cfg1_new
-    brocade_zoning_copy:
-      credential: "{{credential}}"
-      vfid: -1
-      object_name: cfg1
-      new_name: cfg1_new
+      object_name: "{{item.current}}"
+      new_name: "{{item.new}}"
+    loop: "{{copy_list}}"

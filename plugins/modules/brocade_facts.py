@@ -50,7 +50,23 @@ options:
         description:
         - list of areas to be gathered. If this option is missing,
           all areas' facts will be gathered. Same behavior applies
-          if "all" is listed as part of gather_subset
+          if "all" is listed as part of gather_subset. Valid entries are:
+            brocade_zoning
+            brocade_interface_fibrechannel
+            brocade_chassis_chassis
+            brocade_fibrechannel_configuration_fabric
+            brocade_fibrechannel_configuration_port_configuration
+            brocade_fibrechannel_switch
+            brocade_time_clock_server
+            brocade_time_time_zone
+            brocade_logging_syslog_server
+            brocade_logging_audit
+            brocade_snmp_system
+            brocade_security_ipfilter_rule
+            brocade_security_ipfilter_policy
+            brocade_security_user_config
+            brocade_security_password_cfg
+            brocade_security_security_certificate
         required: true
 
 '''
@@ -132,6 +148,7 @@ valid_areas = [
     "brocade_security_ipfilter_policy",
     "brocade_security_user_config",
     "brocade_security_password_cfg",
+    "brocade_security_security_certificate",
     ]
 
 
@@ -215,6 +232,10 @@ def main():
             elif area == "brocade_security_user_config":
                 module_name = "brocade_security"
                 list_name = "user_config"
+                get_list = True
+            elif area == "brocade_security_security_certificate":
+                module_name = "brocade_security"
+                list_name = "security_certificate"
                 get_list = True
             elif area == "brocade_security_password_cfg":
                 module_name = "brocade_security"

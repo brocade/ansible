@@ -17,18 +17,21 @@
       fos_user_name: "{{fos_user_name}}"
       fos_password: "{{fos_password}}"
       https: "{{fos_https}}"
+    action_inputs:
+      remote_user_name: user_name
+      remote_host_ip: host_ip
+      remote_user_password: user_password_in_clear_text
+      remote_directory: directory_of_cert
+      protocol: scp
+      certificate_entity: cert
+      certificate_type: https
+      certificate_name: cert_name
+      operation: import
 
   tasks:
 
-  - name: gather facts
-    brocade_list_obj_facts:
+  - name: Cert installation. Existing cert is not compared. This task will always change.
+    brocade_security_security_certificate_action:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-name-server"
-      list_name: "fibrechannel-name-server"
-      attributes:
-        port_id: "0x110300"
-
-  - name: print ansible_facts gathered
-    debug:
-      var: ansible_facts
+      action_inputs: "{{action_inputs}}"

@@ -17,6 +17,7 @@
       fos_user_name: "{{fos_user_name}}"
       fos_password: "{{fos_password}}"
       https: "{{fos_https}}"
+    name_to_search: "0/0"
 
   tasks:
 
@@ -27,7 +28,7 @@
       module_name: "brocade-interface"
       list_name: "fibrechannel"
       attributes:
-        name: "0/0"
+        name: "{{name_to_search}}"
 
   - name: print ansible_facts gathered
     debug:
