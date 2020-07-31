@@ -24,6 +24,7 @@
     brocade_facts:
       credential: "{{credential}}"
       vfid: -1
+      timeout: 300
       gather_subset:
         - brocade_security_security_certificate
 

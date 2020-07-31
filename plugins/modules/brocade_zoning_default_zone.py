@@ -43,7 +43,13 @@ options:
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds.
+        - rest throttling delay in seconds to retry once more if
+          server is busy.
+        required: false
+    timeout:
+        description:
+        - rest timeout in seconds for operations taking longer than
+          default timeout.
         required: false
     default_zone_access:
         description:
@@ -106,6 +112,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
+        timeout=dict(required=False, type='float'),
         default_zone_access=dict(required=False, type='str'))
 
     module = AnsibleModule(
@@ -121,6 +128,7 @@ def main():
     fos_password = input_params['credential']['fos_password']
     https = input_params['credential']['https']
     throttle = input_params['throttle']
+    timeout = input_params['timeout']
     vfid = input_params['vfid']
     default_zone_access = input_params['default_zone_access']
     result = {"changed": False}
@@ -134,7 +142,7 @@ def main():
     if ret_code != 0:
         module.exit_json(**result)
 
-    ret_code, response = effective_get(fos_ip_addr, https, auth, vfid, result)
+    ret_code, response = effective_get(fos_ip_addr, https, auth, vfid, result, timeout)
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
@@ -154,15 +162,15 @@ def main():
 
         if not module.check_mode:
             ret_code = effective_patch(fos_ip_addr, https,
-                                       auth, vfid, result, diff_attributes)
+                                       auth, vfid, result, diff_attributes, timeout)
             if ret_code != 0:
                 exit_after_login(fos_ip_addr, https, auth, result, module)
 
             checksum = resp_effective["checksum"]
             ret_code = cfg_save(fos_ip_addr, https, auth, vfid,
-                                result, checksum)
+                                result, checksum, timeout)
             if ret_code != 0:
-                ret_code = cfg_abort(fos_ip_addr, https, auth, vfid, result)
+                ret_code = cfg_abort(fos_ip_addr, https, auth, vfid, result, timeout)
                 exit_after_login(fos_ip_addr, https, auth, result, module)
 
         result["changed"] = True

@@ -43,7 +43,13 @@ options:
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds.
+        - rest throttling delay in seconds to retry once more if
+          server is busy.
+        required: false
+    timeout:
+        description:
+        - rest timeout in seconds for operations taking longer than
+          default timeout.
         required: false
     module_name:
         description:
@@ -56,10 +62,6 @@ options:
           interchangebly. If the Yang list name is xy-z, either
           xy-z or xy_z are acceptable.
         required: true
-    longer_timeout:
-        description:
-        - If the operation requires longer timeout
-        required: false
     all_entries:
         description:
         - Boolean to indicate if the entries specified are full
@@ -142,10 +144,10 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
+        timeout=dict(required=False, type='float'),
         module_name=dict(required=True, type='str'),
         list_name=dict(required=True, type='str'),
         all_entries=dict(required=False, type='bool'),
-        longer_timeout=dict(required=False, type='int'),
         entries=dict(required=True, type='list'))
 
     module = AnsibleModule(
@@ -164,15 +166,15 @@ def main():
     if 'ssh_hostkeymust' in input_params['credential']:
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
+    timeout = input_params['timeout']
     vfid = input_params['vfid']
     module_name = str_to_human(input_params['module_name'])
     list_name = str_to_human(input_params['list_name'])
     entries = input_params['entries']
     all_entries = input_params['all_entries']
-    longer_timeout = input_params['longer_timeout']
     result = {"changed": False}
 
-    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, entries, all_entries, longer_timeout, result)
+    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, entries, all_entries, result, timeout)
 
 
 if __name__ == '__main__':

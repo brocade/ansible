@@ -43,7 +43,13 @@ options:
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds.
+        - rest throttling delay in seconds to retry once more if
+          server is busy.
+        required: false
+    timeout:
+        description:
+        - rest timeout in seconds for operations taking longer than
+          default timeout.
         required: false
     ipfilter_policies:
         description:
@@ -128,6 +134,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
+        timeout=dict(required=False, type='float'),
         ipfilter_policies=dict(required=False, type='list'),
         active_policy=dict(required=False, type='str'),
         delete_policies=dict(required=False, type='list'))
@@ -145,6 +152,7 @@ def main():
     fos_password = input_params['credential']['fos_password']
     https = input_params['credential']['https']
     throttle = input_params['throttle']
+    timeout = input_params['timeout']
     vfid = input_params['vfid']
     ipfilter_policies = input_params['ipfilter_policies']
     active_policy = input_params['active_policy']
@@ -156,11 +164,11 @@ def main():
     # policy creation or update does not happen at the same
     # time
     if delete_policies != None:
-        return list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_security", "ipfilter_policy", delete_policies, True, None, result)
+        return list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_security", "ipfilter_policy", delete_policies, True, result, timeout)
 
     # if I am dealing with active_policy set, it must be policy list update
     if active_policy == None:
-        return list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_security", "ipfilter_policy", ipfilter_policies, False, None, result)
+        return list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_security", "ipfilter_policy", ipfilter_policies, False, result, timeout)
 
     if not is_full_human(ipfilter_policies, result):
         module.exit_json(**result)
