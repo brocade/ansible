@@ -39,8 +39,13 @@ def full_url_get(is_https, fos_ip_addr, path):
         # by default, return HTTP
         return HTTP + fos_ip_addr + str_to_yang(path), False
 
-
 def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout=None):
+
+    retcode, post_resp = url_post_resp(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout)
+
+    return retcode
+
+def url_post_resp(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout=None):
     """
         general function to post for a given url
 
@@ -64,28 +69,39 @@ def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout=None)
     if vfid is not None and vfid != -1:
         url = url + VF_ID + str(vfid)
 
+    edict = {}
     if timeout == None:
         retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs)
         if retval == -1:
             if eret != -3:
-                return eret
+                return eret, edict
             elif eret == -3:
                 time.sleep(auth["throttle"])
                 retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs)
                 if retval == -1:
-                    return eret
+                    return eret, edict
     else:
         retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs, timeout=timeout)
         if retval == -1:
             if eret != -3:
-                return eret
+                return eret, edict
             elif eret == -3:
                 time.sleep(auth["throttle"])
                 retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs, timeout=timeout)
                 if retval == -1:
-                    return eret
+                    return eret, edict
 
-    return 0
+    post_resp_data = post_resp.read()
+    if len(post_resp_data) == 0:
+        return 0, edict
+
+    ret_code, root_dict = bsn_xmltodict(result, post_resp_data)
+    if ret_code == -1:
+        result["failed"] = True
+        result["msg"] = "bsn_xmltodict failed"
+        return -100, None
+
+    return 0, root_dict
 
 
 def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout=None):

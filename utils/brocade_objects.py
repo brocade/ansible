@@ -5,7 +5,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-from ansible.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object, url_post, url_delete
+from ansible.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object, url_post, url_delete, url_post_resp
 from ansible.module_utils.brocade_yang import yang_to_human, human_to_yang, str_to_yang, str_to_human, generate_diff, is_full_human
 from ansible.module_utils.brocade_ssh import ssh_and_configure
 from ansible.module_utils.brocade_interface import to_fos_fc, to_human_fc
@@ -26,6 +26,7 @@ Brocade logging utils
 
 
 REST_PREFIX = "/rest/running/"
+OP_PREFIX = "/rest/operations/"
 
 
 def to_human_singleton(module_name, obj_name, attributes):
@@ -782,3 +783,131 @@ def list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, 
 
     logout(fos_ip_addr, https, auth, result)
     module.exit_json(**result)
+
+
+def operation_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, op_name, in_name, attributes, result, timeout):
+
+    if not is_full_human(attributes, result):
+        module.exit_json(**result)
+
+    if vfid is None:
+        vfid = 128
+
+    ret_code, auth, fos_version = login(fos_ip_addr,
+                           fos_user_name, fos_password,
+                           https, throttle, result)
+    if ret_code != 0:
+        module.exit_json(**result)
+
+    result["input"] = attributes
+
+    ret_code = to_fos_operation(op_name, in_name, attributes, result)
+    if ret_code != 0:
+        exit_after_login(fos_ip_addr, https, auth, result, module)
+
+    if not module.check_mode:
+        ret_code = 0
+        ret_code, resp = operation_post(fos_user_name, fos_password, fos_ip_addr,
+                                   op_name, in_name,
+                                   fos_version, https,
+                                   auth, vfid, result, attributes,
+                                   ssh_hostkeymust, timeout)
+        if ret_code != 0:
+            exit_after_login(fos_ip_addr, https, auth, result, module)
+
+    result["changed"] = True
+
+    to_human_operation(op_name, in_name, resp["Response"])
+
+    result["operation_resp"] = resp["Response"]
+
+    logout(fos_ip_addr, https, auth, result)
+
+    module.exit_json(**result)
+
+
+def operation_xml_str(result, obj_name, attributes):
+    obj_name_yang = str_to_yang(obj_name)
+    xml_str = ""
+
+    xml_str = xml_str + "<" + obj_name_yang + ">"
+
+    for k, v in attributes.items():
+        xml_str = xml_str + "<" + k + ">"
+
+        if isinstance(v, dict):
+            for k1, v1 in v.items():
+                if isinstance(v1, list):
+                    for entry in v1:
+                        xml_str = xml_str + "<" + k1 + ">" + str(entry) + "</" + k1 + ">"
+                else:
+                    xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">"
+        else:
+            xml_str = xml_str + str(v)
+
+        xml_str = xml_str + "</" + k + ">"
+
+    xml_str = xml_str + "</" + obj_name_yang + ">"
+
+    return xml_str
+
+
+def operation_post(login, password, fos_ip_addr, op_name, in_name, fos_version, is_https, auth, vfid, result, attributes, ssh_hostkeymust, timeout):
+    """
+        update existing user config configurations
+
+        :param fos_ip_addr: ip address of FOS switch
+        :type fos_ip_addr: str
+        :param is_https: indicate to use HTTP or HTTPS
+        :type is_https: bool
+        :param auth: authorization struct from login
+        :type struct: dict
+        :param result: dict to keep track of execution msgs
+        :type result: dict
+        :param diff_attributes: list of attributes for update
+        :type ports: dict
+        :return: code to indicate failure or success
+        :rtype: int
+        :return: list of dict of chassis configurations
+        :rtype: list
+    """
+    full_url, validate_certs = full_url_get(is_https,
+                                            fos_ip_addr,
+                                            OP_PREFIX + op_name)
+
+    xml_str = operation_xml_str(result, in_name, attributes)
+
+    result["post_url"] = full_url
+    result["post_str"] = xml_str
+
+    return url_post_resp(fos_ip_addr, is_https, auth, vfid, result,
+                         full_url, xml_str, timeout)
+
+
+def to_fos_operation(op_name, in_name, attributes, result):
+    human_to_yang(attributes)
+
+    for k, v in attributes.items():
+        # if going to fos, we need to encode password
+        if op_name == "supportsave" and in_name == "connection":
+            if k == "password":
+                attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
+
+    for k, v in attributes.items():
+        if isinstance(v, bool):
+            if v == True:
+                attributes[k] = "true"
+            else:
+                attributes[k] = "false"
+
+    return 0
+
+
+def to_human_operation(op_name, in_name, attributes):
+    yang_to_human(attributes)
+
+    for k, v in attributes.items():
+        if v == "true":
+            attributes[k] = True
+        elif v == "false":
+            attributes[k] = False
