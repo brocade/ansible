@@ -43,7 +43,13 @@ options:
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds.
+        - rest throttling delay in seconds to retry once more if
+          server is busy.
+        required: false
+    timeout:
+        description:
+        - rest timeout in seconds for operations taking longer than
+          default timeout.
         required: false
     time_zone:
         description:
@@ -106,6 +112,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
+        timeout=dict(required=False, type='float'),
         time_zone=dict(required=False, type='dict'))
 
     module = AnsibleModule(
@@ -121,11 +128,12 @@ def main():
     fos_password = input_params['credential']['fos_password']
     https = input_params['credential']['https']
     throttle = input_params['throttle']
+    timeout = input_params['timeout']
     vfid = input_params['vfid']
     time_zone = input_params['time_zone']
     result = {"changed": False}
 
-    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_time", "time_zone", None, time_zone, result)
+    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_time", "time_zone", time_zone, result, timeout)
 
 
 if __name__ == '__main__':

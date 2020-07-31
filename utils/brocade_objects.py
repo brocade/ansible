@@ -285,7 +285,7 @@ def singleton_xml_str(result, obj_name, attributes):
     return xml_str
 
 
-def singleton_patch(login, password, fos_ip_addr, module_name, obj_name, fos_version, is_https, auth, vfid, result, new_attributes, ssh_hostkeymust, longer_timeout=None):
+def singleton_patch(login, password, fos_ip_addr, module_name, obj_name, fos_version, is_https, auth, vfid, result, new_attributes, ssh_hostkeymust, timeout=None):
     """
         update existing user config configurations
 
@@ -322,19 +322,19 @@ def singleton_patch(login, password, fos_ip_addr, module_name, obj_name, fos_ver
     result["patch_obj_str"] = xml_str
 
     if module_name == "brocade_security" and obj_name == "security_certificate_generate":
-        if longer_timeout == None:
+        if timeout == None:
             return url_post(fos_ip_addr, is_https, auth, vfid, result,
                             full_url, xml_str)
         else:
             return url_post(fos_ip_addr, is_https, auth, vfid, result,
-                            full_url, xml_str, longer_timeout)
+                            full_url, xml_str, timeout)
 
-    if longer_timeout == None:
+    if timeout == None:
         return url_patch(fos_ip_addr, is_https, auth, vfid, result,
                          full_url, xml_str)
     else:
         return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                         full_url, xml_str, longer_timeout)
+                         full_url, xml_str, timeout)
 
 
 def list_xml_str(result, module_name, list_name, entries):
@@ -372,7 +372,7 @@ def list_xml_str(result, module_name, list_name, entries):
     return xml_str
 
 
-def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust, longer_timeout=None):
+def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust, timeout=None):
     """
         update existing user config configurations
 
@@ -406,12 +406,12 @@ def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version
 
     result["patch_str"] = xml_str
 
-    if longer_timeout == None:
+    if timeout == None:
         return url_patch(fos_ip_addr, is_https, auth, vfid, result,
                          full_url, xml_str)
     else:
         return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                         full_url, xml_str, longer_timeout)
+                         full_url, xml_str, timeout)
 
 
 def list_post(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust):
@@ -476,7 +476,7 @@ def list_delete(login, password, fos_ip_addr, module_name, list_name, fos_versio
                      full_url, xml_str)
 
 
-def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, obj_name, longer_timeout, attributes, result):
+def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, obj_name, attributes, result, timeout):
 
     if not is_full_human(attributes, result):
         module.exit_json(**result)
@@ -495,7 +495,7 @@ def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
     ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
                                        module_name, obj_name, fos_version,
                                        https, auth, vfid, result,
-                                       ssh_hostkeymust, longer_timeout)
+                                       ssh_hostkeymust, timeout)
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
@@ -536,12 +536,12 @@ def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
 
         if not module.check_mode:
             ret_code = 0
-            if longer_timeout != None:
+            if timeout != None:
                 ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
                                        module_name, obj_name,
                                        fos_version, https,
                                        auth, vfid, result, diff_attributes,
-                                       ssh_hostkeymust, longer_timeout)
+                                       ssh_hostkeymust, timeout)
             else:
                 ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
                                        module_name, obj_name,
@@ -560,7 +560,7 @@ def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
     module.exit_json(**result)
 
 
-def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, entries, all_entries, longer_timeout, result):
+def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, entries, all_entries, result, timeout):
 
     if not is_full_human(entries, result):
         module.exit_json(**result)
@@ -581,7 +581,7 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
     ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
                                   module_name, list_name, fos_version,
                                   https, auth, vfid, result,
-                                  ssh_hostkeymust, longer_timeout)
+                                  ssh_hostkeymust, timeout)
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
@@ -688,8 +688,8 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
     if len(diff_entries) > 0:
         if not module.check_mode:
             ret_code = 0
-            if longer_timeout != None:
-                ret_code = list_patch(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, diff_entries, ssh_hostkeymust, longer_timeout)
+            if timeout != None:
+                ret_code = list_patch(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, diff_entries, ssh_hostkeymust, timeout)
             else:
                 ret_code = list_patch(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, diff_entries, ssh_hostkeymust)
             if ret_code != 0:
@@ -716,7 +716,7 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
     logout(fos_ip_addr, https, auth, result)
     module.exit_json(**result)
 
-def list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, entries, all_entries, longer_timeout, result):
+def list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, entries, all_entries, result, timeout):
 
     if not is_full_human(entries, result):
         module.exit_json(**result)
@@ -737,7 +737,7 @@ def list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, 
     ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
                                   module_name, list_name, fos_version,
                                   https, auth, vfid, result,
-                                  ssh_hostkeymust, longer_timeout)
+                                  ssh_hostkeymust, timeout)
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module)
 

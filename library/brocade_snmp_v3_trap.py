@@ -43,7 +43,13 @@ options:
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds.
+        - rest throttling delay in seconds to retry once more if
+          server is busy.
+        required: false
+    timeout:
+        description:
+        - rest timeout in seconds for operations taking longer than
+          default timeout.
         required: false
     v3_traps:
         description:
@@ -110,6 +116,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
+        timeout=dict(required=False, type='float'),
         v3_traps=dict(required=True, type='list'))
 
     module = AnsibleModule(
@@ -125,11 +132,12 @@ def main():
     fos_password = input_params['credential']['fos_password']
     https = input_params['credential']['https']
     throttle = input_params['throttle']
+    timeout = input_params['timeout']
     vfid = input_params['vfid']
     v3_traps = input_params['v3_traps']
     result = {"changed": False}
 
-    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_snmp", "v3_trap", v3_traps, False, None, result)
+    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_snmp", "v3_trap", v3_traps, False, result, timeout)
 
 
 if __name__ == '__main__':

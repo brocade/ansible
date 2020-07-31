@@ -44,7 +44,13 @@ options:
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds.
+        - rest throttling delay in seconds to retry once more if
+          server is busy.
+        required: false
+    timeout:
+        description:
+        - rest timeout in seconds for operations taking longer than
+          default timeout.
         required: false
     module_name:
         description:
@@ -57,10 +63,6 @@ options:
           interchangebly. If the Yang list name is xy-z, either
           xy-z or xy_z are acceptable.
         required: true
-    longer_timeout:
-        description:
-        - If the operation requires longer timeout
-        required: false
     attributes:
         description:
         - list of attributes for the object to match to return.
@@ -130,9 +132,9 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
+        timeout=dict(required=False, type='float'),
         module_name=dict(required=True, type='str'),
         list_name=dict(required=True, type='str'),
-        longer_timeout=dict(required=False, type='int'),
         attributes=dict(required=False, type='dict'))
 
     module = AnsibleModule(
@@ -151,11 +153,11 @@ def main():
     if 'ssh_hostkeymust' in input_params['credential']:
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
+    timeout = input_params['timeout']
     vfid = input_params['vfid']
     module_name = str_to_human(input_params['module_name'])
     list_name = str_to_human(input_params['list_name'])
     attributes = input_params['attributes']
-    longer_timeout = input_params['longer_timeout']
     result = {"changed": False}
 
     if vfid is None:
@@ -174,7 +176,7 @@ def main():
     ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
                                   module_name, list_name, fos_version,
                                   https, auth, vfid, result,
-                                  ssh_hostkeymust, longer_timeout)
+                                  ssh_hostkeymust, timeout)
     if ret_code != 0:
         result["list_get"] = ret_code
         exit_after_login(fos_ip_addr, https, auth, result, module)

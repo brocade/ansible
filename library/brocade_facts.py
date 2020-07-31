@@ -44,7 +44,13 @@ options:
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds.
+        - rest throttling delay in seconds to retry once more if
+          server is busy.
+        required: false
+    timeout:
+        description:
+        - rest timeout in seconds for operations taking longer than
+          default timeout.
         required: false
     gather_subset:
         description:
@@ -57,10 +63,14 @@ options:
             brocade_fibrechannel_configuration_fabric
             brocade_fibrechannel_configuration_port_configuration
             brocade_fibrechannel_switch
+            brocade_fibrechannel_trunk_trunk
+            brocade_fibrechannel_trunk_performance
+            brocade_fibrechannel_trunk_trunk_area
             brocade_time_clock_server
             brocade_time_time_zone
             brocade_logging_syslog_server
             brocade_logging_audit
+            brocade_media_media_rdp
             brocade_snmp_system
             brocade_security_ipfilter_rule
             brocade_security_ipfilter_policy
@@ -139,10 +149,14 @@ valid_areas = [
     "brocade_fibrechannel_configuration_fabric",
     "brocade_fibrechannel_configuration_port_configuration",
     "brocade_fibrechannel_switch",
+    "brocade_fibrechannel_trunk_trunk",
+    "brocade_fibrechannel_trunk_performance",
+    "brocade_fibrechannel_trunk_trunk_area",
     "brocade_time_clock_server",
     "brocade_time_time_zone",
     "brocade_logging_syslog_server",
     "brocade_logging_audit",
+    "brocade_media_media_rdp",
     "brocade_snmp_system",
     "brocade_security_ipfilter_rule",
     "brocade_security_ipfilter_policy",
@@ -161,6 +175,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
+        timeout=dict(required=False, type='float'),
         gather_subset=dict(required=True, type='list'))
 
     module = AnsibleModule(
@@ -179,6 +194,7 @@ def main():
     if 'ssh_hostkeymust' in input_params['credential']:
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
+    timeout = input_params['timeout']
     vfid = input_params['vfid']
     gather_subset = input_params['gather_subset']
     result = {"changed": False}
@@ -237,6 +253,22 @@ def main():
                 module_name = "brocade_security"
                 list_name = "security_certificate"
                 get_list = True
+            elif area == "brocade_media_media_rdp":
+                module_name = "brocade_media"
+                list_name = "media_rdp"
+                get_list = True
+            elif area == "brocade_fibrechannel_trunk_trunk":
+                module_name = "brocade_fibrechannel_trunk"
+                list_name = "trunk"
+                get_list = True
+            elif area == "brocade_fibrechannel_trunk_performance":
+                module_name = "brocade_fibrechannel_trunk"
+                list_name = "performance"
+                get_list = True
+            elif area == "brocade_fibrechannel_trunk_trunk_area":
+                module_name = "brocade_fibrechannel_trunk"
+                list_name = "trunk_area"
+                get_list = True
             elif area == "brocade_security_password_cfg":
                 module_name = "brocade_security"
                 obj_name = "password_cfg"
@@ -274,7 +306,7 @@ def main():
                 ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
                                                    module_name, obj_name, fos_version,
                                                    https, auth, vfid, result,
-                                                   ssh_hostkeymust)
+                                                   ssh_hostkeymust, timeout)
                 if ret_code != 0:
                     result[module_name + "_" + obj_name + "_get"] = ret_code
                     exit_after_login(fos_ip_addr, https, auth, result, module)
@@ -288,20 +320,23 @@ def main():
                 ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
                                               module_name, list_name, fos_version,
                                               https, auth, vfid, result,
-                                              ssh_hostkeymust, 300)
+                                              ssh_hostkeymust, timeout)
                 if ret_code != 0:
                     result[module_name + "_" + list_name + "_get"] = ret_code
                     exit_after_login(fos_ip_addr, https, auth, result, module)
 
                 obj_list = response["Response"][str_to_yang(list_name)]
                 if not isinstance(obj_list, list):
-                    obj_list = [obj_list]
+                    if obj_list is None:
+                        obj_list = []
+                    else:
+                        obj_list = [obj_list]
 
                 to_human_list(module_name, list_name, obj_list, result)
                 facts[area] = obj_list
             elif area == "brocade_zoning":
                 ret_code, response = defined_get(
-                    fos_ip_addr, https, auth, vfid, result)
+                    fos_ip_addr, https, auth, vfid, result, timeout)
                 if ret_code != 0:
                     exit_after_login(fos_ip_addr, https, auth, result, module)
 
@@ -311,7 +346,7 @@ def main():
                 )
 
                 ret_code, response = effective_get(
-                    fos_ip_addr, https, auth, vfid, result)
+                    fos_ip_addr, https, auth, vfid, result, timeout)
                 if ret_code != 0:
                     exit_after_login(fos_ip_addr, https, auth, result, module)
 

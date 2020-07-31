@@ -44,7 +44,13 @@ options:
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds.
+        - rest throttling delay in seconds to retry once more if
+          server is busy.
+        required: false
+    timeout:
+        description:
+        - rest timeout in seconds for operations taking longer than
+          default timeout.
         required: false
     wwn:
         description:
@@ -109,6 +115,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
+        timeout=dict(required=False, type='float'),
         wwn=dict(required=True, type='str'))
 
     module = AnsibleModule(
@@ -127,6 +134,7 @@ def main():
     if 'ssh_hostkeymust' in input_params['credential']:
         ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
+    timeout = input_params['timeout']
     vfid = input_params['vfid']
     wwn = input_params['wwn']
     result = {"changed": False}
@@ -144,7 +152,7 @@ def main():
 
     facts['ssh_hostkeymust'] = ssh_hostkeymust
 
-    ret_code, response = defined_get(fos_ip_addr, https, auth, vfid, result)
+    ret_code, response = defined_get(fos_ip_addr, https, auth, vfid, result, timeout)
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module)
 
