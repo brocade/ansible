@@ -39,13 +39,13 @@ def full_url_get(is_https, fos_ip_addr, path):
         # by default, return HTTP
         return HTTP + fos_ip_addr + str_to_yang(path), False
 
-def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout=None):
+def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout):
 
     retcode, post_resp = url_post_resp(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout)
 
     return retcode
 
-def url_post_resp(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout=None):
+def url_post_resp(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout):
     """
         general function to post for a given url
 
@@ -70,26 +70,15 @@ def url_post_resp(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout=
         url = url + VF_ID + str(vfid)
 
     edict = {}
-    if timeout == None:
-        retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs)
-        if retval == -1:
-            if eret != -3:
+    retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs, timeout)
+    if retval == -1:
+        if eret != -3:
+            return eret, edict
+        elif eret == -3:
+            time.sleep(auth["throttle"])
+            retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs, timeout)
+            if retval == -1:
                 return eret, edict
-            elif eret == -3:
-                time.sleep(auth["throttle"])
-                retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs)
-                if retval == -1:
-                    return eret, edict
-    else:
-        retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs, timeout=timeout)
-        if retval == -1:
-            if eret != -3:
-                return eret, edict
-            elif eret == -3:
-                time.sleep(auth["throttle"])
-                retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs, timeout=timeout)
-                if retval == -1:
-                    return eret, edict
 
     post_resp_data = post_resp.read()
     if len(post_resp_data) == 0:
@@ -104,7 +93,7 @@ def url_post_resp(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout=
     return 0, root_dict
 
 
-def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout=None):
+def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout):
     """
         general function to patch for a given url
 
@@ -128,33 +117,22 @@ def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout=None
     if vfid is not None and vfid != -1:
         url = url + VF_ID + str(vfid)
 
-    if timeout == None:
-        retval, eret, edict, resp = url_helper(url, body, "PATCH", auth, result, validate_certs)
-        if retval == -1:
-            if eret != -3:
+    retval, eret, edict, resp = url_helper(url, body, "PATCH", auth, result, validate_certs, timeout)
+    if retval == -1:
+        if eret != -3:
+            return eret
+        elif eret == -3:
+            time.sleep(auth["throttle"])
+            retval, eret, delete, resp = url_helper(url, body, "PATCH", auth, result, validate_certs, timeout)
+            if retval == -1:
                 return eret
-            elif eret == -3:
-                time.sleep(auth["throttle"])
-                retval, eret, delete, resp = url_helper(url, body, "PATCH", auth, result, validate_certs)
-                if retval == -1:
-                    return eret
-    else:
-        retval, eret, edict, resp = url_helper(url, body, "PATCH", auth, result, validate_certs, timeout=timeout)
-        if retval == -1:
-            if eret != -3:
-                return eret
-            elif eret == -3:
-                time.sleep(auth["throttle"])
-                retval, eret, delete, resp = url_helper(url, body, "PATCH", auth, result, validate_certs, timeout=timeout)
-                if retval == -1:
-                    return eret
 
     result["patch_resp_data"] = resp.read()
 
     return 0
 
 
-def url_delete(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout=None):
+def url_delete(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout):
     """
         general function to delete for a given url
 
@@ -213,7 +191,7 @@ empty_messages_400 = [
     "No licenses installed"
     ]
 
-def url_helper(url, body, method, auth, result, validate_certs, timeout=DEFAULT_TO, credential=None):
+def url_helper(url, body, method, auth, result, validate_certs, timeout, credential=None):
     myheaders = {}
     if credential == None:   
         myheaders={
@@ -221,6 +199,9 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout=DEFAULT_
             'Content-Type': 'application/yang-data+xml'}
     else:
         myheaders = credential
+
+    if timeout == None:
+        timeout = DEFAULT_TO
 
     try:
         get_resp = ansible_urls.open_url(url, body,
@@ -261,7 +242,7 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout=DEFAULT_
 
     return 0, 0, None, get_resp,
 
-def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url, timeout=None):
+def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url, timeout):
     """
         retrieve existing url content and return dict
 
@@ -289,19 +270,13 @@ def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url, timeout=None
     eret = 0
     edict = {}
     get_resp = {}
-    if timeout == None:
-        retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs)
-    else:
-        retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs, timeout=timeout)
+    retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs, timeout)
     if retval == -1:
         if eret != -3:
             return eret, edict
         elif eret == -3:
             time.sleep(auth["throttle"])
-            if timeout == None:
-                retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs)
-            else:
-                retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs, timeout=timeout)
+            retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs, timeout)
             if retval == -1:
                 return eret, edict
 
@@ -316,7 +291,7 @@ def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url, timeout=None
 
 
 def url_patch_single_object(fos_ip_addr, is_https, auth, vfid,
-                            result, url, obj_name, diff_attributes, timeout=None):
+                            result, url, obj_name, diff_attributes, timeout):
     """
         update existing switch configurations
 
@@ -358,9 +333,5 @@ def url_patch_single_object(fos_ip_addr, is_https, auth, vfid,
     result["url"] = url
     result["diff_str"] = diff_str
 
-    if timeout == None:
-        return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                         url, diff_str)
-    else:
-        return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                         url, diff_str, timeout)
+    return url_patch(fos_ip_addr, is_https, auth, vfid, result,
+                     url, diff_str, timeout)

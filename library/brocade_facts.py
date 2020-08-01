@@ -204,7 +204,7 @@ def main():
 
     ret_code, auth, fos_version = login(fos_ip_addr,
                            fos_user_name, fos_password,
-                           https, throttle, result)
+                           https, throttle, result, timeout)
     if ret_code != 0:
         module.exit_json(**result)
 
@@ -217,7 +217,7 @@ def main():
             if subset != "all" and subset not in valid_areas:
                 result["failed"] = True
                 result["msg"] = "Request for unknown module and object " + subset
-                logout(fos_ip_addr, https, auth, result)
+                logout(fos_ip_addr, https, auth, result, timeout)
                 module.exit_json(**result)
 
     for area in valid_areas:
@@ -309,7 +309,7 @@ def main():
                                                    ssh_hostkeymust, timeout)
                 if ret_code != 0:
                     result[module_name + "_" + obj_name + "_get"] = ret_code
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
                 obj = response["Response"][str_to_yang(obj_name)]
 
@@ -323,7 +323,7 @@ def main():
                                               ssh_hostkeymust, timeout)
                 if ret_code != 0:
                     result[module_name + "_" + list_name + "_get"] = ret_code
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
                 obj_list = response["Response"][str_to_yang(list_name)]
                 if not isinstance(obj_list, list):
@@ -338,7 +338,7 @@ def main():
                 ret_code, response = defined_get(
                     fos_ip_addr, https, auth, vfid, result, timeout)
                 if ret_code != 0:
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
                 zoning = {}
                 zoning["defined-configuration"] = (
@@ -348,7 +348,7 @@ def main():
                 ret_code, response = effective_get(
                     fos_ip_addr, https, auth, vfid, result, timeout)
                 if ret_code != 0:
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
                 zoning["effective-configuration"] = (
                     response["Response"]["effective-configuration"]
@@ -360,7 +360,7 @@ def main():
 
     result["ansible_facts"] = facts
 
-    logout(fos_ip_addr, https, auth, result)
+    logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
 
 

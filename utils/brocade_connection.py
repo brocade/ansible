@@ -26,7 +26,7 @@ REST_LOGOUT = "/rest/logout"
 REST_SWITCH = "/rest/running/brocade-fibrechannel-switch/fibrechannel-switch"
 
 
-def login(fos_ip_addr, fos_user_name, fos_password, is_https, throttle, result):
+def login(fos_ip_addr, fos_user_name, fos_password, is_https, throttle, result, timeout):
     """
         login to the fos switch at ip address specified
 
@@ -52,7 +52,7 @@ def login(fos_ip_addr, fos_user_name, fos_password, is_https, throttle, result):
     credential = {"Authorization": "Basic " + login_encoded.decode(),
                   "User-Agent": "Rest-Conf"}
 
-    retval, eret, edict, login_resp = url_helper(full_login_url, None, "POST", None, result, validate_certs, credential=credential)
+    retval, eret, edict, login_resp = url_helper(full_login_url, None, "POST", None, result, validate_certs, timeout, credential=credential)
     if retval == -1:
         if eret != -3:
             return eret, None, None
@@ -61,7 +61,7 @@ def login(fos_ip_addr, fos_user_name, fos_password, is_https, throttle, result):
                 time.sleep(DEFAULT_THROTTLE)
             else:
                 time.sleep(throttle)
-            retval, eret, edict, login_resp = url_helper(full_login_url, None, "POST", None, result, validate_certs, credential=credential)
+            retval, eret, edict, login_resp = url_helper(full_login_url, None, "POST", None, result, validate_certs, timeout, credential=credential)
             if retval == -1:
                 return eret, None, None
 
@@ -78,11 +78,11 @@ def login(fos_ip_addr, fos_user_name, fos_password, is_https, throttle, result):
 
     # get fos version from the default switch
     rtype, rdict = url_get_to_dict(fos_ip_addr, is_https, auth, -1,
-                                           result, full_switch_url)
+                                           result, full_switch_url, timeout)
     if rtype != 0:
         result["failed"] = True
         result["msg"] = "API failed to return switch firmware version"
-        logout(fos_ip_addr, is_https, auth, result)
+        logout(fos_ip_addr, is_https, auth, result, timeout)
         return -1, None, None
 
 #    time.sleep(auth["throttle"] * 2)
@@ -90,7 +90,7 @@ def login(fos_ip_addr, fos_user_name, fos_password, is_https, throttle, result):
     return 0, auth, rdict["Response"]["fibrechannel-switch"]["firmware-version"]
 
 
-def logout(fos_ip_addr, is_https, auth, result):
+def logout(fos_ip_addr, is_https, auth, result, timeout):
     """
         logout from the fos switch at ip address specified
 
@@ -108,10 +108,10 @@ def logout(fos_ip_addr, is_https, auth, result):
                                                    REST_LOGOUT)
 
     return url_post(fos_ip_addr, is_https, auth, None,
-                    result, full_logout_url, None)
+                    result, full_logout_url, None, timeout)
 
 
-def exit_after_login(fos_ip_addr, https, auth, result, module):
+def exit_after_login(fos_ip_addr, https, auth, result, module, timeout):
     """
         module exit but logout first
 
@@ -127,6 +127,6 @@ def exit_after_login(fos_ip_addr, https, auth, result, module):
         :return: 0
         :rtype: int
     """
-    logout(fos_ip_addr, https, auth, result)
+    logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
     return 0

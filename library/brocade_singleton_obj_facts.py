@@ -153,7 +153,7 @@ def main():
 
     ret_code, auth, fos_version = login(fos_ip_addr,
                            fos_user_name, fos_password,
-                           https, throttle, result)
+                           https, throttle, result, timeout)
     if ret_code != 0:
         module.exit_json(**result)
 
@@ -167,7 +167,7 @@ def main():
                                   ssh_hostkeymust, timeout)
     if ret_code != 0:
         result["singleton_get"] = ret_code
-        exit_after_login(fos_ip_addr, https, auth, result, module)
+        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     obj = response["Response"][str_to_yang(obj_name)]
 
@@ -180,7 +180,7 @@ def main():
 
     result["ansible_facts"] = ret_dict
 
-    logout(fos_ip_addr, https, auth, result)
+    logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
 
 
