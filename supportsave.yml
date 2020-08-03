@@ -16,10 +16,10 @@
       fos_password: "{{fos_password}}"
       https: "{{fos_https}}"
     supportsave:
-      host: "10.210.208.177"
-      user_name: "dc400196"
-      password: "Wowrls001"
-      remote_directory: "/home/dc400196/supportsave"
+      host: "xx.xx.xx.xx"
+      user_name: "username"
+      password: "password"
+      remote_directory: "/directory_to_save"
       protocol: "scp"
 
   tasks:
