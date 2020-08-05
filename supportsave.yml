@@ -1,0 +1,51 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: "{{fos_user_name}}"
+      fos_password: "{{fos_password}}"
+      https: "{{fos_https}}"
+    supportsave:
+      host: "xx.xx.xx.xx"
+      user_name: "username"
+      password: "password"
+      remote_directory: "/directory_to_save"
+      protocol: "scp"
+
+  tasks:
+
+  - name: initiate supportsave
+    brocade_operation_supportsave:
+      credential: "{{credential}}"
+      vfid: -1
+      supportsave: "{{supportsave}}"
+    register: result
+
+  - name: print supportsave initial status
+    debug:
+      var: result.operation_resp
+
+  - name: show status
+    brocade_operation_show_status:
+      credential: "{{credential}}"
+      vfid: -1
+      show_status:
+        message_id: "{{result.operation_resp.show_status.message_id}}"
+    register: status_result
+    until: status_result.operation_resp.show_status.status == "done" or status_result.operation_resp.show_status.status == "delivered"
+    retries: 100
+    delay: 10
+
+  - name: print show_status end result
+    debug:
+      var: status_result.operation_resp

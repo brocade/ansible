@@ -150,7 +150,7 @@ def main():
 
     ret_code, auth, fos_version = login(fos_ip_addr,
                            fos_user_name, fos_password,
-                           https, throttle, result)
+                           https, throttle, result, timeout)
     if ret_code != 0:
         module.exit_json(**result)
 
@@ -167,7 +167,7 @@ def main():
                   False, False, None, "alias",
                   alias_process_diff, alias_process_diff_to_delete, alias_get,
                   alias_post, alias_delete, None, timeout)
-        ret_code = logout(fos_ip_addr, https, auth, result)
+        ret_code = logout(fos_ip_addr, https, auth, result, timeout)
         module.exit_json(**result)
 
     object_name_dict, new_name_dict = zoning_find_pair_common(module, fos_ip_addr, https, auth, vfid, "zone", object_name, new_name, result, timeout)
@@ -180,7 +180,7 @@ def main():
         if object_name_dict["zone-type"] == 2:
             result["failed"] = True
             result["msg"] = "Target created Peer Zone cannot be copied"
-            ret_code = logout(fos_ip_addr, https, auth, result)
+            ret_code = logout(fos_ip_addr, https, auth, result, timeout)
             module.exit_json(**result)
 
         object_name_dict["name"] = new_name
@@ -189,7 +189,7 @@ def main():
                   False, False, None, "zone",
                   zone_process_diff, zone_process_diff_to_delete, zone_get,
                   zone_post, zone_delete, None, timeout)
-        ret_code = logout(fos_ip_addr, https, auth, result)
+        ret_code = logout(fos_ip_addr, https, auth, result, timeout)
         module.exit_json(**result)
 
     object_name_dict, new_name_dict = zoning_find_pair_common(module, fos_ip_addr, https, auth, vfid, "cfg", object_name, new_name, result, timeout)
@@ -205,13 +205,13 @@ def main():
                   False, False, None, "cfg",
                   cfg_process_diff, cfg_process_diff_to_delete, cfg_get,
                   cfg_post, cfg_delete, None, timeout)
-        ret_code = logout(fos_ip_addr, https, auth, result)
+        ret_code = logout(fos_ip_addr, https, auth, result, timeout)
         module.exit_json(**result)
 
     
     result["failed"] = True
     result["msg"] = "no such object was found"
-    ret_code = logout(fos_ip_addr, https, auth, result)
+    ret_code = logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
 
 

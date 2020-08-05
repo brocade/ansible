@@ -605,14 +605,14 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
     if ret_code != 0:
         result["failed"] = True
         result['msg'] = "failed to checksum"
-        exit_after_login(fos_ip_addr, https, auth, result, module)
+        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     ret_code, get_resp = type_get(fos_ip_addr,
                                   https, auth, vfid, result, timeout)
     if ret_code != 0:
         result["failed"] = True
         result['msg'] = "failed to read from database"
-        exit_after_login(fos_ip_addr, https, auth, result, module)
+        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     c_list = resp_to_list(get_resp, type_str)
 
@@ -639,7 +639,7 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
         # common_list has nothing and member_remove_only is True
         # and cfg is not enabled
         if (len(post_list) == 0 or (len(post_list) > 0 and members_remove_only == True)) and (len(remove_list) == 0 or (len(remove_list) > 0 and members_add_only == True) or (len(remove_list) > 0 and members_remove_only == True)) and (members_remove_only == None or (len(common_list) == 0 and members_remove_only == True)) and active_cfg is None:
-            exit_after_login(fos_ip_addr, https, auth, result, module)
+            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
         need_to_save = False
         if len(post_list) > 0 and (members_remove_only == None or members_remove_only == False):
@@ -651,7 +651,7 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                                          auth, vfid, result, timeout)
                     result["failed"] = True
                     result['msg'] = "HTTP POST failed"
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
             need_to_save = True
 
@@ -664,7 +664,7 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                                          auth, vfid, result, timeout)
                     result["failed"] = True
                     result['msg'] = "HTTP DELETE failed"
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
             need_to_save = True
 
@@ -677,7 +677,7 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                                          auth, vfid, result, timeout)
                     result["failed"] = True
                     result['msg'] = "HTTP DELETE common failed"
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
             need_to_save = True
 
@@ -702,7 +702,7 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                         result['msg'] = failed_msg
                         result["failed"] = True
                         exit_after_login(fos_ip_addr, https, auth,
-                                         result, module)
+                                         result, module, timeout)
 
                 result["changed"] = True
         else:
@@ -715,7 +715,7 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                                             auth, vfid, result, timeout)
                         result['msg'] = "CFG ENABLE failed"
                         result["failed"] = True
-                        exit_after_login(fos_ip_addr, https, auth, result, module)
+                        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
                 result["changed"] = True
 
@@ -738,7 +738,7 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                 ret_code = cfg_abort(fos_ip_addr, https, auth, vfid, result, timeout)
                 result["failed"] = True
                 result['msg'] = "HTTP DELETE failed"
-                exit_after_login(fos_ip_addr, https, auth, result, module)
+                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
             need_to_save = True
 
@@ -761,7 +761,7 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                         result["failed"] = True
                         result['msg'] = failed_msg
                         exit_after_login(fos_ip_addr, https, auth,
-                                         result, module)
+                                         result, module, timeout)
 
                 result["changed"] = True
         else:
@@ -773,7 +773,7 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                                          auth, result, timeout)
                     result["failed"] = True
                     result['msg'] = "CFG ENABLE failed"
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
             result["changed"] = True
 
@@ -835,13 +835,13 @@ def zoning_find_pair_common(module, fos_ip_addr, https, auth, vfid, type_str, ob
     else:
         result["failed"] = True
         result['msg'] = "invalid type string" + type_str
-        exit_after_login(fos_ip_addr, https, auth, result, module)
+        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     ret_code, get_resp = type_get(fos_ip_addr, https, auth, vfid, result, timeout)
     if ret_code != 0:
         result["failed"] = True
         result['msg'] = "failed to read from database"
-        exit_after_login(fos_ip_addr, https, auth, result, module)
+        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     r_list = resp_to_list(get_resp, type_str)
 
