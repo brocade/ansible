@@ -5,7 +5,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object, url_post, url_delete
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object, url_post, url_delete, url_post_resp
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import yang_to_human, human_to_yang, str_to_yang, str_to_human, generate_diff, is_full_human
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_ssh import ssh_and_configure
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_interface import to_fos_fc, to_human_fc
@@ -26,6 +26,7 @@ Brocade logging utils
 
 
 REST_PREFIX = "/rest/running/"
+OP_PREFIX = "/rest/operations/"
 
 
 def to_human_singleton(module_name, obj_name, attributes):
@@ -70,7 +71,7 @@ def to_fos_singleton(module_name, obj_name, attributes, result):
     return 0
 
 
-def singleton_get(login, password, fos_ip_addr, module_name, obj_name, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout=None):
+def singleton_get(login, password, fos_ip_addr, module_name, obj_name, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout):
     """
         retrieve existing user config configuration 
 
@@ -88,13 +89,13 @@ def singleton_get(login, password, fos_ip_addr, module_name, obj_name, fos_versi
         :rtype: dict
     """
     if module_name == "brocade_chassis" and obj_name == "chassis":
-        return chassis_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust)
+        return chassis_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout)
 
     if module_name == "brocade_fibrechannel_configuration" and obj_name == "fabric":
-        return fabric_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust)
+        return fabric_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout)
 
     if module_name == "brocade_fibrechannel_configuration" and obj_name == "port_configuration":
-        return port_configuration_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust)
+        return port_configuration_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout)
 
     # get is not support for this module. Just return empty
     if module_name == "brocade_security" and obj_name == "security_certificate_action":
@@ -252,9 +253,9 @@ def list_entry_keys(module_name, list_name):
 
 def list_get(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout):
     if module_name == "brocade_fibrechannel_switch" and list_name == "fibrechannel_switch":
-        return fc_switch_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust)
+        return fc_switch_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout)
     if module_name == "brocade_interface" and list_name == "fibrechannel":
-        return fc_port_get(fos_ip_addr, is_https, auth, vfid, result)
+        return fc_port_get(fos_ip_addr, is_https, auth, vfid, result, timeout)
 
     return singleton_get(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout)
 
@@ -285,7 +286,7 @@ def singleton_xml_str(result, obj_name, attributes):
     return xml_str
 
 
-def singleton_patch(login, password, fos_ip_addr, module_name, obj_name, fos_version, is_https, auth, vfid, result, new_attributes, ssh_hostkeymust, timeout=None):
+def singleton_patch(login, password, fos_ip_addr, module_name, obj_name, fos_version, is_https, auth, vfid, result, new_attributes, ssh_hostkeymust, timeout):
     """
         update existing user config configurations
 
@@ -305,13 +306,13 @@ def singleton_patch(login, password, fos_ip_addr, module_name, obj_name, fos_ver
         :rtype: list
     """
     if module_name == "brocade_chassis" and obj_name == "chassis":
-        return chassis_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, new_attributes, ssh_hostkeymust)
+        return chassis_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, new_attributes, ssh_hostkeymust, timeout)
 
     if module_name == "brocade_fibrechannel_configuration" and obj_name == "fabric":
-        return fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, new_attributes, ssh_hostkeymust)
+        return fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, new_attributes, ssh_hostkeymust, timeout)
 
     if module_name == "brocade_fibrechannel_configuration" and obj_name == "port_configuration":
-        return port_configuration_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, new_attributes, ssh_hostkeymust)
+        return port_configuration_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, new_attributes, ssh_hostkeymust, timeout)
 
     full_url, validate_certs = full_url_get(is_https,
                                             fos_ip_addr,
@@ -322,19 +323,11 @@ def singleton_patch(login, password, fos_ip_addr, module_name, obj_name, fos_ver
     result["patch_obj_str"] = xml_str
 
     if module_name == "brocade_security" and obj_name == "security_certificate_generate":
-        if timeout == None:
-            return url_post(fos_ip_addr, is_https, auth, vfid, result,
-                            full_url, xml_str)
-        else:
-            return url_post(fos_ip_addr, is_https, auth, vfid, result,
-                            full_url, xml_str, timeout)
+        return url_post(fos_ip_addr, is_https, auth, vfid, result,
+                        full_url, xml_str, timeout)
 
-    if timeout == None:
-        return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                         full_url, xml_str)
-    else:
-        return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                         full_url, xml_str, timeout)
+    return url_patch(fos_ip_addr, is_https, auth, vfid, result,
+                     full_url, xml_str, timeout)
 
 
 def list_xml_str(result, module_name, list_name, entries):
@@ -372,7 +365,7 @@ def list_xml_str(result, module_name, list_name, entries):
     return xml_str
 
 
-def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust, timeout=None):
+def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust, timeout):
     """
         update existing user config configurations
 
@@ -392,11 +385,11 @@ def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version
         :rtype: list
     """
     if module_name == "brocade_fibrechannel_switch" and list_name == "fibrechannel_switch":
-        return fc_switch_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, entries[0], ssh_hostkeymust)
+        return fc_switch_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, entries[0], ssh_hostkeymust, timeout)
     if module_name == "brocade_interface" and list_name == "fibrechannel":
-        return fc_port_patch(fos_ip_addr, is_https, auth, vfid, result, entries)
+        return fc_port_patch(fos_ip_addr, is_https, auth, vfid, result, entries, timeout)
     if module_name == "brocade_security" and list_name == "user_config":
-        return user_config_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust)
+        return user_config_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust, timeout)
 
     full_url, validate_certs = full_url_get(is_https,
                                             fos_ip_addr,
@@ -406,15 +399,11 @@ def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version
 
     result["patch_str"] = xml_str
 
-    if timeout == None:
-        return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                         full_url, xml_str)
-    else:
-        return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                         full_url, xml_str, timeout)
+    return url_patch(fos_ip_addr, is_https, auth, vfid, result,
+                     full_url, xml_str, timeout)
 
 
-def list_post(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust):
+def list_post(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust, timeout):
     """
         update existing user config configurations
 
@@ -442,10 +431,10 @@ def list_post(login, password, fos_ip_addr, module_name, list_name, fos_version,
     result["post_str"] = xml_str
 
     return url_post(fos_ip_addr, is_https, auth, vfid, result,
-                     full_url, xml_str)
+                     full_url, xml_str, timeout)
 
 
-def list_delete(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust):
+def list_delete(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust, timeout):
     """
         update existing user config configurations
 
@@ -473,7 +462,7 @@ def list_delete(login, password, fos_ip_addr, module_name, list_name, fos_versio
     result["delete_str"] = xml_str
 
     return url_delete(fos_ip_addr, is_https, auth, vfid, result,
-                     full_url, xml_str)
+                     full_url, xml_str, timeout)
 
 
 def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, obj_name, attributes, result, timeout):
@@ -486,7 +475,7 @@ def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
 
     ret_code, auth, fos_version = login(fos_ip_addr,
                            fos_user_name, fos_password,
-                           https, throttle, result)
+                           https, throttle, result, timeout)
     if ret_code != 0:
         module.exit_json(**result)
 
@@ -497,7 +486,7 @@ def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
                                        https, auth, vfid, result,
                                        ssh_hostkeymust, timeout)
     if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
+        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     resp_attributes = response["Response"][str_to_yang(obj_name)]
 
@@ -519,11 +508,11 @@ def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
         if "relay_ip_address" in diff_attributes and diff_attributes["relay_ip_address"] == None:
             result["failed"] = True
             result['msg'] = "must specify relay_ip_address if configured empty"
-            exit_after_login(fos_ip_addr, https, auth, result, module)
+            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
         elif "domain_name" in diff_attributes and diff_attributes["domain_name"] == None:
             result["failed"] = True
             result['msg'] = "must specify domain_name if configured empty"
-            exit_after_login(fos_ip_addr, https, auth, result, module)
+            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     result["diff_attributes"] = diff_attributes
     result["current_attributes"] = resp_attributes
@@ -532,31 +521,24 @@ def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
     if len(diff_attributes) > 0:
         ret_code = to_fos_singleton(module_name, obj_name, diff_attributes, result)
         if ret_code != 0:
-            exit_after_login(fos_ip_addr, https, auth, result, module)
+            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
         if not module.check_mode:
             ret_code = 0
-            if timeout != None:
-                ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+            ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
                                        module_name, obj_name,
                                        fos_version, https,
                                        auth, vfid, result, diff_attributes,
                                        ssh_hostkeymust, timeout)
-            else:
-                ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
-                                       module_name, obj_name,
-                                       fos_version, https,
-                                       auth, vfid, result, diff_attributes,
-                                       ssh_hostkeymust)
             if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
+                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
         result["changed"] = True
     else:
-        logout(fos_ip_addr, https, auth, result)
+        logout(fos_ip_addr, https, auth, result, timeout)
         module.exit_json(**result)
 
-    logout(fos_ip_addr, https, auth, result)
+    logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
 
 
@@ -574,7 +556,7 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
 
     ret_code, auth, fos_version = login(fos_ip_addr,
                            fos_user_name, fos_password,
-                           https, throttle, result)
+                           https, throttle, result, timeout)
     if ret_code != 0:
         module.exit_json(**result)
 
@@ -583,7 +565,7 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
                                   https, auth, vfid, result,
                                   ssh_hostkeymust, timeout)
     if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
+        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     current_entries = response["Response"][str_to_yang(list_name)]
     if not isinstance(current_entries, list):
@@ -598,7 +580,7 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
         if len(entries) != 1:
             result["failed"] = True
             result["msg"] = "Only one entry in an array is supported"
-            exit_after_login(fos_ip_addr, https, auth, result, module)
+            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
         entries[0]["name"] = current_entries[0]["name"]
 
@@ -624,7 +606,7 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
     ret_code = to_fos_list(module_name, list_name, diff_entries, result)
     result["diff_retcode"] = ret_code
     if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
+        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     add_entries = []
     for entry in entries:
@@ -657,7 +639,7 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
     ret_code = to_fos_list(module_name, list_name, add_entries, result)
     result["add_retcode"] = ret_code
     if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
+        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     delete_entries = []
     for current_entry in current_entries:
@@ -677,7 +659,7 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
     ret_code = to_fos_list(module_name, list_name, delete_entries, result)
     result["delete_retcode"] = ret_code
     if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
+        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     result["response"] = response
     result["current_entries"] = current_entries
@@ -688,32 +670,29 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
     if len(diff_entries) > 0:
         if not module.check_mode:
             ret_code = 0
-            if timeout != None:
-                ret_code = list_patch(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, diff_entries, ssh_hostkeymust, timeout)
-            else:
-                ret_code = list_patch(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, diff_entries, ssh_hostkeymust)
+            ret_code = list_patch(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, diff_entries, ssh_hostkeymust, timeout)
             if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
+                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
         result["changed"] = True
 
     if len(add_entries) > 0:
         if not module.check_mode:
-            ret_code = list_post(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, add_entries, ssh_hostkeymust)
+            ret_code = list_post(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, add_entries, ssh_hostkeymust, timeout)
             if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
+                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
         result["changed"] = True
 
     if len(delete_entries) > 0 and all_entries:
         if not module.check_mode:
-            ret_code = list_delete(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, delete_entries, ssh_hostkeymust)
+            ret_code = list_delete(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, delete_entries, ssh_hostkeymust, timeout)
             if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
+                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
         result["changed"] = True
 
-    logout(fos_ip_addr, https, auth, result)
+    logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
 
 def list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, entries, all_entries, result, timeout):
@@ -730,7 +709,7 @@ def list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, 
 
     ret_code, auth, fos_version = login(fos_ip_addr,
                            fos_user_name, fos_password,
-                           https, throttle, result)
+                           https, throttle, result, timeout)
     if ret_code != 0:
         module.exit_json(**result)
 
@@ -739,7 +718,7 @@ def list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, 
                                   https, auth, vfid, result,
                                   ssh_hostkeymust, timeout)
     if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
+        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     current_entries = response["Response"][str_to_yang(list_name)]
     if not isinstance(current_entries, list):
@@ -766,7 +745,7 @@ def list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, 
     ret_code = to_fos_list(module_name, list_name, delete_entries, result)
     result["add_retcode"] = ret_code
     if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
+        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     result["response"] = response
     result["current_entries"] = current_entries
@@ -774,11 +753,139 @@ def list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, 
 
     if len(delete_entries) > 0:
         if not module.check_mode:
-            ret_code = list_delete(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, delete_entries, ssh_hostkeymust)
+            ret_code = list_delete(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, delete_entries, ssh_hostkeymust, timeout)
             if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module)
+                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
         result["changed"] = True
 
-    logout(fos_ip_addr, https, auth, result)
+    logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
+
+
+def operation_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, op_name, in_name, attributes, result, timeout):
+
+    if not is_full_human(attributes, result):
+        module.exit_json(**result)
+
+    if vfid is None:
+        vfid = 128
+
+    ret_code, auth, fos_version = login(fos_ip_addr,
+                           fos_user_name, fos_password,
+                           https, throttle, result, timeout)
+    if ret_code != 0:
+        module.exit_json(**result)
+
+    result["input"] = attributes
+
+    ret_code = to_fos_operation(op_name, in_name, attributes, result)
+    if ret_code != 0:
+        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+    if not module.check_mode:
+        ret_code = 0
+        ret_code, resp = operation_post(fos_user_name, fos_password, fos_ip_addr,
+                                   op_name, in_name,
+                                   fos_version, https,
+                                   auth, vfid, result, attributes,
+                                   ssh_hostkeymust, timeout)
+        if ret_code != 0:
+            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+    result["changed"] = True
+
+    to_human_operation(op_name, in_name, resp["Response"])
+
+    result["operation_resp"] = resp["Response"]
+
+    logout(fos_ip_addr, https, auth, result, timeout)
+
+    module.exit_json(**result)
+
+
+def operation_xml_str(result, obj_name, attributes):
+    obj_name_yang = str_to_yang(obj_name)
+    xml_str = ""
+
+    xml_str = xml_str + "<" + obj_name_yang + ">"
+
+    for k, v in attributes.items():
+        xml_str = xml_str + "<" + k + ">"
+
+        if isinstance(v, dict):
+            for k1, v1 in v.items():
+                if isinstance(v1, list):
+                    for entry in v1:
+                        xml_str = xml_str + "<" + k1 + ">" + str(entry) + "</" + k1 + ">"
+                else:
+                    xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">"
+        else:
+            xml_str = xml_str + str(v)
+
+        xml_str = xml_str + "</" + k + ">"
+
+    xml_str = xml_str + "</" + obj_name_yang + ">"
+
+    return xml_str
+
+
+def operation_post(login, password, fos_ip_addr, op_name, in_name, fos_version, is_https, auth, vfid, result, attributes, ssh_hostkeymust, timeout):
+    """
+        update existing user config configurations
+
+        :param fos_ip_addr: ip address of FOS switch
+        :type fos_ip_addr: str
+        :param is_https: indicate to use HTTP or HTTPS
+        :type is_https: bool
+        :param auth: authorization struct from login
+        :type struct: dict
+        :param result: dict to keep track of execution msgs
+        :type result: dict
+        :param diff_attributes: list of attributes for update
+        :type ports: dict
+        :return: code to indicate failure or success
+        :rtype: int
+        :return: list of dict of chassis configurations
+        :rtype: list
+    """
+    full_url, validate_certs = full_url_get(is_https,
+                                            fos_ip_addr,
+                                            OP_PREFIX + op_name)
+
+    xml_str = operation_xml_str(result, in_name, attributes)
+
+    result["post_url"] = full_url
+    result["post_str"] = xml_str
+
+    return url_post_resp(fos_ip_addr, is_https, auth, vfid, result,
+                         full_url, xml_str, timeout)
+
+
+def to_fos_operation(op_name, in_name, attributes, result):
+    human_to_yang(attributes)
+
+    for k, v in attributes.items():
+        # if going to fos, we need to encode password
+        if op_name == "supportsave" and in_name == "connection":
+            if k == "password":
+                attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
+
+    for k, v in attributes.items():
+        if isinstance(v, bool):
+            if v == True:
+                attributes[k] = "true"
+            else:
+                attributes[k] = "false"
+
+    return 0
+
+
+def to_human_operation(op_name, in_name, attributes):
+    yang_to_human(attributes)
+
+    for k, v in attributes.items():
+        if v == "true":
+            attributes[k] = True
+        elif v == "false":
+            attributes[k] = False

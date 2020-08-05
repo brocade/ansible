@@ -20,30 +20,7 @@ Brocade chassis utils
 REST_CHASSIS = "/rest/running/brocade-chassis/chassis"
 
 
-def to_human_chassis(attributes):
-    for k, v in attributes.items():
-        if v == "true":
-            attributes[k] = True
-        elif v == "false":
-            attributes[k] = False
-
-    yang_to_human(attributes)
-
-
-def to_fos_chassis(attributes, result):
-    human_to_yang(attributes)
-
-    for k, v in attributes.items():
-        if isinstance(v, bool):
-            if v == True:
-                attributes[k] = "true"
-            else:
-                attributes[k] = "false"
-
-    return 0
-
-
-def chassis_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust):
+def chassis_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout):
     """
         retrieve existing switch configurations
 
@@ -65,7 +42,7 @@ def chassis_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid,
                                                     REST_CHASSIS)
 
     rtype, rdict = url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
-                           result, full_chassis_url)
+                           result, full_chassis_url, timeout)
     if rtype != 0:
         result["failed"] = True
         result["msg"] = "API failed to return data"
@@ -89,7 +66,7 @@ def chassis_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid,
     return 0, rdict
 
 
-def chassis_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, diff_attributes, ssh_hostkeymust):
+def chassis_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, diff_attributes, ssh_hostkeymust, timeout):
     """
         update existing switch configurations
 
@@ -129,4 +106,4 @@ def chassis_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfi
 
     return (url_patch_single_object(fos_ip_addr, is_https, auth,
                                     vfid, result, full_chassis_url,
-                                    "chassis", l_diffs))
+                                    "chassis", l_diffs, timeout))

@@ -190,7 +190,7 @@ def main():
 
     ret_code, auth, fos_version = login(fos_ip_addr,
                            fos_user_name, fos_password,
-                           https, throttle, result)
+                           https, throttle, result, timeout)
     if ret_code != 0:
         module.exit_json(**result)
 
@@ -199,7 +199,7 @@ def main():
                   cfg_process_diff, cfg_process_diff_to_delete,
                   cfg_get, cfg_post, cfg_delete, active_cfg, timeout)
 
-    ret_code = logout(fos_ip_addr, https, auth, result)
+    ret_code = logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
 
 

@@ -258,6 +258,7 @@ within Ansible playbook.
 | Ansible module name | Description |
 | --- | --- |
 | brocade_chassis.py | update chassis attributes |
+| brocade_facts.py | retrieve facts for specified areas|
 | brocade_fibrechannel_configuration_fabric.py | update fabric configuration |
 | brocade_fibrechannel_configuration_port_configuration.py | update port configuration |
 | brocade_fibrechannel_switch.py | update switch configuration |
@@ -265,9 +266,13 @@ within Ansible playbook.
 | brocade_logging_audit.py | update audit configuration |
 | brocade_logging_syslog_server.py | update syslog server configuration |
 | brocade_maps_maps_config.py | update MAPS configuration |
+| brocade_operation_show_status.py | show status on operations initiated |
+| brocade_operation_supportsave.py | initiate supportsave operation |
 | brocade_security_ipfilter_policy.py | update ip filter policy |
 | brocade_security_ipfilter_rule.py | update ip filter rule |
 | brocade_security_password.py | update password. Passwords are given in clear text |
+| brocade_security_security_certificate_action.py | import/export CSR/certificate |
+| brocade_security_security_certificate_generate.py | generate CSR/certificate |
 | brocade_security_user_config.py | update login accounts |
 | brocade_snmp_system.py | update snmp system attributes |
 | brocade_snmp_v1_account.py | update snmp v1 account |

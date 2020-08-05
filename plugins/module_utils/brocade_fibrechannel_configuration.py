@@ -21,29 +21,6 @@ REST_FABRIC = "/rest/running//brocade-fibrechannel-configuration/fabric"
 REST_PORT_CONFIGURATION = "/rest/running//brocade-fibrechannel-configuration/port-configuration"
 
 
-def to_human_fabric(attributes):
-    for k, v in attributes.items():
-        if v == "true":
-            attributes[k] = True
-        elif v == "false":
-            attributes[k] = False
-
-    yang_to_human(attributes)
-
-
-def to_fos_fabric(attributes, result):
-    human_to_yang(attributes)
-
-    for k, v in attributes.items():
-        if isinstance(v, bool):
-            if v == True:
-                attributes[k] = "true"
-            else:
-                attributes[k] = "false"
-
-    return 0
-
-
 def fabric_principal(login, password, fos_ip_addr, ssh_hostkeymust):
     enabled_err = None
     enabled = False
@@ -69,7 +46,7 @@ def fabric_principal(login, password, fos_ip_addr, ssh_hostkeymust):
     return enabled_err, enabled, priority_err, priority
 
 
-def fabric_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust):
+def fabric_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout):
     """
         retrieve existing switch configurations
 
@@ -91,7 +68,7 @@ def fabric_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, 
                                                    REST_FABRIC)
 
     rtype, rdict = url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
-                                   result, full_fabric_url)
+                                   result, full_fabric_url, timeout)
     if rtype != 0:
         result["failed"] = True
         result["msg"] = "API failed to return data"
@@ -129,7 +106,7 @@ def fabric_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, 
     return 0, rdict
 
 
-def fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, diff_attributes, ssh_hostkeymust):
+def fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, diff_attributes, ssh_hostkeymust, timeout):
     """
         :param fos_ip_addr: ip address of FOS switch
         :type fos_ip_addr: str
@@ -228,7 +205,7 @@ def fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid
 
     return (url_patch_single_object(fos_ip_addr, is_https, auth,
                                     vfid, result, full_fabric_url,
-                                    "fabric", l_diffs))
+                                    "fabric", l_diffs, timeout))
 
 
 def to_human_port_configuration(attributes):
@@ -254,7 +231,7 @@ def to_fos_port_configuration(attributes, result):
     return 0
 
 
-def port_configuration_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust):
+def port_configuration_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout):
     """
         retrieve existing port configurations
 
@@ -276,7 +253,7 @@ def port_configuration_get(login, password, fos_ip_addr, fos_version, is_https, 
                                                         REST_PORT_CONFIGURATION)
 
     rtype, rdict = url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
-                                   result, full_port_config_url)
+                                   result, full_port_config_url, timeout)
     if rtype != 0:
         result["failed"] = True
         result["msg"] = "API failed to return data"
@@ -298,7 +275,7 @@ def port_configuration_get(login, password, fos_ip_addr, fos_version, is_https, 
     return 0, rdict
 
 
-def port_configuration_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, diff_attributes, ssh_hostkeymust):
+def port_configuration_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, diff_attributes, ssh_hostkeymust, timeout):
     """
         :param fos_ip_addr: ip address of FOS switch
         :type fos_ip_addr: str
@@ -356,4 +333,4 @@ def port_configuration_patch(login, password, fos_ip_addr, fos_version, is_https
 
     return (url_patch_single_object(fos_ip_addr, is_https, auth,
                                     vfid, result, full_port_config_url,
-                                    "port-configuration", l_diffs))
+                                    "port-configuration", l_diffs, timeout))

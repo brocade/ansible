@@ -252,7 +252,7 @@ def to_fos_fc(port_config, result):
     return 0
 
 
-def fc_port_get(fos_ip_addr, is_https, auth, vfid, result):
+def fc_port_get(fos_ip_addr, is_https, auth, vfid, result, timeout):
     """
         retrieve existing port configurations
 
@@ -274,10 +274,10 @@ def fc_port_get(fos_ip_addr, is_https, auth, vfid, result):
                                                     REST_FC)
 
     return url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
-                           result, full_fc_port_url)
+                           result, full_fc_port_url, timeout)
 
 
-def fc_port_patch(fos_ip_addr, is_https, auth, vfid, result, ports):
+def fc_port_patch(fos_ip_addr, is_https, auth, vfid, result, ports, timeout):
     """
         update existing port configurations
 
@@ -318,29 +318,4 @@ def fc_port_patch(fos_ip_addr, is_https, auth, vfid, result, ports):
     result["fc_port_str"] = fc_port_str
 
     return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                     full_fc_port_url, fc_port_str)
-
-
-def fc_port_stats_get(fos_ip_addr, is_https, auth, vfid, result):
-    """
-        retrieve existing port stats
-
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :return: code to indicate failure or success
-        :rtype: int
-        :return: list of dict of port stats
-        :rtype: list
-    """
-    full_fc_port_url, validate_certs = full_url_get(is_https,
-                                                    fos_ip_addr,
-                                                    REST_FC_STATS)
-
-    return url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
-                           result, full_fc_port_url)
+                     full_fc_port_url, fc_port_str, timeout)

@@ -82,7 +82,7 @@ def to_fos_switch(switch_config, result):
     return 0
 
 
-def fc_switch_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust):
+def fc_switch_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout):
     """
         retrieve existing switch configurations
 
@@ -104,7 +104,7 @@ def fc_switch_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfi
                                                       REST_SWITCH)
 
     rtype, rdict = url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
-                           result, full_fc_switch_url)
+                           result, full_fc_switch_url, timeout)
 
     if rtype != 0:
         result["failed"] = True
@@ -129,8 +129,9 @@ def fc_switch_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfi
 
     return 0, rdict
 
+
 def fc_switch_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
-                    vfid, result, diff_attributes, ssh_hostkeymust):
+                    vfid, result, diff_attributes, ssh_hostkeymust, timeout):
     """
         update existing switch configurations
 
@@ -206,4 +207,4 @@ def fc_switch_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
 
     return (url_patch_single_object(fos_ip_addr, is_https, auth,
                                     vfid, result, full_fc_switch_url,
-                                    "fibrechannel-switch", l_diffs))
+                                    "fibrechannel-switch", l_diffs, timeout))

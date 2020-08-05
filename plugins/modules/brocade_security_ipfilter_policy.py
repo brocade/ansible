@@ -178,14 +178,14 @@ def main():
 
     ret_code, auth, fos_version = login(fos_ip_addr,
                            fos_user_name, fos_password,
-                           https, throttle, result)
+                           https, throttle, result, timeout)
     if ret_code != 0:
         module.exit_json(**result)
 
     ret_code, response = ipfilter_policy_get(
-        fos_ip_addr, https, auth, vfid, result)
+        fos_ip_addr, https, auth, vfid, result, timeout)
     if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
+        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     resp_ir = response["Response"]["ipfilter-policy"]
 
@@ -226,9 +226,9 @@ def main():
             if not module.check_mode:
                 ret_code = ipfilter_policy_patch(
                     fos_ip_addr, https,
-                    auth, vfid, result, activate_list)
+                    auth, vfid, result, activate_list, timeout)
                 if ret_code != 0:
-                    exit_after_login(fos_ip_addr, https, auth, result, module)
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
             result["changed"] = True
         elif found_active_policy:
@@ -237,7 +237,7 @@ def main():
             result["failed"] = True
             result["msg"] = "could not find matching policy"
 
-        logout(fos_ip_addr, https, auth, result)
+        logout(fos_ip_addr, https, auth, result, timeout)
         module.exit_json(**result)
 
 
