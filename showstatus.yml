@@ -16,7 +16,7 @@
       fos_password: "{{fos_password}}"
       https: "{{fos_https}}"
     show_status:
-      message_id: 1204004887
+      message_id: 20000
 
   tasks:
 
@@ -26,7 +26,7 @@
       vfid: -1
       show_status: "{{show_status}}"
     register: result
-    until: result.operation_resp.show_status.status == "done" or result.operation_resp.show_status.status == "delivered"
+    until: result.operation_resp is not defined or result.operation_resp.show_status.status == "done" or result.operation_resp.show_status.status == "delivered"
     retries: 100
     delay: 10
 

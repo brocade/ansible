@@ -569,7 +569,10 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
 
     current_entries = response["Response"][str_to_yang(list_name)]
     if not isinstance(current_entries, list):
-        current_entries = [current_entries]
+        if current_entries is None:
+            current_entries = []
+        else:
+            current_entries = [current_entries]
 
     to_human_list(module_name, list_name, current_entries, result)
 
@@ -722,7 +725,10 @@ def list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, 
 
     current_entries = response["Response"][str_to_yang(list_name)]
     if not isinstance(current_entries, list):
-        current_entries = [current_entries]
+        if current_entries is None:
+            current_entries = []
+        else:
+            current_entries = [current_entries]
 
     to_human_list(module_name, list_name, current_entries, result)
 
@@ -868,6 +874,9 @@ def to_fos_operation(op_name, in_name, attributes, result):
     for k, v in attributes.items():
         # if going to fos, we need to encode password
         if op_name == "supportsave" and in_name == "connection":
+            if k == "password":
+                attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
+        if op_name == "firmwaredownload" and in_name == "firmwaredownload_parameters":
             if k == "password":
                 attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
 

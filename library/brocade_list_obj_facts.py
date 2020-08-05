@@ -183,7 +183,10 @@ def main():
 
     obj_list = response["Response"][str_to_yang(list_name)]
     if not isinstance(obj_list, list):
-        obj_list = [obj_list]
+        if obj_list is None:
+            obj_list = []
+        else:
+            obj_list = [obj_list]
 
     to_human_list(module_name, list_name, obj_list, result)
 

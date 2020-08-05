@@ -1,0 +1,73 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: "{{fos_user_name}}"
+      fos_password: "{{fos_password}}"
+      https: "{{fos_https}}"
+    firmwaredownload:
+      host: "xx.xx.xx.xx"
+      user_name: "username"
+      password: "password"
+      remote_directory: "directory"
+      protocol: "scp"
+      eula_action: "accept-eula"
+      stage: False
+
+  tasks:
+
+  - name: initiate firmwaredownload
+    brocade_operation_firmwaredownload:
+      credential: "{{credential}}"
+      vfid: -1
+      firmwaredownload: "{{firmwaredownload}}"
+    register: result
+
+  - name: print firmwaredownload initial status
+    debug:
+      var: result.operation_resp
+
+  - name: show status before reboot
+    brocade_operation_show_status:
+      credential: "{{credential}}"
+      vfid: -1
+      timeout: 300
+      show_status:
+        message_id: "{{result.operation_resp.show_status.message_id}}"
+    register: status_result
+    until: status_result.operation_resp is not defined or status_result.operation_resp.show_status.status == "done" or status_result.operation_resp.show_status.status == "delivered"
+    retries: 100
+    delay: 10
+
+  - name: print show_status end result
+    debug:
+      var: status_result.operation_resp
+
+  # pause for 60 seconds to make sure switch has rebooted
+  - pause: seconds=60
+
+  - name: show status after reboot
+    brocade_operation_show_status:
+      credential: "{{credential}}"
+      vfid: -1
+      timeout: 300
+      show_status:
+        message_id: "{{result.operation_resp.show_status.message_id}}"
+    register: status_result
+    until: status_result.operation_resp is not defined or status_result.operation_resp.show_status.status == "done" or status_result.operation_resp.show_status.status == "delivered"
+    retries: 100
+    delay: 10
+
+  - name: print show_status end result
+    debug:
+      var: status_result.operation_resp

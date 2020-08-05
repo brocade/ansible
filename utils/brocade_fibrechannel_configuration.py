@@ -267,6 +267,8 @@ def port_configuration_get(login, password, fos_ip_addr, fos_version, is_https, 
             rdict["Response"]["port-configuration"]["credit-recovery-mode"] = "onLrOnly"
         elif "Internal port credit recovery is Enabled with LrThresh" in sshstr:
             rdict["Response"]["port-configuration"]["credit-recovery-mode"] = "onLrThresh"
+        elif "Not supported on this platform" in sshstr:
+            result["credit_recovery_mode"] = "Not supported on this platform"
         else:
             result["failed"] = True
             result["msg"] = "credit-recovery-mode returned unknown string"

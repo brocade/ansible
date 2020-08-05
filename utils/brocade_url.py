@@ -188,8 +188,22 @@ empty_messages_400 = [
     "AG mode is not enabled",
     "Extension not supported on this platform",
     "No entries in the FDMI database",
-    "No licenses installed"
+    "No licenses installed",
+    "cannot find required parameter User group"
     ]
+
+
+def known_empty_message(errs):
+    if isinstance(errs, list):
+        for err in errs:
+            if err["error-message"] in empty_messages_400:
+                return True, err["error-message"]
+    else:
+        if errs["error-message"] in empty_messages_400:
+            return True, errs["error-message"]
+
+    return False, None
+
 
 def url_helper(url, body, method, auth, result, validate_certs, timeout, credential=None):
     myheaders = {}
@@ -231,9 +245,14 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout, credent
         elif e.code == 503:
             ret_val = -3
             result["myretry"] = True
-        elif e.code == 400 and root_dict["errors"]["error"]["error-message"] in empty_messages_400:
-            result["msg"] = root_dict["errors"]["error"]["error-message"]
-            ret_val = -2
+        elif e.code == 400:
+            is_known, err_msg = known_empty_message(root_dict["errors"]["error"])
+            if is_known:
+                result["msg"] = err_msg
+                ret_val = -2
+            else:
+                result["failed"] = True
+                result["msg"] = method + " failed"
         else:
             result["failed"] = True
             result["msg"] = method + " failed"
