@@ -2,8 +2,8 @@ Brocade Ansible reference example Modules and Playbooks
 =======
 
 This repository provides reference example Modules & Playbooks for Ansible
-to manage Fibre Channel switches running FOS 8.2.1c. Tested with Ansible
-2.9.0 running Python 3.5.2. Also, Tested with AWX 13.0.0.
+to manage Fibre Channel switches running FOS 8.2.1c & 9.0.0a. Tested with
+Ansible 2.9.0 running Python 3.5.2. Also, Tested with AWX 13.0.0.
 
 ### Installation from Github.com ###
 
