@@ -164,6 +164,7 @@ valid_areas = [
     "brocade_security_user_config",
     "brocade_security_password_cfg",
     "brocade_security_security_certificate",
+    "brocade_security_sshutil_public_key",
     ]
 
 
@@ -253,6 +254,10 @@ def main():
             elif area == "brocade_security_security_certificate":
                 module_name = "brocade_security"
                 list_name = "security_certificate"
+                get_list = True
+            elif area == "brocade_security_sshutil_public_key":
+                module_name = "brocade_security"
+                list_name = "sshutil_public_key"
                 get_list = True
             elif area == "brocade_media_media_rdp":
                 module_name = "brocade_media"

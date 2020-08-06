@@ -1,0 +1,28 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: "{{fos_user_name}}"
+      fos_password: "{{fos_password}}"
+      https: "{{fos_https}}"
+    delete_sshutil_public_key:
+      - user_name: "admin"
+
+  tasks:
+
+
+  - name: delete public keys for admin
+    brocade_security_sshutil_public_key:
+      credential: "{{credential}}"
+      vfid: -1
+      delete_sshutil_public_key: "{{delete_sshutil_public_key}}"
