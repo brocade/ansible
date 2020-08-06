@@ -146,6 +146,7 @@ valid_areas = [
     "brocade_zoning",
     "brocade_interface_fibrechannel",
     "brocade_chassis_chassis",
+    "brocade_fabric_fabric_switch",
     "brocade_fibrechannel_configuration_fabric",
     "brocade_fibrechannel_configuration_port_configuration",
     "brocade_fibrechannel_switch",
@@ -268,6 +269,10 @@ def main():
             elif area == "brocade_fibrechannel_trunk_trunk_area":
                 module_name = "brocade_fibrechannel_trunk"
                 list_name = "trunk_area"
+                get_list = True
+            elif area == "brocade_fabric_fabric_switch":
+                module_name = "brocade_fabric"
+                list_name = "fabric_switch"
                 get_list = True
             elif area == "brocade_security_password_cfg":
                 module_name = "brocade_security"
