@@ -27,6 +27,10 @@ HTTPS = "https://"
 SELF_SIGNED = "self"
 
 
+ERROR_GENERIC = -1
+ERROR_LIST_EMPTY = -2
+ERROR_SERVER_BUSY = -3
+
 def full_url_get(is_https, fos_ip_addr, path):
     if isinstance(is_https, bool):
         if is_https:
@@ -71,13 +75,13 @@ def url_post_resp(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout)
 
     edict = {}
     retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs, timeout)
-    if retval == -1:
-        if eret != -3:
+    if retval == ERROR_GENERIC:
+        if eret != ERROR_SERVER_BUSY:
             return eret, edict
-        elif eret == -3:
+        elif eret == ERROR_SERVER_BUSY:
             time.sleep(auth["throttle"])
             retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs, timeout)
-            if retval == -1:
+            if retval == ERROR_GENERIC:
                 return eret, edict
 
     post_resp_data = post_resp.read()
@@ -118,13 +122,13 @@ def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout):
         url = url + VF_ID + str(vfid)
 
     retval, eret, edict, resp = url_helper(url, body, "PATCH", auth, result, validate_certs, timeout)
-    if retval == -1:
-        if eret != -3:
+    if retval == ERROR_GENERIC:
+        if eret != ERROR_SERVER_BUSY:
             return eret
-        elif eret == -3:
+        elif eret == ERROR_SERVER_BUSY:
             time.sleep(auth["throttle"])
             retval, eret, delete, resp = url_helper(url, body, "PATCH", auth, result, validate_certs, timeout)
-            if retval == -1:
+            if retval == ERROR_GENERIC:
                 return eret
 
     result["patch_resp_data"] = resp.read()
@@ -157,13 +161,13 @@ def url_delete(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout):
         url = url + VF_ID + str(vfid)
 
     retval, eret, edict, delete_resp = url_helper(url, body, "DELETE", auth, result, validate_certs, timeout)
-    if retval == -1:
-        if eret != -3:
+    if retval == ERROR_GENERIC:
+        if eret != ERROR_SERVER_BUSY:
             return eret
-        elif eret == -3:
+        elif eret == ERROR_SERVER_BUSY:
             time.sleep(auth["throttle"])
             retval, eret, delete, delete_resp = url_helper(url, body, "DELETE", auth, result, validate_certs, timeout)
-            if retval == -1:
+            if retval == ERROR_GENERIC:
                 return eret
 
     return 0
@@ -233,23 +237,23 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout, credent
             empty_list_resp = {}
             empty_list_resp["Response"] = {}
             empty_list_resp["Response"][os.path.basename(url)] = []
-            return -1, 0, empty_list_resp, None
+            return ERROR_GENERIC, 0, empty_list_resp, None
 
         result[method + "_url"] = url
         result[method + "_resp_code"] = e.code
         result[method + "_resp_reason"] = e.reason
 
-        ret_val = -1
+        ret_val = ERROR_GENERIC
         if e.code == 405:
-            ret_val = -2
+            ret_val = ERROR_LIST_EMPTY
         elif e.code == 503:
-            ret_val = -3
+            ret_val = ERROR_SERVER_BUSY
             result["myretry"] = True
         elif e.code == 400:
             is_known, err_msg = known_empty_message(root_dict["errors"]["error"])
             if is_known:
                 result["msg"] = err_msg
-                ret_val = -2
+                ret_val = ERROR_LIST_EMPTY
             else:
                 result["failed"] = True
                 result["msg"] = method + " failed"
@@ -257,7 +261,7 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout, credent
             result["failed"] = True
             result["msg"] = method + " failed"
 
-        return -1, ret_val, None, None
+        return ERROR_GENERIC, ret_val, None, None
 
     return 0, 0, None, get_resp,
 
@@ -290,13 +294,13 @@ def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url, timeout):
     edict = {}
     get_resp = {}
     retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs, timeout)
-    if retval == -1:
-        if eret != -3:
+    if retval == ERROR_GENERIC:
+        if eret != ERROR_SERVER_BUSY:
             return eret, edict
-        elif eret == -3:
+        elif eret == ERROR_SERVER_BUSY:
             time.sleep(auth["throttle"])
             retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs, timeout)
-            if retval == -1:
+            if retval == ERROR_GENERIC:
                 return eret, edict
 
     data = get_resp.read()

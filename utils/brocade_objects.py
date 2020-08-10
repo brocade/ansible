@@ -5,7 +5,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-from ansible.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object, url_post, url_delete, url_post_resp
+from ansible.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object, url_post, url_delete, url_post_resp, ERROR_LIST_EMPTY
 from ansible.module_utils.brocade_yang import yang_to_human, human_to_yang, str_to_yang, str_to_human, generate_diff, is_full_human
 from ansible.module_utils.brocade_ssh import ssh_and_configure
 from ansible.module_utils.brocade_interface import to_fos_fc, to_human_fc
@@ -112,7 +112,7 @@ def singleton_get(login, password, fos_ip_addr, module_name, obj_name, fos_versi
     ret, resp = url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
                                 result, full_url, timeout)
 
-    if ret == -2:
+    if ret == ERROR_LIST_EMPTY:
         # return empty dict. GET isn't supported
         return 0, ({"Response" : {str_to_yang(obj_name): {}}})
 
