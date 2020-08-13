@@ -39,7 +39,7 @@
         - user_friendly_name: "switch_name"
           fabric_user_friendly_name: "fabric_name"
           domain_id: 1
-          banner: "AUTHORIZED USERS ONLY!"
+          banner: "AUTHORIZED USERS ONLY"
           dynamic_load_sharing: "lossless-dls"
           dns_servers:
             dns_server:
@@ -70,7 +70,7 @@
 
 #  - debug: var=result
 
-  - name: port configuration
+  - name: port configuration. if running on a platform where credit recovery is supported, the line can be uncommented to update the mode.
     brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
@@ -79,7 +79,7 @@
       attributes:
         dynamic_portname_format: "I.T.A.R"
         portname_mode: "dynamic"
-        credit_recovery_mode: "onLrOnly"
+#        credit_recovery_mode: "onLrOnly"
 
   - name: enable switch after settings some attributes that require switch disable
     brocade_list_obj:
@@ -189,7 +189,7 @@
         contact: "Field Support."
         description: "DemoSwitch"
         encryption_enabled: False
-        informs_enabled: False
+        informs_enabled: True
         location: "San Jose"
         security_get_level: 0
         security_set_level: 3
@@ -316,7 +316,6 @@
           permission: "permit"
           protocol: "tcp"
           source_ip: "any"
-          traffic_type: "INPUT"
         - policy_name: "ipv4_telnet_http"
           index: 2
           destination_end_port: 23
@@ -325,7 +324,6 @@
           permission: "deny"
           protocol: "tcp"
           source_ip: "any"
-          traffic_type: "INPUT"
         - policy_name: "ipv4_telnet_http"
           index: 3
           destination_end_port: 80
@@ -334,7 +332,6 @@
           permission: "permit"
           protocol: "tcp"
           source_ip: "any"
-          traffic_type: "INPUT"
         - policy_name: "ipv4_telnet_http"
           index: 4
           destination_end_port: 443
@@ -343,7 +340,6 @@
           permission: "permit"
           protocol: "tcp"
           source_ip: "any"
-          traffic_type: "INPUT"
         - policy_name: "ipv4_telnet_http"
           index: 5
           destination_end_port: 161
@@ -352,7 +348,6 @@
           permission: "permit"
           protocol: "udp"
           source_ip: "any"
-          traffic_type: "INPUT"
         - policy_name: "ipv4_telnet_http"
           index: 6
           destination_end_port: 123
@@ -361,7 +356,6 @@
           permission: "permit"
           protocol: "udp"
           source_ip: "any"
-          traffic_type: "INPUT"
         - policy_name: "ipv4_telnet_http"
           index: 7
           destination_end_port: 1023
@@ -370,7 +364,6 @@
           permission: "permit"
           protocol: "tcp"
           source_ip: "any"
-          traffic_type: "INPUT"
         - policy_name: "ipv4_telnet_http"
           index: 8
           destination_end_port: 1023
@@ -379,7 +372,6 @@
           permission: "permit"
           protocol: "udp"
           source_ip: "any"
-          traffic_type: "INPUT"
         - policy_name: "ipv4_telnet_http"
           index: 9
           destination_end_port: 389
@@ -388,7 +380,6 @@
           permission: "permit"
           protocol: "tcp"
           source_ip: "any"
-          traffic_type: "INPUT"
         - policy_name: "ipv4_telnet_http"
           index: 10
           destination_end_port: 389
@@ -397,7 +388,6 @@
           permission: "permit"
           protocol: "udp"
           source_ip: "any"
-          traffic_type: "INPUT"
 
   - name: ipfilter policy is activated or active already
     brocade_security_ipfilter_policy:

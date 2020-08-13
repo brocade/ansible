@@ -200,10 +200,10 @@ def user_config_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
                     result["msg"] = "unknown account-enabled value. Invalid input"
                 l_user.pop("account-enabled")
 
-        rest_users = []
-        for l_user in l_users:
-            if len(l_user) > 1:
-                rest_users.append(l_user)
+    rest_users = []
+    for l_user in l_users:
+        if len(l_user) > 1:
+            rest_users.append(l_user)
 
     if len(rest_users) == 0:
         return 0

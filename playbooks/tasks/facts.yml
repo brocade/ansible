@@ -29,6 +29,7 @@
         - brocade_zoning
         - brocade_interface_fibrechannel
         - brocade_chassis_chassis
+        - brocade_fabric_fabric_switch
         - brocade_fibrechannel_configuration_fabric
         - brocade_fibrechannel_configuration_port_configuration
         - brocade_fibrechannel_switch

@@ -30,16 +30,22 @@
     v1_accounts:
       - index: 1
         community_name: "Secret code new"
+        community_group: "read-write"
       - index: 2
         community_name: "OrigEquipMfr new"
+        community_group: "read-write"
       - index: 3
         community_name: "private"
+        community_group: "read-write"
       - index: 4
         community_name: "public"
+        community_group: "read-only"
       - index: 5
         community_name: "common"
+        community_group: "read-only"
       - index: 6
         community_name: "FibreChannelNew"
+        community_group: "read-only"
     v1_traps:
       - index: 1
         host: "10.10.10.12"

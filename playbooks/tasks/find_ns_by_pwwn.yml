@@ -64,3 +64,18 @@
     debug:
       var: ansible_facts['alias']
     when: ansible_facts['alias'] is defined
+
+  - name: find switch with the matching domain id
+    brocade_fabric_switch_facts_by_pid:
+      credential: "{{credential}}"
+      vfid: -1
+      pid: "{{ ansible_facts['fibrechannel_name_server'][0]['port_id'] }}"
+    when: ansible_facts['fibrechannel_name_server'][0]['port_name'] is defined
+
+  - name: print switch WWN where the device is connected
+    vars:
+      name: "{{ ansible_facts['fabric_switch']['name'] }}"
+      switch_user_friendly_name: "{{ ansible_facts['fabric_switch']['switch_user_friendly_name'] }}"
+    debug:
+      msg: The device's is connected at "{{name}}" "{{switch_user_friendly_name}}"
+    when: ansible_facts['fibrechannel_name_server'][0]['port_name'] is defined

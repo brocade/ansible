@@ -35,8 +35,8 @@
         user_friendly_name: "new_switch_name"
         fabric_user_friendly_name: "new_fabric_name"
         domain_id: 2
-        banner: "MORE AUTHORIZED USERS ONLY!"
-        dynamic_load_sharing: "disabled"
+        banner: "MORE AUTHORIZED USERS ONLY"
+        dynamic_load_sharing: "two-hop-lossless-dls"
         domain_name: "google.com"
         dns_servers:
           dns_server:
@@ -55,14 +55,15 @@
 
 #  - debug: var=result
 
-  - name: change all port configuration
+  - name: change all port configuration. if running on a platform where credit recovery is supported, the line can be uncommented to update the mode.
     brocade_fibrechannel_configuration_port_configuration:
       credential: "{{credential}}"
       vfid: -1
+      timeout: 30
       port_configuration:
         dynamic_portname_format: "T.A.R"
         portname_mode: "off"
-        credit_recovery_mode: "off"
+#        credit_recovery_mode: "off"
 
   - name: enable switch
     brocade_fibrechannel_switch:
@@ -98,6 +99,7 @@
     brocade_zoning_default_zone:
       credential: "{{credential}}"
       vfid: -1
+      timeout: 30
       default_zone_access: noaccess
 
   - name: change all clock server configuration
@@ -152,7 +154,6 @@
         contact: "more Field Support."
         description: "more DemoSwitch"
         encryption_enabled: True
-        informs_enabled: True
         location: "more San Jose"
         security_get_level: 0
         security_set_level: 3
@@ -194,12 +195,10 @@
       v3_accounts:
         - index: 1
           authentication_protocol: "sha"
-          manager_engine_id: "00:00:00:00:00:00:00:00:00"
           privacy_protocol: "des"
           user_name: "snmpadmin11"
         - index: 2
           authentication_protocol: "md5"
-          manager_engine_id: "00:00:00:00:00:00:00:00:00"
           privacy_protocol: "aes128"
           user_name: "snmpadmin22"
 
@@ -244,6 +243,13 @@
           port_number: 162
           trap_severity_level: "none"
           usm_index: 6
+
+  - name: change global inform attribute after removing all from v3 traps
+    brocade_snmp_system:
+      credential: "{{credential}}"
+      vfid: -1
+      snmp_system:
+        informs_enabled: False
 
   - name: activate default ipv4 before deleting previously created custom policy
     brocade_security_ipfilter_policy:

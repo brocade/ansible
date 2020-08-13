@@ -88,7 +88,7 @@ def chassis_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfi
     l_diffs = diff_attributes.copy()
 
     if "telnet-timeout" in l_diffs:
-        rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "timeout " + str(l_diffs["telnet-timeout"]), "The modified IDLE Timeout will be in effect after NEXT login")
+        rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "timeout " + str(l_diffs["telnet-timeout"]), "Timeout will be in effect after NEXT login")
         if rssh != 0:
             result["failed"] = True
             result["msg"] = "Failed to set telnet-timeout. " + sshstr

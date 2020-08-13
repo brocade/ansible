@@ -10,7 +10,7 @@ import time
 import ansible.module_utils.urls as ansible_urls
 import ansible.module_utils.six.moves.urllib.error as urllib_error
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_xml import bsn_xmltodict
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_url import url_post, full_url_get, url_get_to_dict, url_helper
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_url import url_post, full_url_get, url_get_to_dict, url_helper, ERROR_GENERIC, ERROR_SERVER_BUSY
 
 
 __metaclass__ = type
@@ -53,17 +53,17 @@ def login(fos_ip_addr, fos_user_name, fos_password, is_https, throttle, result, 
                   "User-Agent": "Rest-Conf"}
 
     retval, eret, edict, login_resp = url_helper(full_login_url, None, "POST", None, result, validate_certs, timeout, credential=credential)
-    if retval == -1:
-        if eret != -3:
-            return eret, None, None
-        elif eret == -3:
+    if retval == ERROR_GENERIC:
+        if eret == ERROR_SERVER_BUSY:
             if throttle == None:
                 time.sleep(DEFAULT_THROTTLE)
             else:
                 time.sleep(throttle)
             retval, eret, edict, login_resp = url_helper(full_login_url, None, "POST", None, result, validate_certs, timeout, credential=credential)
-            if retval == -1:
+            if retval == ERROR_GENERIC:
                 return eret, None, None
+        else:
+            return eret, None, None
 
     full_switch_url, validate_certs = full_url_get(is_https,
                                                    fos_ip_addr,
