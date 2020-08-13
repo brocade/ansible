@@ -59,7 +59,7 @@
 
 #  - debug: var=result
 
-  - name: change all port configuration
+  - name: change all port configuration. if running on a platform where credit recovery is supported, the line can be uncommented to update the mode.
     brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
@@ -68,7 +68,7 @@
       attributes:
         dynamic_portname_format: "T.A.R"
         portname_mode: "off"
-        credit_recovery_mode: "off"
+#        credit_recovery_mode: "off"
 
   - name: enable switch
     brocade_list_obj:
@@ -224,12 +224,10 @@
       entries:
         - index: 1
           authentication_protocol: "sha"
-          manager_engine_id: "00:00:00:00:00:00:00:00:00"
           privacy_protocol: "des"
           user_name: "snmpadmin11"
         - index: 2
           authentication_protocol: "md5"
-          manager_engine_id: "00:00:00:00:00:00:00:00:00"
           privacy_protocol: "aes128"
           user_name: "snmpadmin22"
 

@@ -68,7 +68,7 @@
 
 #  - debug: var=result
 
-  - name: port configuration
+  - name: port configuration. if running on a platform where credit recovery is supported, the line can be uncommented to update the mode.
     brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
@@ -77,7 +77,7 @@
       attributes:
         dynamic_portname_format: "I.T.A.R"
         portname_mode: "dynamic"
-        credit_recovery_mode: "onLrOnly"
+#        credit_recovery_mode: "onLrOnly"
 
   - name: enable switch after settings some attributes that require switch disable
     brocade_list_obj:
