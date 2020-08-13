@@ -37,7 +37,7 @@
     debug:
       var: result.operation_resp
 
-  - name: show status before reboot
+  - name: show status before reboot. If connection refused error is returned during reboot, use showstatus.yml after reboot to view the current status.
     brocade_operation_show_status:
       credential: "{{credential}}"
       vfid: -1

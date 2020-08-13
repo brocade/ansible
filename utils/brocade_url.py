@@ -76,13 +76,13 @@ def url_post_resp(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout)
     edict = {}
     retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs, timeout)
     if retval == ERROR_GENERIC:
-        if eret != ERROR_SERVER_BUSY:
-            return eret, edict
-        elif eret == ERROR_SERVER_BUSY:
+        if eret == ERROR_SERVER_BUSY:
             time.sleep(auth["throttle"])
             retval, eret, edict, post_resp = url_helper(url, body, "POST", auth, result, validate_certs, timeout)
             if retval == ERROR_GENERIC:
                 return eret, edict
+        else:
+            return eret, edict
 
     post_resp_data = post_resp.read()
     if len(post_resp_data) == 0:
@@ -123,13 +123,13 @@ def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout):
 
     retval, eret, edict, resp = url_helper(url, body, "PATCH", auth, result, validate_certs, timeout)
     if retval == ERROR_GENERIC:
-        if eret != ERROR_SERVER_BUSY:
-            return eret
-        elif eret == ERROR_SERVER_BUSY:
+        if eret == ERROR_SERVER_BUSY:
             time.sleep(auth["throttle"])
             retval, eret, delete, resp = url_helper(url, body, "PATCH", auth, result, validate_certs, timeout)
             if retval == ERROR_GENERIC:
                 return eret
+        else:
+            return eret
 
     result["patch_resp_data"] = resp.read()
 
@@ -162,13 +162,13 @@ def url_delete(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout):
 
     retval, eret, edict, delete_resp = url_helper(url, body, "DELETE", auth, result, validate_certs, timeout)
     if retval == ERROR_GENERIC:
-        if eret != ERROR_SERVER_BUSY:
-            return eret
-        elif eret == ERROR_SERVER_BUSY:
+        if eret == ERROR_SERVER_BUSY:
             time.sleep(auth["throttle"])
             retval, eret, delete, delete_resp = url_helper(url, body, "DELETE", auth, result, validate_certs, timeout)
             if retval == ERROR_GENERIC:
                 return eret
+        else:
+            return eret
 
     return 0
 
@@ -295,13 +295,13 @@ def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url, timeout):
     get_resp = {}
     retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs, timeout)
     if retval == ERROR_GENERIC:
-        if eret != ERROR_SERVER_BUSY:
-            return eret, edict
-        elif eret == ERROR_SERVER_BUSY:
+        if eret == ERROR_SERVER_BUSY:
             time.sleep(auth["throttle"])
             retval, eret, edict, get_resp = url_helper(url, None, "GET", auth, result, validate_certs, timeout)
             if retval == ERROR_GENERIC:
                 return eret, edict
+        else:
+            return eret, edict
 
     data = get_resp.read()
     ret_code, root_dict = bsn_xmltodict(result, data)

@@ -60,14 +60,14 @@
 
 #  - debug: var=result
 
-  - name: port configuration. if credit_recovery_mode is not supported, comment out the line to avoid stopping the play
+  - name: port configuration. if running on a platform where credit recovery is supported, the line can be uncommented to update the mode.
     brocade_fibrechannel_configuration_port_configuration:
       credential: "{{credential}}"
       vfid: -1
       port_configuration:
         dynamic_portname_format: "I.T.A.R"
         portname_mode: "dynamic"
-        credit_recovery_mode: "onLrOnly"
+#        credit_recovery_mode: "onLrOnly"
 
   - name: enable switch after settings some attributes that require switch disable
     brocade_fibrechannel_switch:
