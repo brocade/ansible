@@ -97,6 +97,7 @@
     brocade_zoning_default_zone:
       credential: "{{credential}}"
       vfid: -1
+      timeout: 30
       default_zone_access: noaccess
 
   - name: change all clock server configuration
