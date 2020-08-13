@@ -227,27 +227,30 @@ def to_fos_fc(port_config, result):
             result["msg"] = "speed converted to unknown value"
             return -1
 
-    if "max_speed" in port_config:
-        if port_config["max_speed"] == "32Gig":
-            port_config["max_speed"] = "32000000000"
-        elif port_config["max_speed"] == "16Gig":
-            port_config["max_speed"] = "16000000000"
-        elif port_config["max_speed"] == "8Gig":
-            port_config["max_speed"] = "8000000000"
-        elif port_config["max_speed"] == "10Gig":
-            port_config["max_speed"] = "10000000000"
-        elif port_config["max_speed"] == "4Gig":
-            port_config["max_speed"] = "4000000000"
-        elif port_config["max_speed"] == "2Gig":
-            port_config["max_speed"] = "2000000000"
-        elif port_config["max_speed"] == "1Gig":
-            port_config["max_speed"] = "1000000000"
-        elif port_config["max_speed"] == "Auto":
-            port_config["max_speed"] = "0"
+    if "max-speed" in port_config:
+        if port_config["max-speed"] == "32Gig":
+            port_config["max-speed"] = "32000000000"
+        elif port_config["max-speed"] == "16Gig":
+            port_config["max-speed"] = "16000000000"
+        elif port_config["max-speed"] == "8Gig":
+            port_config["max-speed"] = "8000000000"
+        elif port_config["max-speed"] == "10Gig":
+            port_config["max-speed"] = "10000000000"
+        elif port_config["max-speed"] == "4Gig":
+            port_config["max-speed"] = "4000000000"
+        elif port_config["max-speed"] == "2Gig":
+            port_config["max-speed"] = "2000000000"
+        elif port_config["max-speed"] == "1Gig":
+            port_config["max-speed"] = "1000000000"
+        elif port_config["max-speed"] == "Auto":
+            port_config["max-speed"] = "0"
         else:
             result["failed"] = True
-            result["msg"] = "max_speed converted to unknown value"
+            result["msg"] = "max-speed converted to unknown value"
             return -1
+
+    if "user-friendly-name" in port_config:
+        port_config["user-friendly-name"] = port_config["user-friendly-name"].replace("<", "&lt;")
 
     return 0
 

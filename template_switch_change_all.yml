@@ -37,8 +37,8 @@
         - user_friendly_name: "new_switch_name"
           fabric_user_friendly_name: "new_fabric_name"
           domain_id: 2
-          banner: "MORE AUTHORIZED USERS ONLY!"
-          dynamic_load_sharing: "disabled"
+          banner: "MORE AUTHORIZED USERS ONLY"
+          dynamic_load_sharing: "two-hop-lossless-dls"
           domain_name: "google.com"
           dns_servers:
             dns_server:
@@ -59,7 +59,7 @@
 
 #  - debug: var=result
 
-  - name: change all port configuration
+  - name: change all port configuration. if running on a platform where credit recovery is supported, the line can be uncommented to update the mode.
     brocade_singleton_obj:
       credential: "{{credential}}"
       vfid: -1
@@ -68,7 +68,7 @@
       attributes:
         dynamic_portname_format: "T.A.R"
         portname_mode: "off"
-        credit_recovery_mode: "off"
+#        credit_recovery_mode: "off"
 
   - name: enable switch
     brocade_list_obj:
@@ -175,7 +175,6 @@
         contact: "more Field Support."
         description: "more DemoSwitch"
         encryption_enabled: True
-        informs_enabled: True
         location: "more San Jose"
         security_get_level: 0
         security_set_level: 3
@@ -225,12 +224,10 @@
       entries:
         - index: 1
           authentication_protocol: "sha"
-          manager_engine_id: "00:00:00:00:00:00:00:00:00"
           privacy_protocol: "des"
           user_name: "snmpadmin11"
         - index: 2
           authentication_protocol: "md5"
-          manager_engine_id: "00:00:00:00:00:00:00:00:00"
           privacy_protocol: "aes128"
           user_name: "snmpadmin22"
 
@@ -278,6 +275,15 @@
           trap_severity_level: "none"
           usm_index: 6
 
+  - name: disable inform after updating v3 traps
+    brocade_singleton_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_snmp"
+      obj_name: "system"
+      attributes:
+        informs_enabled: False
+
   - name: activate default ipv4 before deleting previously created custom policy
     brocade_security_ipfilter_policy:
       credential: "{{credential}}"
@@ -291,13 +297,15 @@
       delete_policies:
         - name: "ipv4_telnet_http"
 
-  - name: leave admin along, enable root & user and delete myaccount and youraccount
+  - name: leave admin along, enable root & user and delete myaccount and youraccount. For 9.0.0, maintanenance account was added.
     brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
       module_name: "brocade_security"
       list_name: "user_config"
       entries:
+#        - name: "maintenance"
+#          account_enabled: True
         - name: "user"
           account_enabled: True
         - name: "admin"

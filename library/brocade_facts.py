@@ -146,6 +146,7 @@ valid_areas = [
     "brocade_zoning",
     "brocade_interface_fibrechannel",
     "brocade_chassis_chassis",
+    "brocade_fabric_fabric_switch",
     "brocade_fibrechannel_configuration_fabric",
     "brocade_fibrechannel_configuration_port_configuration",
     "brocade_fibrechannel_switch",
@@ -163,6 +164,7 @@ valid_areas = [
     "brocade_security_user_config",
     "brocade_security_password_cfg",
     "brocade_security_security_certificate",
+    "brocade_security_sshutil_public_key",
     ]
 
 
@@ -253,6 +255,10 @@ def main():
                 module_name = "brocade_security"
                 list_name = "security_certificate"
                 get_list = True
+            elif area == "brocade_security_sshutil_public_key":
+                module_name = "brocade_security"
+                list_name = "sshutil_public_key"
+                get_list = True
             elif area == "brocade_media_media_rdp":
                 module_name = "brocade_media"
                 list_name = "media_rdp"
@@ -268,6 +274,10 @@ def main():
             elif area == "brocade_fibrechannel_trunk_trunk_area":
                 module_name = "brocade_fibrechannel_trunk"
                 list_name = "trunk_area"
+                get_list = True
+            elif area == "brocade_fabric_fabric_switch":
+                module_name = "brocade_fabric"
+                list_name = "fabric_switch"
                 get_list = True
             elif area == "brocade_security_password_cfg":
                 module_name = "brocade_security"

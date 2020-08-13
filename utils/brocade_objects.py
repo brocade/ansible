@@ -5,7 +5,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
-from ansible.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object, url_post, url_delete, url_post_resp
+from ansible.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object, url_post, url_delete, url_post_resp, ERROR_LIST_EMPTY
 from ansible.module_utils.brocade_yang import yang_to_human, human_to_yang, str_to_yang, str_to_human, generate_diff, is_full_human
 from ansible.module_utils.brocade_ssh import ssh_and_configure
 from ansible.module_utils.brocade_interface import to_fos_fc, to_human_fc
@@ -57,7 +57,7 @@ def to_fos_singleton(module_name, obj_name, attributes, result):
             if k == "new-password":
                 attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
 
-        if module_name == "brocade_security" and obj_name == "security_certificate_action":
+        if module_name == "brocade_security" and (obj_name == "security_certificate_action" or obj_name == "sshutil_public_key_action"):
             if k == "remote-user-password":
                 attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
 
@@ -97,10 +97,12 @@ def singleton_get(login, password, fos_ip_addr, module_name, obj_name, fos_versi
     if module_name == "brocade_fibrechannel_configuration" and obj_name == "port_configuration":
         return port_configuration_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout)
 
-    # get is not support for this module. Just return empty
+    # get is not support for these modules. Just return empty
     if module_name == "brocade_security" and obj_name == "security_certificate_action":
         return 0, ({"Response" : {str_to_yang(obj_name): {}}})
     if module_name == "brocade_security" and obj_name == "security_certificate_generate":
+        return 0, ({"Response" : {str_to_yang(obj_name): {}}})
+    if module_name == "brocade_security" and obj_name == "sshutil_public_key_action":
         return 0, ({"Response" : {str_to_yang(obj_name): {}}})
 
     full_url, validate_certs = full_url_get(is_https,
@@ -110,7 +112,7 @@ def singleton_get(login, password, fos_ip_addr, module_name, obj_name, fos_versi
     ret, resp = url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
                                 result, full_url, timeout)
 
-    if ret == -2:
+    if ret == ERROR_LIST_EMPTY:
         # return empty dict. GET isn't supported
         return 0, ({"Response" : {str_to_yang(obj_name): {}}})
 
@@ -569,7 +571,10 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
 
     current_entries = response["Response"][str_to_yang(list_name)]
     if not isinstance(current_entries, list):
-        current_entries = [current_entries]
+        if current_entries is None:
+            current_entries = []
+        else:
+            current_entries = [current_entries]
 
     to_human_list(module_name, list_name, current_entries, result)
 
@@ -722,7 +727,10 @@ def list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, 
 
     current_entries = response["Response"][str_to_yang(list_name)]
     if not isinstance(current_entries, list):
-        current_entries = [current_entries]
+        if current_entries is None:
+            current_entries = []
+        else:
+            current_entries = [current_entries]
 
     to_human_list(module_name, list_name, current_entries, result)
 
@@ -868,6 +876,9 @@ def to_fos_operation(op_name, in_name, attributes, result):
     for k, v in attributes.items():
         # if going to fos, we need to encode password
         if op_name == "supportsave" and in_name == "connection":
+            if k == "password":
+                attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
+        if op_name == "firmwaredownload" and in_name == "firmwaredownload_parameters":
             if k == "password":
                 attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
 

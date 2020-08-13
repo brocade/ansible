@@ -15,22 +15,17 @@
       fos_user_name: "{{fos_user_name}}"
       fos_password: "{{fos_password}}"
       https: "{{fos_https}}"
-    show_status:
-      message_id: 20000
 
   tasks:
 
-  - name: show status
-    brocade_operation_show_status:
+  - name: gather facts
+    brocade_facts:
       credential: "{{credential}}"
       vfid: -1
-      show_status: "{{show_status}}"
-    register: result
-    until: result.operation_resp is not defined or result.operation_resp.show_status.status == "done" or result.operation_resp.show_status.status == "delivered"
-    retries: 100
-    delay: 10
+      timeout: 300
+      gather_subset:
+        - brocade_security_sshutil_public_key
 
   - name: print ansible_facts gathered
     debug:
-      var: result.operation_resp
-
+      var: ansible_facts

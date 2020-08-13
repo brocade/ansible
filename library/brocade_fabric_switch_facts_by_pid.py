@@ -17,12 +17,12 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 
-module: brocade_list_obj_facts
-short_description: Brocade generic facts gathering for list objects
+module: brocade_fabric_switch_facts_by_pid
+short_description: Brocade facts gathering of fabric switch by pid of device
 version_added: '2.6'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Gather FOS facts for objects that are defined as list in Yang
+- Gather FOS facts
 
 options:
 
@@ -52,24 +52,10 @@ options:
         - rest timeout in seconds for operations taking longer than
           default timeout.
         required: false
-    module_name:
+    pid:
         description:
-        - Yang module name. Hyphen or underscore are used interchangebly.
-          If the Yang module name is xy-z, either xy-z or xy_z are acceptable.
+        - pid of the device
         required: true
-    obj_name:
-        description:
-        - Yang name for the list object. Hyphen or underscore are used
-          interchangebly. If the Yang list name is xy-z, either
-          xy-z or xy_z are acceptable.
-        required: true
-    attributes:
-        description:
-        - list of attributes for the object to match to return.
-          names match Yang rest attributes with "-" replaced with "_".
-          If none is given, the module returns all valid entries.
-          Using hyphen in the name may result in errenously behavior
-          based on Ansible parsing.
 
 '''
 
@@ -82,22 +68,20 @@ EXAMPLES = """
       fos_user_name: admin
       fos_password: fibranne
       https: False
-    wwn_to_search: "11:22:33:44:55:66:77:88"
+    pid_to_search: "0x140000"
 
   tasks:
 
-  - name: gather device info
-    brocade_list_obj_facts:
+  - name: gather device alias info
+    brocade_fabric_switch_facts_by_pid:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-name-server"
-      list_name: "fibrechannel-name-server"
-      attributes:
-        port_name: "{{wwn_to_search}}"
+      pid: "{{pid_to_search}}"
 
-  - name: print ansible_facts gathered
+  - name: print fabric switch information matching pid
     debug:
-      var: ansible_facts
+      var: ansible_facts['fabric_switch']
+    when: ansible_facts['fabric_switch'] is defined
 
 """
 
@@ -113,13 +97,13 @@ msg:
 
 
 """
-Brocade Fibre Channel Port Configuration
+Brocade fabric switch find by connected device's PID
 """
 
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible.module_utils.brocade_yang import str_to_yang
 from ansible.module_utils.brocade_objects import list_get, to_human_list
-from ansible.module_utils.brocade_yang import str_to_human, str_to_yang
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -133,9 +117,7 @@ def main():
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
         timeout=dict(required=False, type='float'),
-        module_name=dict(required=True, type='str'),
-        list_name=dict(required=True, type='str'),
-        attributes=dict(required=False, type='dict'))
+        pid=dict(required=True, type='str'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -155,9 +137,7 @@ def main():
     throttle = input_params['throttle']
     timeout = input_params['timeout']
     vfid = input_params['vfid']
-    module_name = str_to_human(input_params['module_name'])
-    list_name = str_to_human(input_params['list_name'])
-    attributes = input_params['attributes']
+    pid = input_params['pid']
     result = {"changed": False}
 
     if vfid is None:
@@ -172,6 +152,9 @@ def main():
     facts = {}
 
     facts['ssh_hostkeymust'] = ssh_hostkeymust
+
+    module_name = "brocade_fabric"
+    list_name = "fabric_switch"
 
     ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
                                   module_name, list_name, fos_version,
@@ -192,27 +175,15 @@ def main():
 
     result["obj_list"] = obj_list
 
+    did = int(pid, 16) >> 16
+
+    result["did"] = did
+
     ret_dict = {}
-    ret_list = []
+
     for obj in obj_list:
-        if attributes == None:
-            ret_list.append(obj)
-        else:
-            matched_all = 0
-            for k, v in attributes.items():
-                if k in obj and obj[k] == v:
-                    matched_all = matched_all + 1
-
-            if matched_all == len(attributes.items()):
-                ret_list.append(obj)
-
-    if attributes == None:
-        result["attributes_len"] = 0
-    else:
-        result["attributes_len"] = len(attributes.items())
-    result["ret_list"] = ret_list
-
-    ret_dict[list_name] = ret_list
+        if obj["domain_id"] == str(did):
+            ret_dict[list_name] = obj
 
     result["ansible_facts"] = ret_dict
 
