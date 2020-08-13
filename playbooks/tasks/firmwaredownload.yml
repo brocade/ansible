@@ -8,6 +8,8 @@
 
 - hosts: san_eng_zone_seed_san_a
   gather_facts: False
+  collections:
+    - brocade.fos
 
   vars:
     credential:
