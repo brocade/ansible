@@ -195,6 +195,12 @@ def to_fos_list(module_name, list_name, attributes_list, result):
         if module_name == "brocade_fibrechannel_switch" and list_name == "fibrechannel_switch":
             to_fos_switch(attributes, result)
 
+        if module_name == "brocade_security" and list_name == "user_config":
+            if "password" in attributes:
+                pword = attributes["password"]
+                if str(pword) != "None":
+                    attributes["password"] = base64.b64encode(pword.encode('ascii')).decode('utf-8')
+
         for k, v in attributes.items():
             if isinstance(v, bool):
                 if v == True:
