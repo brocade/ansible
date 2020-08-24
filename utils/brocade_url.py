@@ -224,7 +224,7 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout, credent
     try:
         get_resp = ansible_urls.open_url(url, body,
                                          headers=myheaders,
-                                         method=method, timeout=timeout, validate_certs=validate_certs)
+                                         method=method, timeout=timeout, validate_certs=validate_certs, follow_redirects=False)
     except urllib_error.HTTPError as e:
         e_data = e.read()
         if len(e_data) > 0:
