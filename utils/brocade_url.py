@@ -184,7 +184,8 @@ messages_404 = [
     "TACACS+ configuration does not exist.",
     "LDAP configuration does not exist.",
     "Role Map Configuration does not exist",
-    "No public keys found"
+    "No public keys found",
+    "No device was found"
     ]
 
 empty_messages_400 = [

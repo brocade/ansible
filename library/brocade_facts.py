@@ -143,6 +143,12 @@ from ansible.module_utils.basic import AnsibleModule
 
 
 valid_areas = [
+    "brocade_access_gateway_port_group",
+    "brocade_access_gateway_n_port_map",
+    "brocade_access_gateway_f_port_list",
+    "brocade_access_gateway_device_list",
+    "brocade_access_gateway_policy",
+    "brocade_access_gateway_n_port_settings",
     "brocade_zoning",
     "brocade_interface_fibrechannel",
     "brocade_chassis_chassis",
@@ -227,7 +233,31 @@ def main():
             get_list = False
             get_singleton = False
 
-            if area == "brocade_interface_fibrechannel":
+            if area == "brocade_access_gateway_port_group":
+                module_name = "brocade_access_gateway"
+                list_name = "port_group"
+                get_list = True
+            elif area == "brocade_access_gateway_n_port_map":
+                module_name = "brocade_access_gateway"
+                list_name = "n_port_map"
+                get_list = True
+            elif area == "brocade_access_gateway_f_port_list":
+                module_name = "brocade_access_gateway"
+                list_name = "f_port_list"
+                get_list = True
+            elif area == "brocade_access_gateway_device_list":
+                module_name = "brocade_access_gateway"
+                list_name = "device_list"
+                get_list = True
+            elif area == "brocade_access_gateway_policy":
+                module_name = "brocade_access_gateway"
+                obj_name = "policy"
+                get_singleton = True
+            elif area == "brocade_access_gateway_n_port_settings":
+                module_name = "brocade_access_gateway"
+                obj_name = "n_port_settings"
+                get_singleton = True
+            elif area == "brocade_interface_fibrechannel":
                 module_name = "brocade_interface"
                 list_name = "fibrechannel"
                 get_list = True
