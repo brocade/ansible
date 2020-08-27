@@ -1,0 +1,68 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: "{{fos_user_name}}"
+      fos_password: "{{fos_password}}"
+      https: "{{fos_https}}"
+
+  tasks:
+
+  - name: port group configuration
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_access_gateway"
+      list_name: "port_group"
+      entries:
+        - port_group_id: "0"
+          port_group_name: "pg0"
+          port_group_mode:
+            load_balancing_mode_enabled: "1"
+            multiple_fabric_name_monitoring_mode_enabled: "1"
+        - port_group_id: "1"
+          port_group_name: "pg1"
+          port_group_mode:
+            load_balancing_mode_enabled: "1"
+            multiple_fabric_name_monitoring_mode_enabled: "1"
+          port_group_n_ports:
+            n_port:
+              - "0/46"
+        - port_group_id: "2"
+          port_group_name: "pg2"
+          port_group_mode:
+            load_balancing_mode_enabled: "1"
+            multiple_fabric_name_monitoring_mode_enabled: "1"
+          port_group_n_ports:
+            n_port:
+              - "0/47"
+
+  - name: port group f-port configuration
+    brocade_list_obj:
+      credential: "{{credential}}"
+      vfid: -1
+      module_name: "brocade_access_gateway"
+      list_name: "port_group"
+      entries:
+        - port_group_id: "0"
+          port_group_name: "pg0"
+        - port_group_id: "1"
+          port_group_name: "pg1"
+          port_group_f_ports:
+            f_port:
+              - "0/36"
+        - port_group_id: "2"
+          port_group_name: "pg2"
+          port_group_f_ports:
+            f_port:
+              - "0/37"

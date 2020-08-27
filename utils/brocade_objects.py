@@ -174,6 +174,21 @@ def to_human_list(module_name, list_name, attributes_list, result):
                         new_list.append(attributes["ip_static_gateway_list"]["ip_static_gateway"])
                         attributes["ip_static_gateway_list"]["ip_static_gateway"] = new_list
 
+        if module_name == "brocade_access_gateway" and list_name == "port_group":
+            if "port_group_n_ports" in attributes:
+                if attributes["port_group_n_ports"] is not None and "n_port" in attributes["port_group_n_ports"]:
+                    if not isinstance(attributes["port_group_n_ports"]["n_port"], list):
+                        new_list = []
+                        new_list.append(attributes["port_group_n_ports"]["n_port"])
+                        attributes["port_group_n_ports"]["n_port"] = new_list
+
+            if "port_group_f_ports" in attributes:
+                if attributes["port_group_f_ports"] is not None and "f_port" in attributes["port_group_f_ports"]:
+                    if not isinstance(attributes["port_group_f_ports"]["f_port"], list):
+                        new_list = []
+                        new_list.append(attributes["port_group_f_ports"]["f_port"])
+                        attributes["port_group_f_ports"]["f_port"] = new_list
+
 
 def to_fos_list(module_name, list_name, attributes_list, result):
     for attributes in attributes_list:
@@ -211,6 +226,9 @@ def to_fos_list(module_name, list_name, attributes_list, result):
     return 0
 
 list_keys = {
+    "brocade_access_gateway": {
+        "port_group" : ["port_group_id"],
+    },
     "brocade_snmp": {
         "v1_account" : ["index"],
         "v1_trap" : ["index"],
