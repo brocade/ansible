@@ -1,0 +1,133 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: "{{fos_user_name}}"
+      fos_password: "{{fos_password}}"
+      https: "{{fos_https}}"
+
+    n_port_map:
+      - n_port: "0/40"
+        failback_enabled: "1"
+        failover_enabled: "1"
+        n_port_info: null
+        online_status: "0"
+        reliable_status: "1"
+        static_f_port_list: null
+        configured_f_port_list:
+          f_port:
+            - "0/0"
+            - "0/1"
+            - "0/2"
+            - "0/3"
+            - "0/4"
+      - n_port: "0/41"
+        failback_enabled: "1"
+        failover_enabled: "1"
+        n_port_info: null
+        online_status: "0"
+        reliable_status: "1"
+        static_f_port_list: null
+        configured_f_port_list:
+          f_port:
+            - "0/5"
+            - "0/6"
+            - "0/7"
+            - "0/8"
+            - "0/9"
+      - n_port: "0/42"
+        failback_enabled: "1"
+        failover_enabled: "1"
+        n_port_info: null
+        online_status: "0"
+        reliable_status: "1"
+        static_f_port_list: null
+        configured_f_port_list:
+          f_port:
+            - "0/10"
+            - "0/11"
+            - "0/12"
+            - "0/13"
+            - "0/14"
+      - n_port: "0/43"
+        failback_enabled: "1"
+        failover_enabled: "1"
+        n_port_info: null
+        online_status: "0"
+        reliable_status: "1"
+        static_f_port_list: null
+        configured_f_port_list:
+          f_port:
+            - "0/15"
+            - "0/16"
+            - "0/17"
+            - "0/18"
+            - "0/19"
+      - n_port: "0/44"
+        failback_enabled: "1"
+        failover_enabled: "1"
+        n_port_info: null
+        online_status: "0"
+        reliable_status: "1"
+        static_f_port_list: null
+        configured_f_port_list:
+          f_port:
+            - "0/20"
+            - "0/21"
+            - "0/22"
+            - "0/23"
+            - "0/24"
+      - n_port: "0/45"
+        failback_enabled: "1"
+        failover_enabled: "1"
+        n_port_info: null
+        online_status: "0"
+        reliable_status: "1"
+        static_f_port_list: null
+        configured_f_port_list:
+          f_port:
+            - "0/25"
+            - "0/26"
+            - "0/27"
+            - "0/28"
+            - "0/29"
+      - n_port: "0/46"
+        failback_enabled: "1"
+        failover_enabled: "1"
+        n_port_info: null
+        online_status: "0"
+        reliable_status: "1"
+        static_f_port_list: null
+        configured_f_port_list:
+          f_port:
+            - "0/34"
+            - "0/35"
+      - n_port: "0/47"
+        failback_enabled: "1"
+        failover_enabled: "1"
+        n_port_info: null
+        online_status: "0"
+        reliable_status: "1"
+        static_f_port_list: null
+        configured_f_port_list:
+          f_port:
+            - "0/36"
+            - "0/37"
+
+  tasks:
+
+  - name: port group configuration
+    brocade_access_gateway_n_port_map:
+      credential: "{{credential}}"
+      vfid: -1
+      n_port_map: "{{n_port_map}}"

@@ -17,7 +17,7 @@
       https: "{{fos_https}}"
     policy:
       auto_policy_enabled: False
-      port_group_policy_enabled: True
+      port_group_policy_enabled: False
       
 
   tasks:

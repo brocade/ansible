@@ -235,6 +235,7 @@ def to_fos_list(module_name, list_name, attributes_list, result):
 list_keys = {
     "brocade_access_gateway": {
         "port_group" : ["port_group_id"],
+        "n_port_map" : ["n_port"],
     },
     "brocade_snmp": {
         "v1_account" : ["index"],
