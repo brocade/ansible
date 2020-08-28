@@ -16,53 +16,54 @@
       fos_password: "{{fos_password}}"
       https: "{{fos_https}}"
 
+    all_port_groups_with_n_ports:
+      - port_group_id: "0"
+        port_group_name: "pg0"
+        port_group_mode:
+          load_balancing_mode_enabled: "0"
+          multiple_fabric_name_monitoring_mode_enabled: "0"
+      - port_group_id: "1"
+        port_group_name: "pg1"
+        port_group_mode:
+          load_balancing_mode_enabled: "1"
+          multiple_fabric_name_monitoring_mode_enabled: "1"
+        port_group_n_ports:
+          n_port:
+            - "0/46"
+      - port_group_id: "2"
+        port_group_name: "pg2"
+        port_group_mode:
+          load_balancing_mode_enabled: "1"
+          multiple_fabric_name_monitoring_mode_enabled: "1"
+        port_group_n_ports:
+          n_port:
+            - "0/47"
+
+    all_port_groups_with_f_ports:
+      - port_group_id: "0"
+      - port_group_id: "1"
+        port_group_name: "pg1"
+        port_group_f_ports:
+          f_port:
+            - "0/34"
+            - "0/35"
+      - port_group_id: "2"
+        port_group_name: "pg2"
+        port_group_f_ports:
+          f_port:
+            - "0/36"
+            - "0/37"
+    
   tasks:
 
   - name: port group configuration
-    brocade_list_obj:
+    brocade_access_gateway_port_group:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade_access_gateway"
-      list_name: "port_group"
-      entries:
-        - port_group_id: "0"
-          port_group_name: "pg0"
-          port_group_mode:
-            load_balancing_mode_enabled: "1"
-            multiple_fabric_name_monitoring_mode_enabled: "1"
-        - port_group_id: "1"
-          port_group_name: "pg1"
-          port_group_mode:
-            load_balancing_mode_enabled: "1"
-            multiple_fabric_name_monitoring_mode_enabled: "1"
-          port_group_n_ports:
-            n_port:
-              - "0/46"
-        - port_group_id: "2"
-          port_group_name: "pg2"
-          port_group_mode:
-            load_balancing_mode_enabled: "1"
-            multiple_fabric_name_monitoring_mode_enabled: "1"
-          port_group_n_ports:
-            n_port:
-              - "0/47"
+      port_groups: "{{all_port_groups_with_n_ports}}"
 
   - name: port group f-port configuration
-    brocade_list_obj:
+    brocade_access_gateway_port_group:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade_access_gateway"
-      list_name: "port_group"
-      entries:
-        - port_group_id: "0"
-          port_group_name: "pg0"
-        - port_group_id: "1"
-          port_group_name: "pg1"
-          port_group_f_ports:
-            f_port:
-              - "0/36"
-        - port_group_id: "2"
-          port_group_name: "pg2"
-          port_group_f_ports:
-            f_port:
-              - "0/37"
+      port_groups: "{{all_port_groups_with_f_ports}}"

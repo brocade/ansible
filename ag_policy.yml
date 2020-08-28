@@ -15,27 +15,16 @@
       fos_user_name: "{{fos_user_name}}"
       fos_password: "{{fos_password}}"
       https: "{{fos_https}}"
+    policy:
+      auto_policy_enabled: False
+      port_group_policy_enabled: True
+      
 
   tasks:
 
-  - name: switch disabled
-    brocade_fibrechannel_switch:
-      credential: "{{credential}}"
-      vfid: -1
-      switch:
-        enabled_state: False
-
-  - name: ag mode enabled. if changing, switch will reboot afterward.
-    brocade_fibrechannel_switch:
+  - name: ag policy
+    brocade_access_gateway_policy:
       credential: "{{credential}}"
       vfid: -1
       timeout: 300
-      switch:
-        ag_mode: 3
-
-  - name: switch enabled
-    brocade_fibrechannel_switch:
-      credential: "{{credential}}"
-      vfid: -1
-      switch:
-        enabled_state: True
+      policy: "{{policy}}"

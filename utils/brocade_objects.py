@@ -14,6 +14,7 @@ from ansible.module_utils.brocade_fibrechannel_configuration import fabric_get, 
 from ansible.module_utils.brocade_fibrechannel_switch import to_human_switch, to_fos_switch, fc_switch_get, fc_switch_patch
 from ansible.module_utils.brocade_interface import to_human_fc, to_fos_fc, fc_port_get, fc_port_patch
 from ansible.module_utils.brocade_security import user_config_patch
+from ansible.module_utils.brocade_access_gateway import to_human_access_gateway_policy, to_fos_access_gateway_policy
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
 import base64
 
@@ -45,6 +46,9 @@ def to_human_singleton(module_name, obj_name, attributes):
                 new_list.append(attributes["ntp_server_address"]["server_address"])
                 attributes["ntp_server_address"]["server_address"] = new_list
 
+    if module_name == "brocade_access_gateway" and obj_name == "policy":
+        to_human_access_gateway_policy(attributes)
+
 
 def to_fos_singleton(module_name, obj_name, attributes, result):
     human_to_yang(attributes)
@@ -60,6 +64,9 @@ def to_fos_singleton(module_name, obj_name, attributes, result):
         if module_name == "brocade_security" and (obj_name == "security_certificate_action" or obj_name == "sshutil_public_key_action"):
             if k == "remote-user-password":
                 attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
+
+    if module_name == "brocade_access_gateway" and obj_name == "policy":
+        to_fos_access_gateway_policy(attributes, result)
 
     for k, v in attributes.items():
         if isinstance(v, bool):
