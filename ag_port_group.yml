@@ -29,7 +29,8 @@
           multiple_fabric_name_monitoring_mode_enabled: "1"
         port_group_n_ports:
           n_port:
-            - "0/46"
+            - "0/44"
+            - "0/45"
       - port_group_id: "2"
         port_group_name: "pg2"
         port_group_mode:
@@ -37,6 +38,7 @@
           multiple_fabric_name_monitoring_mode_enabled: "1"
         port_group_n_ports:
           n_port:
+            - "0/46"
             - "0/47"
 
     all_port_groups_with_f_ports:

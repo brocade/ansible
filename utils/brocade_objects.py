@@ -388,9 +388,15 @@ def list_xml_str(result, module_name, list_name, entries):
                             for entry in v1:
                                 xml_str = xml_str + "<" + k1 + ">" + str(entry) + "</" + k1 + ">"
                         else:
-                            xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">"
+                            if v1 == None:
+                                xml_str = xml_str + "<" + k1 + "></" + k1 + ">"
+                            else:
+                                xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">"
                 else:
-                    xml_str = xml_str + str(v)
+                    if v == None:
+                        xml_str = xml_str
+                    else:
+                        xml_str = xml_str + str(v)
 
                 xml_str = xml_str + "</" + k + ">"
 
@@ -433,8 +439,21 @@ def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version
 
     result["patch_str"] = xml_str
 
-    return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                     full_url, xml_str, timeout)
+    if module_name == "brocade_access_gateway" and list_name == "port_group":
+        empty_port_groups = []
+        for port_group in entries:
+            if "port-group-n-ports" in port_group and "n-port" in port_group["port-group-n-ports"] and port_group["port-group-n-ports"]["n-port"] is not None:
+                empty_port_groups.append({"port-group-id":port_group["port-group-id"], "port-group-n-ports":{"n-port": None}})
+        if len(empty_port_groups) > 0:
+            empty_xml_str = list_xml_str(result, module_name, list_name, empty_port_groups)
+
+            result["patch_str_empty_ag"] = empty_xml_str
+            url_patch(fos_ip_addr, is_https, auth, vfid, result,
+                      full_url, empty_xml_str, timeout)
+
+
+    return(url_patch(fos_ip_addr, is_https, auth, vfid, result,
+                     full_url, xml_str, timeout))
 
 
 def list_post(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust, timeout):
@@ -620,6 +639,13 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
             exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
         entries[0]["name"] = current_entries[0]["name"]
+
+    if module_name == "brocade_access_gateway" and list_name == "port_group":
+        for port_group in current_entries:
+            if port_group["port_group_n_ports"] == None:
+                port_group["port_group_n_ports"] = {"n_port": None}
+            if port_group["port_group_f_ports"] == None:
+                port_group["port_group_f_ports"] = {"f_port": None}
 
     diff_entries = []
     for entry in entries:
