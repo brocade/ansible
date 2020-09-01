@@ -195,6 +195,15 @@ def to_human_list(module_name, list_name, attributes_list, result):
                         new_list = []
                         new_list.append(attributes["port_group_f_ports"]["f_port"])
                         attributes["port_group_f_ports"]["f_port"] = new_list
+                        
+        if module_name == "brocade_access_gateway" and list_name == "n_port_map":
+            if "configured_f_port_list" in attributes:
+                if attributes["configured_f_port_list"] is not None and "f_port" in attributes["configured_f_port_list"]:
+                    if not isinstance(attributes["configured_f_port_list"]["f_port"], list):
+                        new_list = []
+                        new_list.append(attributes["configured_f_port_list"]["f_port"])
+                        attributes["configured_f_port_list"]["f_port"] = new_list
+
 
 
 def to_fos_list(module_name, list_name, attributes_list, result):
@@ -439,11 +448,18 @@ def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version
 
     result["patch_str"] = xml_str
 
+    # AG always expect nport and fports to be removed from another
+    # none default port group before being added. So, we go through
+    # an port group that has nport or fport list being updated,
+    # clean them out first, then do the normal patch to update to the
+    # final list
     if module_name == "brocade_access_gateway" and list_name == "port_group":
         empty_port_groups = []
         for port_group in entries:
             if "port-group-n-ports" in port_group and "n-port" in port_group["port-group-n-ports"] and port_group["port-group-n-ports"]["n-port"] is not None:
                 empty_port_groups.append({"port-group-id":port_group["port-group-id"], "port-group-n-ports":{"n-port": None}})
+            if "port-group-f-ports" in port_group and "f-port" in port_group["port-group-f-ports"] and port_group["port-group-f-ports"]["f-port"] is not None:
+                empty_port_groups.append({"port-group-id":port_group["port-group-id"], "port-group-f-ports":{"f-port": None}})
         if len(empty_port_groups) > 0:
             empty_xml_str = list_xml_str(result, module_name, list_name, empty_port_groups)
 
@@ -451,6 +467,22 @@ def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version
             url_patch(fos_ip_addr, is_https, auth, vfid, result,
                       full_url, empty_xml_str, timeout)
 
+    # AG always expect fports to be removed from another nport before
+    # being added. to another nport So, we go through
+    # an nport map that has fport list being updated,
+    # clean them out first, then do the normal patch to update to the
+    # final list
+    if module_name == "brocade_access_gateway" and list_name == "n_port_map":
+        empty_n_port_maps = []
+        for n_port_map in entries:
+            if "configured-f-port-list" in n_port_map and "f-port" in n_port_map["configured-f-port-list"] and n_port_map["configured-f-port-list"]["f-port"] is not None:
+                empty_n_port_maps.append({"n-port":n_port_map["n-port"], "configured-f-port-list":{"f-port": None}})
+        if len(empty_n_port_maps) > 0:
+            empty_xml_str = list_xml_str(result, module_name, list_name, empty_n_port_maps)
+
+            result["patch_str_empty_ag"] = empty_xml_str
+            url_patch(fos_ip_addr, is_https, auth, vfid, result,
+                      full_url, empty_xml_str, timeout)
 
     return(url_patch(fos_ip_addr, is_https, auth, vfid, result,
                      full_url, xml_str, timeout))
