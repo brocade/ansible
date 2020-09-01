@@ -59,48 +59,6 @@
             - "0/36"
             - "0/37"
    
-    n_port_map:
-      - n_port: "0/44"
-        failback_enabled: "1"
-        failover_enabled: "1"
-        n_port_info: null
-        online_status: "0"
-        reliable_status: "1"
-        static_f_port_list: null
-        configured_f_port_list:
-          f_port:
-            - "0/35"
-      - n_port: "0/45"
-        failback_enabled: "1"
-        failover_enabled: "1"
-        n_port_info: null
-        online_status: "0"
-        reliable_status: "1"
-        static_f_port_list: null
-        configured_f_port_list:
-          f_port:
-            - "0/34"
-      - n_port: "0/46"
-        failback_enabled: "1"
-        failover_enabled: "1"
-        n_port_info: null
-        online_status: "0"
-        reliable_status: "1"
-        static_f_port_list: null
-        configured_f_port_list:
-          f_port:
-            - "0/36"
-      - n_port: "0/47"
-        failback_enabled: "1"
-        failover_enabled: "1"
-        n_port_info: null
-        online_status: "0"
-        reliable_status: "1"
-        static_f_port_list: null
-        configured_f_port_list:
-          f_port:
-            - "0/37"
-
   tasks:
 
   - name: port group configuration
@@ -109,7 +67,7 @@
       vfid: -1
       port_groups: "{{all_port_groups_without_ports}}"
 
-  - name: port group configuration
+  - name: port group n-port configuration
     brocade_access_gateway_port_group:
       credential: "{{credential}}"
       vfid: -1
@@ -120,9 +78,3 @@
       credential: "{{credential}}"
       vfid: -1
       port_groups: "{{all_port_groups_with_f_ports}}"
-
-  - name: n-port map
-    brocade_access_gateway_n_port_map:
-      credential: "{{credential}}"
-      vfid: -1
-      n_port_map: "{{n_port_map}}"
