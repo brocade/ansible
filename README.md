@@ -74,6 +74,7 @@ Here are the examples of attributes using ssh.
 | brocade_fibrechannel_configuration_port_configuration | credit_recovery_mode|
 | brocade_fibrechannel_switch | dynamic_load_sharing (pre 9.0 only)|
 | brocade_security_user_config | account_enabled (pre 9.0 only)|
+| brocade_snmp | host being set to 0.0.0.0 (pre 9.0 only)|
 
 If host key check is to be turned off, ssh_hostkeymust field in credential
 variable should be set to false. Here is an example of how that can be done
