@@ -15,6 +15,7 @@ from ansible.module_utils.brocade_fibrechannel_switch import to_human_switch, to
 from ansible.module_utils.brocade_interface import to_human_fc, to_fos_fc, fc_port_get, fc_port_patch
 from ansible.module_utils.brocade_security import user_config_patch
 from ansible.module_utils.brocade_access_gateway import to_human_access_gateway_policy, to_fos_access_gateway_policy
+from ansible.module_utils.brocade_snmp import v1_trap_patch, v3_trap_patch
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
 import base64
 
@@ -440,6 +441,22 @@ def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version
         return fc_port_patch(fos_ip_addr, is_https, auth, vfid, result, entries, timeout)
     if module_name == "brocade_security" and list_name == "user_config":
         return user_config_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust, timeout)
+
+    if module_name == "brocade_snmp" and list_name == "v1_trap":
+        new_entries = v1_trap_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust, timeout)
+
+        if len(new_entries) == 0:
+            return 0
+
+        entries = new_entries
+
+    if module_name == "brocade_snmp" and list_name == "v3_trap":
+        new_entries = v3_trap_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust, timeout)
+
+        if len(new_entries) == 0:
+            return 0
+
+        entries = new_entries
 
     full_url, validate_certs = full_url_get(is_https,
                                             fos_ip_addr,
