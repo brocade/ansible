@@ -271,6 +271,7 @@ list_keys = {
         "user_config" : ["name"],
         "ipfilter_rule": ["policy_name", "index"],
         "ipfilter_policy": ["name"],
+        "ldap_role_map": ["ldap_role"],
     },
 }
 
