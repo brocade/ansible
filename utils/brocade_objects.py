@@ -247,32 +247,94 @@ list_keys = {
         "port_group" : ["port_group_id"],
         "n_port_map" : ["n_port"],
     },
+    "brocade_extension_ip_route": {
+        "extension_ip_route" : ["name", "dp_id", "ip_address", "ip_prefix_length"],
+    },
+    "brocade_extension_ipsec_policy": {
+        "extension_ipsec_policy" : ["policy_name"],
+    },
+    "brocade_extension_tunnel": {
+        "extension_tunnel" : ["name"],
+        "extension_circuit" : ["name", "circuit_id"],
+    },
+    "brocade_fabric": {
+        "fabric_switch" : ["name"],
+    },
+    "brocade_fdmi": {
+        "hba" : ["hba_id"],
+        "port" : ["port_name"],
+    },
+    "brocade_fibrechannel_diagnostics": {
+        "fibrechannel_diagnostics" : ["name"],
+    },
+    "brocade_fibrechannel_logical_switch": {
+        "fibrechannel_logical_switch" : ["fabric_id"],
+    },
+    "brocade_fibrechannel_switch": {
+        "fibrechannel_switch" : ["name"],
+    },
+    "brocade_fibrechannel_trunk": {
+        "trunk_area" : ["trunk_index"],
+    },
+    "ficon": {
+        "ficon_logical_path" : ["link_address", "channel_image_id"],
+    },
+    "brocade_fru": {
+        "blade" : ["slot_number"],
+    },
+    "brocade_interface": {
+        "fibrechannel" : ["name"],
+        "fibrechannel_statistics" : ["name"],
+        "extension_ip_interface" : ["name", "ip_address", "dp_id"],
+        "gigabitethernet" : ["name"],
+        "gigabitethernet_statistics" : ["name"],
+    },
+    "brocade_license": {
+        "license" : ["name"],
+    },
+    "brocade_logging": {
+        "syslog_server" : ["server"],
+        "raslog" : ["message_id"],
+        "raslog_module" : ["module_id"],
+        "log_quiet_control" : ["log_type"],
+    },
+    "brocade_maps": {
+        "paused_cfg" : ["group_type"],
+        "group" : ["name"],
+        "rule" : ["name"],
+        "maps_policy" : ["name"],
+    },
+    "brocade_media": {
+        "media_rdp" : ["name"],
+    },
+    "brocade_module_version": {
+    },
+    "brocade_name_server": {
+        "fibrechannel_name_server" : ["port_id"],
+    },
+    "brocade_security": {
+        "ipfilter_policy" : ["name"],
+        "ipfilter_rule" : ["policy_name", "index"],
+        "user_specific_password_cfg" : ["user_name"],
+        "user_config" : ["name"],
+        "radius_server" : ["server"],
+        "tacacs_server" : ["server"],
+        "ldap_server" : ["server"],
+        "ldap_role_map" : ["ldap_role"],
+        "sshutil_key" : ["algorithm_type", "key_type"],
+        "sshutil_public_key" : ["user_name"],
+    },
     "brocade_snmp": {
+        "mib_capability" : ["mib_name"],
+        "trap_capability" : ["trap_name"],
         "v1_account" : ["index"],
         "v1_trap" : ["index"],
         "v3_account" : ["index"],
         "v3_trap" : ["trap_index"],
         "access_control" : ["index"],
-        "trap_capability" : ["trap_name"],
-        "mib_capability" : ["mib_name"],
     },
-    "brocade_interface": {
-        "fibrechannel" : ["name"],
-    },
-    "brocade_logging": {
-        "syslog_server" : ["server"],
-    },
-    "brocade_fibrechannel_switch": {
-        "fibrechannel_switch" : ["name"],
-    },
-    "brocade_interface": {
-        "fibrechannel" : ["name"],
-    },
-    "brocade_security": {
-        "user_config" : ["name"],
-        "ipfilter_rule": ["policy_name", "index"],
-        "ipfilter_policy": ["name"],
-        "ldap_role_map": ["ldap_role"],
+    "brocade_module_id": {
+        "my_list_name" : ["my_key_leaf"],
     },
 }
 
@@ -656,6 +718,9 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
 
     if vfid is None:
         vfid = 128
+
+    if entries == None:
+        entries = []
 
     ret_code, auth, fos_version = login(fos_ip_addr,
                            fos_user_name, fos_password,
