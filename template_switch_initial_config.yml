@@ -130,7 +130,6 @@
       vfid: -1
       module_name: "brocade-time"
       obj_name: "clock-server"
-      timeout: 30
       attributes:
         ntp_server_address:
           server_address:
@@ -199,7 +198,6 @@
       vfid: -1
       module_name: "brocade-snmp"
       list_name: "v1-account"
-      timeout: 30
       entries:
         - index: 1
           community_name: "secret code"

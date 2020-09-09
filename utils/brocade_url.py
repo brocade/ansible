@@ -19,7 +19,7 @@ __metaclass__ = type
 Brocade Connections utils
 """
 
-DEFAULT_TO = 10
+DEFAULT_TO = 180
 
 VF_ID = "?vf-id="
 HTTP = "http://"

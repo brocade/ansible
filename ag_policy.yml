@@ -26,5 +26,4 @@
     brocade_access_gateway_policy:
       credential: "{{credential}}"
       vfid: -1
-      timeout: 300
       policy: "{{policy}}"

@@ -25,5 +25,4 @@
     brocade_access_gateway_n_port_settings:
       credential: "{{credential}}"
       vfid: -1
-      timeout: 300
       n_port_settings: "{{n_port_settings}}"

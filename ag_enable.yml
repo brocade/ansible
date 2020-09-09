@@ -29,7 +29,6 @@
     brocade_fibrechannel_switch:
       credential: "{{credential}}"
       vfid: -1
-      timeout: 300
       switch:
         ag_mode: 3
 

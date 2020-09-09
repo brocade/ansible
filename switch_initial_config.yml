@@ -82,7 +82,6 @@
       vfid: -1
       chassis:
         chassis_user_friendly_name: "chassis_name"
-        telnet_timeout: 30
 
   - name: FC ports configuration
     brocade_interface_fibrechannel:
@@ -111,7 +110,6 @@
     brocade_time_clock_server:
       credential: "{{credential}}"
       vfid: -1
-      timeout: 30
       clock_server:
         ntp_server_address:
           server_address:
@@ -170,7 +168,6 @@
     brocade_snmp_v1_account:
       credential: "{{credential}}"
       vfid: -1
-      timeout: 30
       v1_accounts:
         - index: 1
           community_name: "secret code"
