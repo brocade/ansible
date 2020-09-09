@@ -301,6 +301,7 @@
     brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
+      timeout: 300
       module_name: "brocade_security"
       list_name: "user_config"
       entries:

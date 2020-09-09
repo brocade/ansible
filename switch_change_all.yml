@@ -57,7 +57,7 @@
     brocade_fibrechannel_configuration_port_configuration:
       credential: "{{credential}}"
       vfid: -1
-      timeout: 30
+      timeout: 300
       port_configuration:
         dynamic_portname_format: "T.A.R"
         portname_mode: "off"
