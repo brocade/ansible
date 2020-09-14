@@ -59,7 +59,6 @@
     brocade_fibrechannel_configuration_port_configuration:
       credential: "{{credential}}"
       vfid: -1
-      timeout: 30
       port_configuration:
         dynamic_portname_format: "T.A.R"
         portname_mode: "off"
@@ -99,14 +98,12 @@
     brocade_zoning_default_zone:
       credential: "{{credential}}"
       vfid: -1
-      timeout: 30
       default_zone_access: noaccess
 
   - name: change all clock server configuration
     brocade_time_clock_server:
       credential: "{{credential}}"
       vfid: -1
-      timeout: 30
       clock_server:
         ntp_server_address:
           server_address:
@@ -163,7 +160,6 @@
     brocade_snmp_v1_account:
       credential: "{{credential}}"
       vfid: -1
-      timeout: 30
       v1_accounts:
         - index: 1
           community_name: "Secret code old"

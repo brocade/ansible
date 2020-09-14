@@ -147,7 +147,6 @@
       vfid: -1
       module_name: "{{ item.0.key }}"
       list_name: "{{ item.1 }}"
-      timeout: 300
     loop: "{{ list_list | dict2items | subelements('value') }}"
 
   - name: print ansible_facts gathered

@@ -42,7 +42,6 @@
     brocade_security_security_certificate_generate:
       credential: "{{credential}}"
       vfid: -1
-      timeout: 300
       generate_inputs: "{{generate_inputs}}"
 
 
@@ -50,5 +49,4 @@
     brocade_security_security_certificate_action:
       credential: "{{credential}}"
       vfid: -1
-      timeout: 300
       action_inputs: "{{action_inputs}}"

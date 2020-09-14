@@ -20,13 +20,23 @@
 
   tasks:
 
-  - name: gather facts
-    brocade_facts:
+  - name: switch disabled
+    brocade_fibrechannel_switch:
       credential: "{{credential}}"
       vfid: -1
-      gather_subset:
-        - brocade_security_security_certificate
+      switch:
+        enabled_state: False
 
-  - name: print ansible_facts gathered
-    debug:
-      var: ansible_facts
+  - name: ag mode enabled. if changing, switch will reboot afterward.
+    brocade_fibrechannel_switch:
+      credential: "{{credential}}"
+      vfid: -1
+      switch:
+        ag_mode: 3
+
+  - name: switch enabled
+    brocade_fibrechannel_switch:
+      credential: "{{credential}}"
+      vfid: -1
+      switch:
+        enabled_state: True

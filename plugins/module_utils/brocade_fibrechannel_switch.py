@@ -38,12 +38,6 @@ def to_human_switch(switch_config):
         else:
             switch_config["enabled_state"] = True
 
-    if "ag_mode" in switch_config:
-        if switch_config["ag_mode"] == "1":
-            switch_config["ag_mode"] = True
-        else:
-            switch_config["ag_mode"] = False
-
 
 def to_fos_switch(switch_config, result):
     human_to_yang(switch_config)
@@ -57,17 +51,6 @@ def to_fos_switch(switch_config, result):
         else:
             result["failed"] = True
             result["msg"] = "enabled-state converted to unknown"
-            return -1
-
-    if "ag-mode" in switch_config:
-        if isinstance(switch_config["ag-mode"], bool):
-            if switch_config["ag-mode"] == False:
-                switch_config["ag-mode"] = "0"
-            else:
-                switch_config["ag-mode"] = "1"
-        else:
-            result["failed"] = True
-            result["msg"] = "ag-mode converted to unknown"
             return -1
 
     # convert the boolean to integers first
@@ -116,7 +99,7 @@ def fc_switch_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfi
     if fos_version < "v9.0":
         rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "dlsshow", "showcommand")
         if rssh == 0:
-            if "DLS is set with Lossless disabled" in sshstr:
+            if "DLS is set with Lossless disabled" in sshstr or "Error: This command is not supported in AG mode" in sshstr:
                 rdict["Response"]["fibrechannel-switch"]["dynamic-load-sharing"] = "disabled"
             elif "DLS is set with Lossless enabled, Two-hop Lossless disabled" in sshstr:
                 rdict["Response"]["fibrechannel-switch"]["dynamic-load-sharing"] = "lossless-dls"

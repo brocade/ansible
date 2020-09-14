@@ -137,6 +137,25 @@ The Brocade FOS collection consists of the latest versions of the FOS modules.
       default_zone_access: allaccess
 ```
 
+### Connection to FOS ###
+
+Primary connection to FOS for playbooks is FOS REST connection. However, 
+Some playbook attributes use ssh connect to augment the fuctionality. When
+those attributes are specified in the playbooks, be sure that the FOS switch
+being used to connect is part of known hosts by where ansible-playbook is
+being executed or where AWX job is being executed.
+
+Here are the examples of attributes using ssh.
+
+| Ansible module name | Attributes |
+| --- | --- |
+| brocade_chassis | telnet_timeout|
+| brocade_fibrechannel_configuration_fabric | fabric_principal_enabled, fabric_principal_priority, in_order_delivery_enabled|
+| brocade_fibrechannel_configuration_port_configuration | credit_recovery_mode|
+| brocade_fibrechannel_switch | dynamic_load_sharing (pre 9.0 only)|
+| brocade_security_user_config | account_enabled (pre 9.0 only)|
+| brocade_snmp | host being set to 0.0.0.0 (pre 9.0 only)|
+
 ### How to create playbooks ###
 
 When creating Zoning playbooks, Zoning specific modules are used. This is to

@@ -43,7 +43,6 @@
     brocade_operation_show_status:
       credential: "{{credential}}"
       vfid: -1
-      timeout: 300
       show_status:
         message_id: "{{result.operation_resp.show_status.message_id}}"
     register: status_result
@@ -62,7 +61,6 @@
     brocade_operation_show_status:
       credential: "{{credential}}"
       vfid: -1
-      timeout: 300
       show_status:
         message_id: "{{result.operation_resp.show_status.message_id}}"
     register: status_result

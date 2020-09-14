@@ -19,7 +19,7 @@ __metaclass__ = type
 Brocade Connections utils
 """
 
-DEFAULT_TO = 10
+DEFAULT_TO = 180
 
 VF_ID = "?vf-id="
 HTTP = "http://"
@@ -184,7 +184,8 @@ messages_404 = [
     "TACACS+ configuration does not exist.",
     "LDAP configuration does not exist.",
     "Role Map Configuration does not exist",
-    "No public keys found"
+    "No public keys found",
+    "No device was found"
     ]
 
 empty_messages_400 = [
@@ -209,6 +210,20 @@ def known_empty_message(errs):
     return False, None
 
 
+CHASSIS_NOT_READY = "Chassis is not ready for management"
+
+def chassis_not_ready_message(errs):
+    if isinstance(errs, list):
+        for err in errs:
+            if err["error-message"] == CHASSIS_NOT_READY:
+                return True, err["error-message"]
+    else:
+        if errs["error-message"] in CHASSIS_NOT_READY:
+            return True, errs["error-message"]
+
+    return False, None
+
+
 def url_helper(url, body, method, auth, result, validate_certs, timeout, credential=None):
     myheaders = {}
     if credential == None:   
@@ -224,7 +239,7 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout, credent
     try:
         get_resp = ansible_urls.open_url(url, body,
                                          headers=myheaders,
-                                         method=method, timeout=timeout, validate_certs=validate_certs)
+                                         method=method, timeout=timeout, validate_certs=validate_certs, follow_redirects=False)
     except urllib_error.HTTPError as e:
         e_data = e.read()
         if len(e_data) > 0:
@@ -247,8 +262,13 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout, credent
         if e.code == 405:
             ret_val = ERROR_LIST_EMPTY
         elif e.code == 503:
-            ret_val = ERROR_SERVER_BUSY
-            result["myretry"] = True
+            is_chassis_not_ready, err_msg = chassis_not_ready_message(root_dict["errors"]["error"])
+            if is_chassis_not_ready:
+                result["failed"] = True
+                result["msg"] = method + " failed"
+            else:
+                ret_val = ERROR_SERVER_BUSY
+                result["myretry"] = True
         elif e.code == 400:
             is_known, err_msg = known_empty_message(root_dict["errors"]["error"])
             if is_known:

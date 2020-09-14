@@ -5,6 +5,7 @@
 
 
 from __future__ import (absolute_import, division, print_function)
+<<<<<<< HEAD:plugins/module_utils/brocade_objects.py
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object, url_post, url_delete, url_post_resp, ERROR_LIST_EMPTY
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import yang_to_human, human_to_yang, str_to_yang, str_to_human, generate_diff, is_full_human
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_ssh import ssh_and_configure
@@ -14,6 +15,8 @@ from ansible_collections.brocade.fos.plugins.module_utils.brocade_fibrechannel_c
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_fibrechannel_switch import to_human_switch, to_fos_switch, fc_switch_get, fc_switch_patch
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_interface import to_human_fc, to_fos_fc, fc_port_get, fc_port_patch
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_security import user_config_patch
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_access_gateway import to_human_access_gateway_policy, to_fos_access_gateway_policy
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_snmp import v1_trap_patch, v3_trap_patch
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
 import base64
 
@@ -45,6 +48,9 @@ def to_human_singleton(module_name, obj_name, attributes):
                 new_list.append(attributes["ntp_server_address"]["server_address"])
                 attributes["ntp_server_address"]["server_address"] = new_list
 
+    if module_name == "brocade_access_gateway" and obj_name == "policy":
+        to_human_access_gateway_policy(attributes)
+
 
 def to_fos_singleton(module_name, obj_name, attributes, result):
     human_to_yang(attributes)
@@ -60,6 +66,9 @@ def to_fos_singleton(module_name, obj_name, attributes, result):
         if module_name == "brocade_security" and (obj_name == "security_certificate_action" or obj_name == "sshutil_public_key_action"):
             if k == "remote-user-password":
                 attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
+
+    if module_name == "brocade_access_gateway" and obj_name == "policy":
+        to_fos_access_gateway_policy(attributes, result)
 
     for k, v in attributes.items():
         if isinstance(v, bool):
@@ -174,6 +183,30 @@ def to_human_list(module_name, list_name, attributes_list, result):
                         new_list.append(attributes["ip_static_gateway_list"]["ip_static_gateway"])
                         attributes["ip_static_gateway_list"]["ip_static_gateway"] = new_list
 
+        if module_name == "brocade_access_gateway" and list_name == "port_group":
+            if "port_group_n_ports" in attributes:
+                if attributes["port_group_n_ports"] is not None and "n_port" in attributes["port_group_n_ports"]:
+                    if not isinstance(attributes["port_group_n_ports"]["n_port"], list):
+                        new_list = []
+                        new_list.append(attributes["port_group_n_ports"]["n_port"])
+                        attributes["port_group_n_ports"]["n_port"] = new_list
+
+            if "port_group_f_ports" in attributes:
+                if attributes["port_group_f_ports"] is not None and "f_port" in attributes["port_group_f_ports"]:
+                    if not isinstance(attributes["port_group_f_ports"]["f_port"], list):
+                        new_list = []
+                        new_list.append(attributes["port_group_f_ports"]["f_port"])
+                        attributes["port_group_f_ports"]["f_port"] = new_list
+                        
+        if module_name == "brocade_access_gateway" and list_name == "n_port_map":
+            if "configured_f_port_list" in attributes:
+                if attributes["configured_f_port_list"] is not None and "f_port" in attributes["configured_f_port_list"]:
+                    if not isinstance(attributes["configured_f_port_list"]["f_port"], list):
+                        new_list = []
+                        new_list.append(attributes["configured_f_port_list"]["f_port"])
+                        attributes["configured_f_port_list"]["f_port"] = new_list
+
+
 
 def to_fos_list(module_name, list_name, attributes_list, result):
     for attributes in attributes_list:
@@ -195,6 +228,12 @@ def to_fos_list(module_name, list_name, attributes_list, result):
         if module_name == "brocade_fibrechannel_switch" and list_name == "fibrechannel_switch":
             to_fos_switch(attributes, result)
 
+        if module_name == "brocade_security" and list_name == "user_config":
+            if "password" in attributes:
+                pword = attributes["password"]
+                if str(pword) != "None":
+                    attributes["password"] = base64.b64encode(pword.encode('ascii')).decode('utf-8')
+
         for k, v in attributes.items():
             if isinstance(v, bool):
                 if v == True:
@@ -205,31 +244,98 @@ def to_fos_list(module_name, list_name, attributes_list, result):
     return 0
 
 list_keys = {
+    "brocade_access_gateway": {
+        "port_group" : ["port_group_id"],
+        "n_port_map" : ["n_port"],
+    },
+    "brocade_extension_ip_route": {
+        "extension_ip_route" : ["name", "dp_id", "ip_address", "ip_prefix_length"],
+    },
+    "brocade_extension_ipsec_policy": {
+        "extension_ipsec_policy" : ["policy_name"],
+    },
+    "brocade_extension_tunnel": {
+        "extension_tunnel" : ["name"],
+        "extension_circuit" : ["name", "circuit_id"],
+    },
+    "brocade_fabric": {
+        "fabric_switch" : ["name"],
+    },
+    "brocade_fdmi": {
+        "hba" : ["hba_id"],
+        "port" : ["port_name"],
+    },
+    "brocade_fibrechannel_diagnostics": {
+        "fibrechannel_diagnostics" : ["name"],
+    },
+    "brocade_fibrechannel_logical_switch": {
+        "fibrechannel_logical_switch" : ["fabric_id"],
+    },
+    "brocade_fibrechannel_switch": {
+        "fibrechannel_switch" : ["name"],
+    },
+    "brocade_fibrechannel_trunk": {
+        "trunk_area" : ["trunk_index"],
+    },
+    "ficon": {
+        "ficon_logical_path" : ["link_address", "channel_image_id"],
+    },
+    "brocade_fru": {
+        "blade" : ["slot_number"],
+    },
+    "brocade_interface": {
+        "fibrechannel" : ["name"],
+        "fibrechannel_statistics" : ["name"],
+        "extension_ip_interface" : ["name", "ip_address", "dp_id"],
+        "gigabitethernet" : ["name"],
+        "gigabitethernet_statistics" : ["name"],
+    },
+    "brocade_license": {
+        "license" : ["name"],
+    },
+    "brocade_logging": {
+        "syslog_server" : ["server"],
+        "raslog" : ["message_id"],
+        "raslog_module" : ["module_id"],
+        "log_quiet_control" : ["log_type"],
+    },
+    "brocade_maps": {
+        "paused_cfg" : ["group_type"],
+        "group" : ["name"],
+        "rule" : ["name"],
+        "maps_policy" : ["name"],
+    },
+    "brocade_media": {
+        "media_rdp" : ["name"],
+    },
+    "brocade_module_version": {
+    },
+    "brocade_name_server": {
+        "fibrechannel_name_server" : ["port_id"],
+    },
+    "brocade_security": {
+        "ipfilter_policy" : ["name"],
+        "ipfilter_rule" : ["policy_name", "index"],
+        "user_specific_password_cfg" : ["user_name"],
+        "user_config" : ["name"],
+        "radius_server" : ["server"],
+        "tacacs_server" : ["server"],
+        "ldap_server" : ["server"],
+        "ldap_role_map" : ["ldap_role"],
+        "sshutil_key" : ["algorithm_type", "key_type"],
+        "sshutil_public_key" : ["user_name"],
+    },
     "brocade_snmp": {
+        "mib_capability" : ["mib_name"],
+        "trap_capability" : ["trap_name"],
         "v1_account" : ["index"],
         "v1_trap" : ["index"],
         "v3_account" : ["index"],
         "v3_trap" : ["trap_index"],
         "access_control" : ["index"],
-        "trap_capability" : ["trap_name"],
-        "mib_capability" : ["mib_name"],
     },
-    "brocade_interface": {
-        "fibrechannel" : ["name"],
-    },
-    "brocade_logging": {
-        "syslog_server" : ["server"],
-    },
-    "brocade_fibrechannel_switch": {
-        "fibrechannel_switch" : ["name"],
-    },
-    "brocade_interface": {
-        "fibrechannel" : ["name"],
-    },
-    "brocade_security": {
-        "user_config" : ["name"],
-        "ipfilter_rule": ["policy_name", "index"],
-        "ipfilter_policy": ["name"],
+    "brocade_module_id": {
+        "my_list_name" : ["my_key_leaf"],
     },
 }
 
@@ -356,9 +462,15 @@ def list_xml_str(result, module_name, list_name, entries):
                             for entry in v1:
                                 xml_str = xml_str + "<" + k1 + ">" + str(entry) + "</" + k1 + ">"
                         else:
-                            xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">"
+                            if v1 == None:
+                                xml_str = xml_str + "<" + k1 + "></" + k1 + ">"
+                            else:
+                                xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">"
                 else:
-                    xml_str = xml_str + str(v)
+                    if v == None:
+                        xml_str = xml_str
+                    else:
+                        xml_str = xml_str + str(v)
 
                 xml_str = xml_str + "</" + k + ">"
 
@@ -393,6 +505,22 @@ def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version
     if module_name == "brocade_security" and list_name == "user_config":
         return user_config_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust, timeout)
 
+    if module_name == "brocade_snmp" and list_name == "v1_trap":
+        new_entries = v1_trap_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust, timeout)
+
+        if len(new_entries) == 0:
+            return 0
+
+        entries = new_entries
+
+    if module_name == "brocade_snmp" and list_name == "v3_trap":
+        new_entries = v3_trap_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust, timeout)
+
+        if len(new_entries) == 0:
+            return 0
+
+        entries = new_entries
+
     full_url, validate_certs = full_url_get(is_https,
                                             fos_ip_addr,
                                             REST_PREFIX + module_name + "/" + list_name)
@@ -401,8 +529,45 @@ def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version
 
     result["patch_str"] = xml_str
 
-    return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                     full_url, xml_str, timeout)
+    # AG always expect nport and fports to be removed from another
+    # none default port group before being added. So, we go through
+    # an port group that has nport or fport list being updated,
+    # clean them out first, then do the normal patch to update to the
+    # final list
+    if module_name == "brocade_access_gateway" and list_name == "port_group":
+        empty_port_groups = []
+        for port_group in entries:
+            if "port-group-n-ports" in port_group and port_group["port-group-n-ports"] is not None and "n-port" in port_group["port-group-n-ports"] and port_group["port-group-n-ports"]["n-port"] is not None:
+                empty_port_groups.append({"port-group-id":port_group["port-group-id"], "port-group-n-ports":{"n-port": None}})
+            if "port-group-f-ports" in port_group and port_group["port-group-f-ports"] is not None and "f-port" in port_group["port-group-f-ports"] and port_group["port-group-f-ports"]["f-port"] is not None:
+                empty_port_groups.append({"port-group-id":port_group["port-group-id"], "port-group-f-ports":{"f-port": None}})
+        if len(empty_port_groups) > 0:
+            empty_xml_str = list_xml_str(result, module_name, list_name, empty_port_groups)
+
+            result["patch_str_empty_ag"] = empty_xml_str
+            empty_patch_result = url_patch(fos_ip_addr, is_https, auth, vfid,
+                    result, full_url, empty_xml_str, timeout)
+            result["patch_str_empty_ag_result"] = empty_patch_result
+
+    # AG always expect fports to be removed from another nport before
+    # being added. to another nport So, we go through
+    # an nport map that has fport list being updated,
+    # clean them out first, then do the normal patch to update to the
+    # final list
+    if module_name == "brocade_access_gateway" and list_name == "n_port_map":
+        empty_n_port_maps = []
+        for n_port_map in entries:
+            if "configured-f-port-list" in n_port_map and "f-port" in n_port_map["configured-f-port-list"] and n_port_map["configured-f-port-list"]["f-port"] is not None:
+                empty_n_port_maps.append({"n-port":n_port_map["n-port"], "configured-f-port-list":{"f-port": None}})
+        if len(empty_n_port_maps) > 0:
+            empty_xml_str = list_xml_str(result, module_name, list_name, empty_n_port_maps)
+
+            result["patch_str_empty_ag"] = empty_xml_str
+            url_patch(fos_ip_addr, is_https, auth, vfid, result,
+                      full_url, empty_xml_str, timeout)
+
+    return(url_patch(fos_ip_addr, is_https, auth, vfid, result,
+                     full_url, xml_str, timeout))
 
 
 def list_post(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, entries, ssh_hostkeymust, timeout):
@@ -556,6 +721,9 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
     if vfid is None:
         vfid = 128
 
+    if entries == None:
+        entries = []
+
     ret_code, auth, fos_version = login(fos_ip_addr,
                            fos_user_name, fos_password,
                            https, throttle, result, timeout)
@@ -588,6 +756,13 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
             exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
         entries[0]["name"] = current_entries[0]["name"]
+
+    if module_name == "brocade_access_gateway" and list_name == "port_group":
+        for port_group in current_entries:
+            if "port_group_n_ports" in port_group and port_group["port_group_n_ports"] == None:
+                port_group["port_group_n_ports"] = {"n_port": None}
+            if "port_group_f_ports" in port_group and port_group["port_group_f_ports"] == None:
+                port_group["port_group_f_ports"] = {"f_port": None}
 
     diff_entries = []
     for entry in entries:

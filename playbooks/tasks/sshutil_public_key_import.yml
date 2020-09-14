@@ -32,5 +32,4 @@
     brocade_security_sshutil_public_key_action:
       credential: "{{credential}}"
       vfid: -1
-      timeout: 300
       action_inputs: "{{action_inputs}}"
