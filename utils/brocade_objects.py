@@ -536,16 +536,17 @@ def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version
     if module_name == "brocade_access_gateway" and list_name == "port_group":
         empty_port_groups = []
         for port_group in entries:
-            if "port-group-n-ports" in port_group and "n-port" in port_group["port-group-n-ports"] and port_group["port-group-n-ports"]["n-port"] is not None:
+            if "port-group-n-ports" in port_group and port_group["port-group-n-ports"] is not None and "n-port" in port_group["port-group-n-ports"] and port_group["port-group-n-ports"]["n-port"] is not None:
                 empty_port_groups.append({"port-group-id":port_group["port-group-id"], "port-group-n-ports":{"n-port": None}})
-            if "port-group-f-ports" in port_group and "f-port" in port_group["port-group-f-ports"] and port_group["port-group-f-ports"]["f-port"] is not None:
+            if "port-group-f-ports" in port_group and port_group["port-group-f-ports"] is not None and "f-port" in port_group["port-group-f-ports"] and port_group["port-group-f-ports"]["f-port"] is not None:
                 empty_port_groups.append({"port-group-id":port_group["port-group-id"], "port-group-f-ports":{"f-port": None}})
         if len(empty_port_groups) > 0:
             empty_xml_str = list_xml_str(result, module_name, list_name, empty_port_groups)
 
             result["patch_str_empty_ag"] = empty_xml_str
-            url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                      full_url, empty_xml_str, timeout)
+            empty_patch_result = url_patch(fos_ip_addr, is_https, auth, vfid,
+                    result, full_url, empty_xml_str, timeout)
+            result["patch_str_empty_ag_result"] = empty_patch_result
 
     # AG always expect fports to be removed from another nport before
     # being added. to another nport So, we go through
@@ -757,9 +758,9 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
 
     if module_name == "brocade_access_gateway" and list_name == "port_group":
         for port_group in current_entries:
-            if port_group["port_group_n_ports"] == None:
+            if "port_group_n_ports" in port_group and port_group["port_group_n_ports"] == None:
                 port_group["port_group_n_ports"] = {"n_port": None}
-            if port_group["port_group_f_ports"] == None:
+            if "port_group_f_ports" in port_group and port_group["port_group_f_ports"] == None:
                 port_group["port_group_f_ports"] = {"f_port": None}
 
     diff_entries = []

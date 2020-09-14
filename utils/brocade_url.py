@@ -210,6 +210,20 @@ def known_empty_message(errs):
     return False, None
 
 
+CHASSIS_NOT_READY = "Chassis is not ready for management"
+
+def chassis_not_ready_message(errs):
+    if isinstance(errs, list):
+        for err in errs:
+            if err["error-message"] == CHASSIS_NOT_READY:
+                return True, err["error-message"]
+    else:
+        if errs["error-message"] in CHASSIS_NOT_READY:
+            return True, errs["error-message"]
+
+    return False, None
+
+
 def url_helper(url, body, method, auth, result, validate_certs, timeout, credential=None):
     myheaders = {}
     if credential == None:   
@@ -248,8 +262,13 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout, credent
         if e.code == 405:
             ret_val = ERROR_LIST_EMPTY
         elif e.code == 503:
-            ret_val = ERROR_SERVER_BUSY
-            result["myretry"] = True
+            is_chassis_not_ready, err_msg = chassis_not_ready_message(root_dict["errors"]["error"])
+            if is_chassis_not_ready:
+                result["failed"] = True
+                result["msg"] = method + " failed"
+            else:
+                ret_val = ERROR_SERVER_BUSY
+                result["myretry"] = True
         elif e.code == 400:
             is_known, err_msg = known_empty_message(root_dict["errors"]["error"])
             if is_known:

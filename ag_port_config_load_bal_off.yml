@@ -16,35 +16,35 @@
       fos_password: "{{fos_password}}"
       https: "{{fos_https}}"
 
-    all_port_groups_without_ports:
-      - port_group_id: "0"
-        port_group_name: "pg0"
-        port_group_mode:
-          load_balancing_mode_enabled: "0"
-          multiple_fabric_name_monitoring_mode_enabled: "0"
-      - port_group_id: "1"
-        port_group_name: "pg1"
-        port_group_mode:
-          load_balancing_mode_enabled: "0"
-          multiple_fabric_name_monitoring_mode_enabled: "1"
-      - port_group_id: "2"
-        port_group_name: "pg2"
-        port_group_mode:
-          load_balancing_mode_enabled: "0"
-          multiple_fabric_name_monitoring_mode_enabled: "1"
-
     all_port_groups_with_n_ports:
       - port_group_id: "0"
+        port_group_name: "pg0"
       - port_group_id: "1"
+        port_group_name: "pg1"
         port_group_n_ports:
           n_port:
             - "0/44"
             - "0/46"
       - port_group_id: "2"
+        port_group_name: "pg2"
         port_group_n_ports:
           n_port:
             - "0/45"
             - "0/47"
+
+    all_port_groups_with_mode:
+      - port_group_id: "0"
+        port_group_mode:
+          load_balancing_mode_enabled: "0"
+          multiple_fabric_name_monitoring_mode_enabled: "0"
+      - port_group_id: "1"
+        port_group_mode:
+          load_balancing_mode_enabled: "0"
+          multiple_fabric_name_monitoring_mode_enabled: "1"
+      - port_group_id: "2"
+        port_group_mode:
+          load_balancing_mode_enabled: "0"
+          multiple_fabric_name_monitoring_mode_enabled: "1"
 
     n_port_map:
       - n_port: "0/44"
@@ -90,17 +90,17 @@
 
   tasks:
 
-  - name: port group configuration
-    brocade_access_gateway_port_group:
-      credential: "{{credential}}"
-      vfid: -1
-      port_groups: "{{all_port_groups_without_ports}}"
-
-  - name: port group n-port configuration
+  - name: port group configuration with n-port configuration
     brocade_access_gateway_port_group:
       credential: "{{credential}}"
       vfid: -1
       port_groups: "{{all_port_groups_with_n_ports}}"
+
+  - name: port group mode
+    brocade_access_gateway_port_group:
+      credential: "{{credential}}"
+      vfid: -1
+      port_groups: "{{all_port_groups_with_mode}}"
 
   - name: n-port map
     brocade_access_gateway_n_port_map:
