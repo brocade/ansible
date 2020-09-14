@@ -18,13 +18,16 @@
 
   tasks:
 
-  - name: gather facts
-    brocade_facts:
+  - name: disable switch before disabling ag mode
+    brocade_fibrechannel_switch:
       credential: "{{credential}}"
       vfid: -1
-      gather_subset:
-        - brocade_security_sshutil_public_key
+      switch:
+        enabled_state: False
 
-  - name: print ansible_facts gathered
-    debug:
-      var: ansible_facts
+  - name: disable ag mode. switch will reboot afterward.
+    brocade_fibrechannel_switch:
+      credential: "{{credential}}"
+      vfid: -1
+      switch:
+        ag_mode: 1

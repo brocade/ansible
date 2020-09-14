@@ -23,7 +23,12 @@
       credential: "{{credential}}"
       vfid: -1
       gather_subset:
-        - brocade_security_sshutil_public_key
+        - brocade_access_gateway_port_group
+        - brocade_access_gateway_n_port_map
+        - brocade_access_gateway_f_port_list
+        - brocade_access_gateway_device_list
+        - brocade_access_gateway_policy
+        - brocade_access_gateway_n_port_settings
 
   - name: print ansible_facts gathered
     debug:

@@ -15,16 +15,14 @@
       fos_user_name: "{{fos_user_name}}"
       fos_password: "{{fos_password}}"
       https: "{{fos_https}}"
+    n_port_settings:
+      reliability_counter: 25
+      
 
   tasks:
 
-  - name: gather facts
-    brocade_facts:
+  - name: ag N-Port settings
+    brocade_access_gateway_n_port_settings:
       credential: "{{credential}}"
       vfid: -1
-      gather_subset:
-        - brocade_security_sshutil_public_key
-
-  - name: print ansible_facts gathered
-    debug:
-      var: ansible_facts
+      n_port_settings: "{{n_port_settings}}"

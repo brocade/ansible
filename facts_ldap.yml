@@ -18,12 +18,12 @@
 
   tasks:
 
-  - name: gather facts
-    brocade_facts:
+  - name: gather facts for brocade_fibrechannel_switch_fibrechannel_switch
+    brocade_list_obj_facts:
       credential: "{{credential}}"
       vfid: -1
-      gather_subset:
-        - brocade_security_sshutil_public_key
+      module_name: "brocade_security"
+      list_name: "ldap_role_map"
 
   - name: print ansible_facts gathered
     debug:

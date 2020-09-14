@@ -121,7 +121,9 @@ def find_diff(result, yang_key, new_value, c_config, diff_attributes):
                 diff_attributes.pop(yang_key)
         elif isinstance(new_value, list):
             # if the new value is a list, compare the diff
-            if len(new_value) != len(c_config[yang_key]):
+            if (c_config[yang_key] == None):
+                diff_attributes[yang_key] = new_value 
+            elif len(new_value) != len(c_config[yang_key]):
                 diff_attributes[yang_key] = new_value 
             else:
                 for nentry in new_value:

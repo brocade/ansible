@@ -41,7 +41,10 @@ def bsn_xmltodict(result, data):
             ' the xmltodict python library installed on the managed machine'
         return -1, None
 
-    ret_dict = xmltodict.parse(data)
+    try:
+        ret_dict = xmltodict.parse(data)
+    except xmltodict.expat.ExpatError:
+        return -1, data
 
 #    result["xmltodict"] = ret_dict
 

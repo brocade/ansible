@@ -130,7 +130,6 @@
       vfid: -1
       module_name: "brocade-time"
       obj_name: "clock-server"
-      timeout: 30
       attributes:
         ntp_server_address:
           server_address:
@@ -199,7 +198,6 @@
       vfid: -1
       module_name: "brocade-snmp"
       list_name: "v1-account"
-      timeout: 30
       entries:
         - index: 1
           community_name: "secret code"
@@ -406,13 +404,13 @@
         - name: "root"
           account_enabled: False
         - name: "myaccount"
-          password: "bXlwYXNzd29yZA=="
+          password: "mypassword"
           virtual_fabric_role_id_list:
             role_id:
               - "admin=1-128"
           chassis_access_role: "admin"
         - name: "youraccount"
-          password: "bXlwYXNzd29yZA=="
+          password: "mypassword"
           virtual_fabric_role_id_list:
             role_id:
               - "admin=1-128"

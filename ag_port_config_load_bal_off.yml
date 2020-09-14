@@ -1,0 +1,109 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: "{{fos_user_name}}"
+      fos_password: "{{fos_password}}"
+      https: "{{fos_https}}"
+
+    all_port_groups_with_n_ports:
+      - port_group_id: "0"
+        port_group_name: "pg0"
+      - port_group_id: "1"
+        port_group_name: "pg1"
+        port_group_n_ports:
+          n_port:
+            - "0/44"
+            - "0/46"
+      - port_group_id: "2"
+        port_group_name: "pg2"
+        port_group_n_ports:
+          n_port:
+            - "0/45"
+            - "0/47"
+
+    all_port_groups_with_mode:
+      - port_group_id: "0"
+        port_group_mode:
+          load_balancing_mode_enabled: "0"
+          multiple_fabric_name_monitoring_mode_enabled: "0"
+      - port_group_id: "1"
+        port_group_mode:
+          load_balancing_mode_enabled: "0"
+          multiple_fabric_name_monitoring_mode_enabled: "1"
+      - port_group_id: "2"
+        port_group_mode:
+          load_balancing_mode_enabled: "0"
+          multiple_fabric_name_monitoring_mode_enabled: "1"
+
+    n_port_map:
+      - n_port: "0/44"
+        failback_enabled: "1"
+        failover_enabled: "1"
+        n_port_info: null
+        online_status: "0"
+        reliable_status: "1"
+        static_f_port_list: null
+        configured_f_port_list:
+          f_port:
+            - "0/35"
+      - n_port: "0/45"
+        failback_enabled: "1"
+        failover_enabled: "1"
+        n_port_info: null
+        online_status: "0"
+        reliable_status: "1"
+        static_f_port_list: null
+        configured_f_port_list:
+          f_port:
+            - "0/34"
+      - n_port: "0/46"
+        failback_enabled: "1"
+        failover_enabled: "1"
+        n_port_info: null
+        online_status: "0"
+        reliable_status: "1"
+        static_f_port_list: null
+        configured_f_port_list:
+          f_port:
+            - "0/37"
+      - n_port: "0/47"
+        failback_enabled: "1"
+        failover_enabled: "1"
+        n_port_info: null
+        online_status: "0"
+        reliable_status: "1"
+        static_f_port_list: null
+        configured_f_port_list:
+          f_port:
+            - "0/36"
+
+  tasks:
+
+  - name: port group configuration with n-port configuration
+    brocade_access_gateway_port_group:
+      credential: "{{credential}}"
+      vfid: -1
+      port_groups: "{{all_port_groups_with_n_ports}}"
+
+  - name: port group mode
+    brocade_access_gateway_port_group:
+      credential: "{{credential}}"
+      vfid: -1
+      port_groups: "{{all_port_groups_with_mode}}"
+
+  - name: n-port map
+    brocade_access_gateway_n_port_map:
+      credential: "{{credential}}"
+      vfid: -1
+      n_port_map: "{{n_port_map}}"
