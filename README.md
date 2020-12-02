@@ -244,7 +244,7 @@ convention. Most values assigned to these attributes also mirror
 Yang REST definition and details can be found in github.com/brocade/yang.
 
 However, in some instances, attribute values are modified for both
-to help with readability of playbooks.
+to maintain consistencies and to help with readability of playbooks.
 
 | Ansible module name | Attribute name | Value description |
 | --- | --- | --- |

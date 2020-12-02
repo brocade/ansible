@@ -62,7 +62,7 @@ def to_fos_singleton(module_name, obj_name, attributes, result):
             if k == "new-password":
                 attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
 
-        if module_name == "brocade_security" and (obj_name == "security_certificate_action" or obj_name == "sshutil_public_key_action"):
+        if module_name == "brocade_security" and (obj_name == "security_certificate_action" or obj_name == "sshutil_public_key_action" or obj_name == "sec_crypto_cfg_template_action"):
             if k == "remote-user-password":
                 attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
 
