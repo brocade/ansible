@@ -285,6 +285,7 @@ to maintain consistencies and to help with readability of playbooks.
 | brocade_security_password.py | old_password | clear text |
 | brocade_security_security_certificate_action.py | remote_user_password | clear text |
 | brocade_security_sshutil_public_key_action.py | remote_user_password | clear text |
+| brocade_security_sec_crypto_cfg_template_action.py | remote_user_password | clear text |
 | brocade_security_user_config.py | password | clear text |
 | brocade_snmp_v3_account.py | authentication_password | clear text |
 
