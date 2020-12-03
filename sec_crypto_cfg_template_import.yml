@@ -19,7 +19,7 @@
       remote_user_name: name
       remote_host_ip: "xx.xx.xx.xx"
       remote_user_password: "passwordincleartext"
-      remote_directory: /directory
+      remote_directory: /directory_path/append_template_name_at_the_end
       file_transfer_protocol_type: "scp"
       template_name: new_template_name
       action: import
