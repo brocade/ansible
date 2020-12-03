@@ -22,7 +22,8 @@ short_description: Brocade security crypto template file actions
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Use to perform actions on the crypto template files
+- Use to perform actions on the crypto template files. The module
+  performs the action each time and is not idempotent.
 
 options:
 
@@ -73,7 +74,7 @@ EXAMPLES = """
 
   tasks:
 
-  - name: change password
+  - name: import/export/apply cfg template
     brocade_security_sec_crypto_cfg_template_action
       credential: "{{credential}}"
       vfid: -1

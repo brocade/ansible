@@ -26,7 +26,7 @@
 
   tasks:
 
-  - name: export template
+  - name: export template. warning - this task will always change.
     brocade_security_sec_crypto_cfg_template_action:
       credential: "{{credential}}"
       vfid: -1
