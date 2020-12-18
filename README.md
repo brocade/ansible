@@ -302,7 +302,60 @@ within Ansible playbook.
 | brocade_time_clock_server.py | update clock server configuration |
 | brocade_time_time_zone.py | update time zone |
 
-### Template based Ansible modules
+#### How to add attribute input to modules ####
+
+As documented above, attributes passed to modules mirror Yang REST
+attribute name, except replacing "-" with "_" to aid Ansible
+convention. Most values assigned to these attributes also mirror
+Yang REST definition and details can be found in github.com/brocade/yang.
+
+However, in some instances, attribute values are modified for both
+to maintain consistencies and to help with readability of playbooks.
+
+| Ansible module name | Attribute name | Value description |
+| --- | --- | --- |
+| brocade_access_gateway_policy.py | auto_policy_enabled | boolean |
+| brocade_access_gateway_policy.py | port_group_policy_enabled | boolean |
+| brocade_fibrechannel_switch.py | enabled_state | boolean |
+| brocade_interface_fibrechannel.py | compression_configured | boolean |
+| brocade_interface_fibrechannel.py | credit_recovery_enabled | boolean |
+| brocade_interface_fibrechannel.py | csctl_mode_enabled | boolean |
+| brocade_interface_fibrechannel.py | d_port_enable | boolean |
+| brocade_interface_fibrechannel.py | e_port_disable | boolean |
+| brocade_interface_fibrechannel.py | enabled_state | boolean |
+| brocade_interface_fibrechannel.py | encryption_enabled | boolean |
+| brocade_interface_fibrechannel.py | ex_port_enabled | boolean |
+| brocade_interface_fibrechannel.py | fault_delay_enabled | boolean |
+| brocade_interface_fibrechannel.py | fec_enabled | boolean |
+| brocade_interface_fibrechannel.py | g_port_locked | boolean |
+| brocade_interface_fibrechannel.py | isl_ready_mode_enabled | boolean |
+| brocade_interface_fibrechannel.py | long_distance | Disabled/L0/L1/L2/LE/L0.5/LD/LS | 
+| brocade_interface_fibrechannel.py | los_tov_mode_enabled | Disabled/Fixed/FixedAuto |
+| brocade_interface_fibrechannel.py | max_speed | 32Gig/16Gig/10Gig/8Gig/4Gig/2Gig/1Gig/Auto  | 
+| brocade_interface_fibrechannel.py | mirror_port_enabled | boolean |
+| brocade_interface_fibrechannel.py | n_port_enabled | boolean |
+| brocade_interface_fibrechannel.py | non_dfe_enabled | boolean |
+| brocade_interface_fibrechannel.py | npiv_enabled | boolean |
+| brocade_interface_fibrechannel.py | npiv_flogi_logout_enabled | boolean |
+| brocade_interface_fibrechannel.py | persistent_disable | boolean |
+| brocade_interface_fibrechannel.py | port_autodisable_enabled | boolean |
+| brocade_interface_fibrechannel.py | qos_enabled | boolean |
+| brocade_interface_fibrechannel.py | rscn_suppression_enabled | boolean |
+| brocade_interface_fibrechannel.py | sim_port_enabled | boolean |
+| brocade_interface_fibrechannel.py | speed | 32Gig/16Gig/10Gig/8Gig/4Gig/2Gig/1Gig/Auto  | 
+| brocade_interface_fibrechannel.py | target_driven_zoning_enable | boolean |
+| brocade_interface_fibrechannel.py | trunk_port_enabled | boolean |
+| brocade_interface_fibrechannel.py | vc_link_init | boolean |
+| brocade_interface_fibrechannel.py | via_tts_fec_enabled | boolean |
+| brocade_security_password.py | new_password | clear text |
+| brocade_security_password.py | old_password | clear text |
+| brocade_security_security_certificate_action.py | remote_user_password | clear text |
+| brocade_security_sshutil_public_key_action.py | remote_user_password | clear text |
+| brocade_security_sec_crypto_cfg_template_action.py | remote_user_password | clear text |
+| brocade_security_user_config.py | password | clear text |
+| brocade_snmp_v3_account.py | authentication_password | clear text |
+
+#### Template based Ansible modules ####
 
 REST Yang objects that have yet been addressed by Yang module/object specific
 Ansible modules, template based Ansible modules can be used to address them
