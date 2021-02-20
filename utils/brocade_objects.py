@@ -371,12 +371,13 @@ def singleton_xml_str(result, obj_name, attributes):
     obj_name_yang = str_to_yang(obj_name)
     xml_str = ""
 
-    xml_str = xml_str + "<" + obj_name_yang + ">"
+    xml_str = xml_str + "<" + obj_name_yang + ">\n"
 
     for k, v in attributes.items():
         xml_str = xml_str + "<" + k + ">"
 
         if isinstance(v, dict):
+            xml_str = xml_str + "\n"
             for k1, v1 in v.items():
                 if isinstance(v1, list):
                     for entry in v1:
@@ -386,9 +387,9 @@ def singleton_xml_str(result, obj_name, attributes):
         else:
             xml_str = xml_str + str(v)
 
-        xml_str = xml_str + "</" + k + ">"
+        xml_str = xml_str + "</" + k + ">\n"
 
-    xml_str = xml_str + "</" + obj_name_yang + ">"
+    xml_str = xml_str + "</" + obj_name_yang + ">\n"
 
     return xml_str
 
@@ -442,13 +443,13 @@ def list_xml_str(result, module_name, list_name, entries):
     xml_str = ""
 
     for entry in entries:
-        xml_str = xml_str + "<" + list_name_yang + ">"
+        xml_str = xml_str + "<" + list_name_yang + ">\n"
 
         # add the key entries first
         for k, v in entry.items():
             if str_to_human(k) in list_entry_keys(module_name, list_name):
                 result[k] = "key identified"
-                xml_str = xml_str + "<" + k + ">" + str(v) + "</" + k + ">"
+                xml_str = xml_str + "<" + k + ">" + str(v) + "</" + k + ">\n"
 
         # add non key entries next
         for k, v in entry.items():
@@ -456,24 +457,25 @@ def list_xml_str(result, module_name, list_name, entries):
                 xml_str = xml_str + "<" + k + ">"
 
                 if isinstance(v, dict):
+                    xml_str = xml_str + "\n"
                     for k1, v1 in v.items():
                         if isinstance(v1, list):
                             for entry in v1:
-                                xml_str = xml_str + "<" + k1 + ">" + str(entry) + "</" + k1 + ">"
+                                xml_str = xml_str + "<" + k1 + ">" + str(entry) + "</" + k1 + ">\n"
                         else:
                             if v1 == None:
-                                xml_str = xml_str + "<" + k1 + "></" + k1 + ">"
+                                xml_str = xml_str + "<" + k1 + "></" + k1 + ">\n"
                             else:
-                                xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">"
+                                xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">\n"
                 else:
                     if v == None:
                         xml_str = xml_str
                     else:
                         xml_str = xml_str + str(v)
 
-                xml_str = xml_str + "</" + k + ">"
+                xml_str = xml_str + "</" + k + ">\n"
 
-        xml_str = xml_str + "</" + list_name_yang + ">"
+        xml_str = xml_str + "</" + list_name_yang + ">\n"
 
     return xml_str
 
@@ -990,24 +992,25 @@ def operation_xml_str(result, obj_name, attributes):
     obj_name_yang = str_to_yang(obj_name)
     xml_str = ""
 
-    xml_str = xml_str + "<" + obj_name_yang + ">"
+    xml_str = xml_str + "<" + obj_name_yang + ">\n"
 
     for k, v in attributes.items():
         xml_str = xml_str + "<" + k + ">"
 
         if isinstance(v, dict):
+            xml_str = xml_str + "\n"
             for k1, v1 in v.items():
                 if isinstance(v1, list):
                     for entry in v1:
-                        xml_str = xml_str + "<" + k1 + ">" + str(entry) + "</" + k1 + ">"
+                        xml_str = xml_str + "<" + k1 + ">" + str(entry) + "</" + k1 + ">\n"
                 else:
-                    xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">"
+                    xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">\n"
         else:
             xml_str = xml_str + str(v)
 
-        xml_str = xml_str + "</" + k + ">"
+        xml_str = xml_str + "</" + k + ">\n"
 
-    xml_str = xml_str + "</" + obj_name_yang + ">"
+    xml_str = xml_str + "</" + obj_name_yang + ">\n"
 
     return xml_str
 
