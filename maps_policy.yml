@@ -19,14 +19,10 @@
   tasks:
 
   - name: create my policy
-    brocade_list_obj:
+    brocade_maps_maps_policy:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-maps"
-      list_name: "maps-policy"
-      throttle: 5
-      timeout: 300
-      entries:
+      maps_policies:
         - name: my_policy
           is_active_policy: False
           rule_list:

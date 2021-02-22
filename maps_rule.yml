@@ -19,14 +19,10 @@
   tasks:
 
   - name: create my rules
-    brocade_list_obj:
+    brocade_maps_rule:
       credential: "{{credential}}"
       vfid: -1
-      module_name: "brocade-maps"
-      list_name: "rule"
-      throttle: 5
-      timeout: 300
-      entries:
+      rules:
         - name: my_rule1
           actions:
             action:
