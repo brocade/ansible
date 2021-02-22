@@ -205,6 +205,27 @@ def to_human_list(module_name, list_name, attributes_list, result):
                         new_list.append(attributes["configured_f_port_list"]["f_port"])
                         attributes["configured_f_port_list"]["f_port"] = new_list
 
+        if module_name == "brocade_maps" and list_name == "maps_policy":
+
+            to_human_switch(attributes)
+
+            if "rule_list" in attributes:
+                if attributes["rule_list"] is not None and "rule" in attributes["rule_list"]:
+                    if not isinstance(attributes["rule_list"]["rule"], list):
+                        new_list = []
+                        new_list.append(attributes["rule_list"]["rule"])
+                        attributes["rule_list"]["rule"] = new_list
+
+        if module_name == "brocade_maps" and list_name == "rule":
+
+            to_human_switch(attributes)
+
+            if "actions" in attributes:
+                if attributes["actions"] is not None and "action" in attributes["actions"]:
+                    if not isinstance(attributes["actions"]["action"], list):
+                        new_list = []
+                        new_list.append(attributes["actions"]["action"])
+                        attributes["actions"]["action"] = new_list
 
 
 def to_fos_list(module_name, list_name, attributes_list, result):
@@ -764,6 +785,26 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
                 port_group["port_group_n_ports"] = {"n_port": None}
             if "port_group_f_ports" in port_group and port_group["port_group_f_ports"] == None:
                 port_group["port_group_f_ports"] = {"f_port": None}
+
+    if module_name == "brocade_maps":
+        if list_name == "rule":
+            new_current_entries = []
+            for current_entry in current_entries:
+                # default rules cannot be changed anyway, any
+                # rules that are predefined should be removed
+                # from the comparison
+                if not current_entry["is_predefined"]:
+                    new_current_entries.append(current_entry)
+            current_entries = new_current_entries
+        elif list_name == "maps_policy":
+            new_current_entries = []
+            for current_entry in current_entries:
+                # default policies cannot be changed anyway, any
+                # policies that are predefined should be removed
+                # from the comparison
+                if not current_entry["is_predefined_policy"]:
+                    new_current_entries.append(current_entry)
+            current_entries = new_current_entries
 
     diff_entries = []
     for entry in entries:
