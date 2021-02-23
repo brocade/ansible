@@ -210,11 +210,14 @@ def to_human_list(module_name, list_name, attributes_list, result):
             to_human_switch(attributes)
 
             if "rule_list" in attributes:
-                if attributes["rule_list"] is not None and "rule" in attributes["rule_list"]:
-                    if not isinstance(attributes["rule_list"]["rule"], list):
-                        new_list = []
-                        new_list.append(attributes["rule_list"]["rule"])
-                        attributes["rule_list"]["rule"] = new_list
+                if attributes["rule_list"] is not None:
+                    if "rule" in attributes["rule_list"]:
+                        if not isinstance(attributes["rule_list"]["rule"], list):
+                            new_list = []
+                            new_list.append(attributes["rule_list"]["rule"])
+                            attributes["rule_list"]["rule"] = new_list
+                else:
+                    attributes["rule_list"] = {"rule" : None}
 
         if module_name == "brocade_maps" and list_name == "rule":
 
