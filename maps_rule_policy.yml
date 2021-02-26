@@ -45,7 +45,7 @@
         time_base: "Min"
     mypolicy:
       - name: "{{policyname}}"
-        is_active_policy: False
+        is_active_policy: True
         rule_list:
           rule:
             - "{{rule1}}"
@@ -63,13 +63,13 @@
 
 #  - debug: var=rules_changed
 
-  - name: clear rules from my policy
+  - name: activate a dummy policy with empty list of rules
     brocade_maps_maps_policy:
       credential: "{{credential}}"
       vfid: -1
       maps_policies:
-        - name: "{{policyname}}"
-          is_active_policy: False
+        - name: dummy_policy
+          is_active_policy: True
           rule_list:
             rule:
     when: rules_changed.changed
