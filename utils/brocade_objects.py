@@ -833,6 +833,7 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
+    remain_entries = []
     add_entries = []
     for entry in entries:
 
@@ -840,6 +841,7 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
         found = False
         for current_entry in current_entries:
             if list_entry_keys_matched(entry, current_entry, module_name, list_name):
+                remain_entries.append(current_entry)
                 found = True
                 break
 
@@ -860,6 +862,12 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
             else:
                 new_add_entries.append(add_entry)
         add_entries = new_add_entries
+
+    if module_name == "brocade_maps" and list_name == "rule":
+        remaining_rules = []
+        for remain_entry in remain_entries:
+            remaining_rules.append(remain_entry["name"])
+        result["remain_brocade_maps_rule"] = remaining_rules
 
     ret_code = to_fos_list(module_name, list_name, add_entries, result)
     result["add_retcode"] = ret_code

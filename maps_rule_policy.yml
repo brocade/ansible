@@ -62,6 +62,7 @@
     register: rules_changed
 
 #  - debug: var=rules_changed
+  - debug: var=rules_changed.remain_brocade_maps_rule
 
   - name: activate a dummy policy with empty list of rules
     brocade_maps_maps_policy:
@@ -71,7 +72,7 @@
         - name: dummy_policy
           is_active_policy: True
           rule_list:
-            rule:
+            rule: "{{rules_changed.remain_brocade_maps_rule}}"
     when: rules_changed.changed
 
   - name: create my rules
