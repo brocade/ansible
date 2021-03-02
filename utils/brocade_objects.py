@@ -205,6 +205,30 @@ def to_human_list(module_name, list_name, attributes_list, result):
                         new_list.append(attributes["configured_f_port_list"]["f_port"])
                         attributes["configured_f_port_list"]["f_port"] = new_list
 
+        if module_name == "brocade_maps" and list_name == "maps_policy":
+
+            to_human_switch(attributes)
+
+            if "rule_list" in attributes:
+                if attributes["rule_list"] is not None:
+                    if "rule" in attributes["rule_list"]:
+                        if not isinstance(attributes["rule_list"]["rule"], list):
+                            new_list = []
+                            new_list.append(attributes["rule_list"]["rule"])
+                            attributes["rule_list"]["rule"] = new_list
+                else:
+                    attributes["rule_list"] = {"rule" : None}
+
+        if module_name == "brocade_maps" and list_name == "rule":
+
+            to_human_switch(attributes)
+
+            if "actions" in attributes:
+                if attributes["actions"] is not None and "action" in attributes["actions"]:
+                    if not isinstance(attributes["actions"]["action"], list):
+                        new_list = []
+                        new_list.append(attributes["actions"]["action"])
+                        attributes["actions"]["action"] = new_list
 
 
 def to_fos_list(module_name, list_name, attributes_list, result):
@@ -371,12 +395,13 @@ def singleton_xml_str(result, obj_name, attributes):
     obj_name_yang = str_to_yang(obj_name)
     xml_str = ""
 
-    xml_str = xml_str + "<" + obj_name_yang + ">"
+    xml_str = xml_str + "<" + obj_name_yang + ">\n"
 
     for k, v in attributes.items():
         xml_str = xml_str + "<" + k + ">"
 
         if isinstance(v, dict):
+            xml_str = xml_str + "\n"
             for k1, v1 in v.items():
                 if isinstance(v1, list):
                     for entry in v1:
@@ -386,9 +411,9 @@ def singleton_xml_str(result, obj_name, attributes):
         else:
             xml_str = xml_str + str(v)
 
-        xml_str = xml_str + "</" + k + ">"
+        xml_str = xml_str + "</" + k + ">\n"
 
-    xml_str = xml_str + "</" + obj_name_yang + ">"
+    xml_str = xml_str + "</" + obj_name_yang + ">\n"
 
     return xml_str
 
@@ -442,13 +467,13 @@ def list_xml_str(result, module_name, list_name, entries):
     xml_str = ""
 
     for entry in entries:
-        xml_str = xml_str + "<" + list_name_yang + ">"
+        xml_str = xml_str + "<" + list_name_yang + ">\n"
 
         # add the key entries first
         for k, v in entry.items():
             if str_to_human(k) in list_entry_keys(module_name, list_name):
                 result[k] = "key identified"
-                xml_str = xml_str + "<" + k + ">" + str(v) + "</" + k + ">"
+                xml_str = xml_str + "<" + k + ">" + str(v) + "</" + k + ">\n"
 
         # add non key entries next
         for k, v in entry.items():
@@ -456,24 +481,25 @@ def list_xml_str(result, module_name, list_name, entries):
                 xml_str = xml_str + "<" + k + ">"
 
                 if isinstance(v, dict):
+                    xml_str = xml_str + "\n"
                     for k1, v1 in v.items():
                         if isinstance(v1, list):
                             for entry in v1:
-                                xml_str = xml_str + "<" + k1 + ">" + str(entry) + "</" + k1 + ">"
+                                xml_str = xml_str + "<" + k1 + ">" + str(entry) + "</" + k1 + ">\n"
                         else:
                             if v1 == None:
-                                xml_str = xml_str + "<" + k1 + "></" + k1 + ">"
+                                xml_str = xml_str + "<" + k1 + "></" + k1 + ">\n"
                             else:
-                                xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">"
+                                xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">\n"
                 else:
                     if v == None:
                         xml_str = xml_str
                     else:
                         xml_str = xml_str + str(v)
 
-                xml_str = xml_str + "</" + k + ">"
+                xml_str = xml_str + "</" + k + ">\n"
 
-        xml_str = xml_str + "</" + list_name_yang + ">"
+        xml_str = xml_str + "</" + list_name_yang + ">\n"
 
     return xml_str
 
@@ -763,6 +789,26 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
             if "port_group_f_ports" in port_group and port_group["port_group_f_ports"] == None:
                 port_group["port_group_f_ports"] = {"f_port": None}
 
+    if module_name == "brocade_maps":
+        if list_name == "rule":
+            new_current_entries = []
+            for current_entry in current_entries:
+                # default rules cannot be changed anyway, any
+                # rules that are predefined should be removed
+                # from the comparison
+                if not current_entry["is_predefined"]:
+                    new_current_entries.append(current_entry)
+            current_entries = new_current_entries
+        elif list_name == "maps_policy":
+            new_current_entries = []
+            for current_entry in current_entries:
+                # default policies cannot be changed anyway, any
+                # policies that are predefined should be removed
+                # from the comparison
+                if not current_entry["is_predefined_policy"]:
+                    new_current_entries.append(current_entry)
+            current_entries = new_current_entries
+
     diff_entries = []
     for entry in entries:
         for current_entry in current_entries:
@@ -787,6 +833,7 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
+    remain_entries = []
     add_entries = []
     for entry in entries:
 
@@ -794,6 +841,7 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
         found = False
         for current_entry in current_entries:
             if list_entry_keys_matched(entry, current_entry, module_name, list_name):
+                remain_entries.append(current_entry)
                 found = True
                 break
 
@@ -814,6 +862,12 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
             else:
                 new_add_entries.append(add_entry)
         add_entries = new_add_entries
+
+    if module_name == "brocade_maps" and list_name == "rule":
+        remaining_rules = []
+        for remain_entry in remain_entries:
+            remaining_rules.append(remain_entry["name"])
+        result["remain_brocade_maps_rule"] = remaining_rules
 
     ret_code = to_fos_list(module_name, list_name, add_entries, result)
     result["add_retcode"] = ret_code
@@ -990,24 +1044,25 @@ def operation_xml_str(result, obj_name, attributes):
     obj_name_yang = str_to_yang(obj_name)
     xml_str = ""
 
-    xml_str = xml_str + "<" + obj_name_yang + ">"
+    xml_str = xml_str + "<" + obj_name_yang + ">\n"
 
     for k, v in attributes.items():
         xml_str = xml_str + "<" + k + ">"
 
         if isinstance(v, dict):
+            xml_str = xml_str + "\n"
             for k1, v1 in v.items():
                 if isinstance(v1, list):
                     for entry in v1:
-                        xml_str = xml_str + "<" + k1 + ">" + str(entry) + "</" + k1 + ">"
+                        xml_str = xml_str + "<" + k1 + ">" + str(entry) + "</" + k1 + ">\n"
                 else:
-                    xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">"
+                    xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">\n"
         else:
             xml_str = xml_str + str(v)
 
-        xml_str = xml_str + "</" + k + ">"
+        xml_str = xml_str + "</" + k + ">\n"
 
-    xml_str = xml_str + "</" + obj_name_yang + ">"
+    xml_str = xml_str + "</" + obj_name_yang + ">\n"
 
     return xml_str
 
