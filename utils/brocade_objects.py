@@ -867,7 +867,10 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
         remaining_rules = []
         for remain_entry in remain_entries:
             remaining_rules.append(remain_entry["name"])
-        result["remain_brocade_maps_rule"] = remaining_rules
+        if len(remaining_rules) > 0:
+            result["remain_brocade_maps_rule"] = remaining_rules
+        else:
+            result["remain_brocade_maps_rule"] = None
 
     ret_code = to_fos_list(module_name, list_name, add_entries, result)
     result["add_retcode"] = ret_code
