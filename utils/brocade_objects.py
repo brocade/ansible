@@ -809,6 +809,15 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
                     new_current_entries.append(current_entry)
             current_entries = new_current_entries
 
+    if module_name == "brocade_fibrechannel_logical_switch":
+        if list_name == "fibrechannel_logical_switch":
+            new_current_entries = []
+            for current_entry in current_entries:
+                # only keep the non-default entries
+                if "fabric_id" in current_entry and current_entry["fabric_id"] != "128":
+                    new_current_entries.append(current_entry)
+            current_entries = new_current_entries
+
     diff_entries = []
     for entry in entries:
         for current_entry in current_entries:
