@@ -51,6 +51,18 @@ options:
         - rest timeout in seconds for operations taking longer than
           default timeout.
         required: false
+    all_entries:
+        description:
+        - Boolean to indicate if the entries specified are full
+          list of objects or not. By default, all_entries are
+          thought to be true if not specified. If all_entries
+          is set to true, the entries is used to calculate the change
+          of existing entryies, addition, and deletion. If
+          all_entries is set to false, the entries is used to
+          calculate the change of existing entries and addition
+          of entries only. i.e.  the module will not attempt to
+          delete objects that do not show up in the entries.
+        required: false
     logical_switches:
         description:
         - list of logical switch data structure
@@ -122,6 +134,7 @@ def main():
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
         timeout=dict(required=False, type='float'),
+        all_entries=dict(required=False, type='bool'),
         logical_switches=dict(required=True, type='list'))
 
     module = AnsibleModule(
@@ -138,11 +151,12 @@ def main():
     https = input_params['credential']['https']
     throttle = input_params['throttle']
     timeout = input_params['timeout']
+    all_entries = input_params['all_entries']
     vfid = input_params['vfid']
     logical_switches = input_params['logical_switches']
     result = {"changed": False}
 
-    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_fibrechannel_logical_switch", "fibrechannel_logical_switch", logical_switches, True, result, timeout)
+    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_fibrechannel_logical_switch", "fibrechannel_logical_switch", logical_switches, all_entries, result, timeout)
 
 
 if __name__ == '__main__':
