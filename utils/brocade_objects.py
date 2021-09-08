@@ -659,8 +659,6 @@ def list_delete(login, password, fos_ip_addr, module_name, list_name, fos_versio
 
 def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, obj_name, attributes, result, timeout):
 
-    result["xdebug1"] = "here"
-
     if not is_full_human(attributes, result):
         module.exit_json(**result)
 
@@ -712,10 +710,7 @@ def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
     result["current_attributes"] = resp_attributes
     result["new_attributes"] = attributes
 
-    result["xdebug2"] = "here"
-
     if len(diff_attributes) > 0:
-        result["xdebug3"] = "here"
         ret_code = to_fos_singleton(module_name, obj_name, diff_attributes, result)
         if ret_code != 0:
             exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
@@ -732,11 +727,9 @@ def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
 
         result["changed"] = True
     else:
-        result["xdebug4"] = "here"
         logout(fos_ip_addr, https, auth, result, timeout)
         module.exit_json(**result)
 
-    result["xdebug5"] = "here"
     logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
 
