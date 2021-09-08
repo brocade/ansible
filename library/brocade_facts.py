@@ -150,6 +150,7 @@ valid_areas = [
     "brocade_access_gateway_policy",
     "brocade_access_gateway_n_port_settings",
     "brocade_zoning",
+    "brocade_zoning_simple",
     "brocade_interface_fibrechannel",
     "brocade_chassis_chassis",
     "brocade_fabric_fabric_switch",
@@ -400,6 +401,84 @@ def main():
                 )
 
                 to_human_zoning(zoning["effective-configuration"])
+
+                facts[area] = zoning
+            elif area == "brocade_zoning_simple":
+                ret_code, response = defined_get(
+                    fos_ip_addr, https, auth, vfid, result, timeout)
+                if ret_code != 0:
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+                zoning = {}
+                zoning["defined_configuration"] = {
+                    "aliases" : [],
+                    "zones" : [],
+                    "cfgs" : []
+                }
+                r_cfgs = response["Response"]["defined-configuration"]["cfg"]
+                if not isinstance(response["Response"]["defined-configuration"]["cfg"], list):
+                    r_cfgs = [response["Response"]["defined-configuration"]["cfg"]]
+                for cfg in r_cfgs:
+                    cfg_members = cfg["member-zone"]["zone-name"]
+                    if not isinstance(cfg["member-zone"]["zone-name"], list):
+                        cfg_members = [cfg["member-zone"]["zone-name"]]
+                    zoning["defined_configuration"]["cfgs"].append(
+                        {
+                            "name": cfg["cfg-name"],
+                            "members": cfg_members
+                        }
+                    )
+
+                r_aliases = response["Response"]["defined-configuration"]["alias"]
+                if not isinstance(response["Response"]["defined-configuration"]["alias"], list):
+                    r_aliases = [response["Response"]["defined-configuration"]["alias"]]
+                for alias in r_aliases:
+                    alias_members = alias["member-entry"]["alias-entry-name"]
+                    if not isinstance(alias["member-entry"]["alias-entry-name"], list):
+                        alias_members = [alias["member-entry"]["alias-entry-name"]]
+                    zoning["defined_configuration"]["aliases"].append(
+                        {
+                            "name": alias["alias-name"],
+                            "members": alias_members
+                        }
+                    )
+
+                r_zones = response["Response"]["defined-configuration"]["zone"]
+                if not isinstance(response["Response"]["defined-configuration"]["zone"], list):
+                    r_zones = [response["Response"]["defined-configuration"]["zone"]]
+                for zone in r_zones:
+                    zone_members = zone["member-entry"]["entry-name"]
+                    if not isinstance(zone["member-entry"]["entry-name"], list):
+                        zone_members = [zone["member-entry"]["entry-name"]]
+                    if "principal-entry-name" in zone["member-entry"]:
+                        pzone_members = zone["member-entry"]["principal-entry-name"]
+                        if not isinstance(zone["member-entry"]["principal-entry-name"], list):
+                            pzone_members = [zone["member-entry"]["principal-entry-name"]]
+                        zoning["defined_configuration"]["zones"].append(
+                            {
+                                "name": zone["zone-name"],
+                                "members": zone_members,
+                                "principal_members": pzone_members
+                            }
+                        )
+                    else:
+                        zoning["defined_configuration"]["zones"].append(
+                            {
+                                "name": zone["zone-name"],
+                                "members": zone_members
+                            }
+                        )
+
+                ret_code, response = effective_get(
+                    fos_ip_addr, https, auth, vfid, result, timeout)
+                if ret_code != 0:
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+                zoning["effective_configuration"] = (
+                    response["Response"]["effective-configuration"]
+                )
+
+                to_human_zoning(zoning["effective_configuration"])
 
                 facts[area] = zoning
 
