@@ -39,22 +39,33 @@
       credential: "{{t_credential}}"
       vfid: -1
       aliases: "{{ansible_facts['brocade_zoning_simple']['defined_configuration']['aliases']}}"
+    when: ansible_facts['brocade_zoning_simple']['defined_configuration']['aliases'] | length > 0
 
   - name: Create zones
     brocade_zoning_zone:
       credential: "{{t_credential}}"
       vfid: -1
       zones: "{{ansible_facts['brocade_zoning_simple']['defined_configuration']['zones']}}"
+    when: ansible_facts['brocade_zoning_simple']['defined_configuration']['zones'] | length > 0
 
   - name: Create cfgs
     brocade_zoning_cfg:
       credential: "{{t_credential}}"
       vfid: -1
       cfgs: "{{ansible_facts['brocade_zoning_simple']['defined_configuration']['cfgs']}}"
+#      active_cfg: "{{ansible_facts['brocade_zoning_simple']['effective_configuration']['cfg_name']}}"
+    when: ansible_facts['brocade_zoning_simple']['defined_configuration']['cfgs'] | length > 0
+
+  - name: Enable active cfg
+    brocade_zoning_cfg:
+      credential: "{{t_credential}}"
+      vfid: -1
+      cfgs: "{{ansible_facts['brocade_zoning_simple']['defined_configuration']['cfgs']}}"
       active_cfg: "{{ansible_facts['brocade_zoning_simple']['effective_configuration']['cfg_name']}}"
+    when: "'cfg_name' in ansible_facts['brocade_zoning_simple']['effective_configuration']"
 
 #  - name: Default zoning
 #    brocade_zoning_default_zone:
-#      credential: "{{credential}}"
+#      credential: "{{t_credential}}"
 #      vfid: -1
 #      default_zone_access: allaccess
