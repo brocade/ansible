@@ -161,7 +161,7 @@ def cfg_enable(fos_ip_addr, is_https, auth, vfid,
 
 def cfg_abort(fos_ip_addr, is_https, auth, vfid, result, timeout):
     """
-        abort zoning transacdtion
+        abort zoning transaction
 
         :param fos_ip_addr: ip address of FOS switch
         :type fos_ip_addr: str
@@ -182,6 +182,35 @@ def cfg_abort(fos_ip_addr, is_https, auth, vfid, result, timeout):
         "4</cfg-action></effective-configuration>"
     return url_patch(fos_ip_addr, is_https, auth, vfid, result,
                      full_effective_url, abort_str, timeout)
+
+def cfg_disable(fos_ip_addr, is_https, auth, vfid, result, checksum, timeout):
+    """
+        disable zoning transaction
+
+        :param fos_ip_addr: ip address of FOS switch
+        :type fos_ip_addr: str
+        :param is_https: indicate to use HTTP or HTTPS
+        :type is_https: bool
+        :param auth: authorization struct from login
+        :type auth: dict
+        :param vfid: vfid of the switch to be executed
+        :type vfid: int
+        :param result: dict to keep track of execution msgs
+        :type result: dict
+        :param checksum: current checksum of the database
+        :type checksum: str
+        :return: code to indicate failure or success
+        :rtype: int
+    """
+    full_effective_url, validate_certs = full_url_get(is_https,
+                                                      fos_ip_addr,
+                                                      REST_EFFECTIVE)
+
+    disable_str = "<effective-configuration><cfg-action>"\
+        "2</cfg-action><checksum>" + checksum +\
+        "</checksum></effective-configuration>"
+    return url_patch(fos_ip_addr, is_https, auth, vfid, result,
+                     full_effective_url, disable_str, timeout)
 
 
 def zone_post(fos_ip_addr, is_https, auth, vfid, result, zones, timeout):
@@ -777,8 +806,24 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
 
             result["changed"] = True
 
-    return 0
+    if input_list is None and to_delete_list is None:
+        if not module.check_mode:
+            if active_cfg is not None and cfgname is None:
+                ret_code = cfg_enable(fos_ip_addr, https, auth, vfid,
+                                      result, checksum, active_cfg, timeout)
+                result["changed"] = True
+            elif active_cfg is None and cfgname is not None:
+                ret_code = cfg_disable(fos_ip_addr, https, auth, vfid, result,
+                                                          checksum, timeout)
+                result["changed"] = True
 
+            if ret_code != 0:
+                ret_code = cfg_abort(fos_ip_addr, https, auth, vfid, result, timeout)
+                result["failed"] = True
+                result['msg'] = "CFG ENABLE failed"
+                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+        
+    return 0
 
 def obj_to_yml(obj):
     new_obj = {}

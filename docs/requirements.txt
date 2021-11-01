@@ -1,0 +1,4 @@
+ansible==4.5.0
+ansible-doc-extractor==0.1.7
+sphinx==4.1.2
+

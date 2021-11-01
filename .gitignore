@@ -1,0 +1,14 @@
+# directories
+.idea
+# force add directories
+
+# files
+**/*.rst
+**/*.swp
+**/*.pyc
+**/*.pickle
+
+# force add files
+!README.rst
+!CONTRIBUTING.rst
+!test_version_matrix.rst
