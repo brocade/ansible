@@ -251,7 +251,8 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout, credent
         if e.code == 404 and root_dict["errors"]["error"]["error-message"] in messages_404:
             empty_list_resp = {}
             empty_list_resp["Response"] = {}
-            empty_list_resp["Response"][os.path.basename(url)] = []
+            base_type = os.path.basename(url).split("?")[0]
+            empty_list_resp["Response"][base_type] = []
             return ERROR_GENERIC, 0, empty_list_resp, None
 
         result[method + "_url"] = url
@@ -268,7 +269,8 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout, credent
                 result["msg"] = method + " failed"
             else:
                 ret_val = ERROR_SERVER_BUSY
-                result["myretry"] = True
+                result["failed"] = True
+                result["msg"] = method + " failed"
         elif e.code == 400:
             is_known, err_msg = known_empty_message(root_dict["errors"]["error"])
             if is_known:
@@ -282,6 +284,8 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout, credent
             result["msg"] = method + " failed"
 
         return ERROR_GENERIC, ret_val, None, None
+
+    result[method + "_url"] = url
 
     return 0, 0, None, get_resp,
 

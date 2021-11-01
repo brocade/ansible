@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 # Copyright 2019 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
@@ -10,77 +10,94 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'certified'}
-
-
 DOCUMENTATION = '''
 
 module: brocade_list_obj_facts
-short_description: Brocade generic facts gathering for list objects
+short_description: Brocade Fibre Channel generic facts gathering for list objects
 version_added: '2.6'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Gather FOS facts for objects that are defined as list in Yang
+- Gather Fibre Channel FOS facts for objects that are defined as list in Yang
 
 options:
-
     credential:
         description:
-        - login information including
-          fos_ip_addr - ip address of the FOS switch
-          fos_user_name - login name of FOS switch REST API
-          fos_password - password of FOS switch REST API
-          https - True for HTTPS, self for self-signed HTTPS, or False for HTTP
-          ssh_hostkeymust - hostkeymust arguement for ssh attributes only. Default True.
+        - Login information
+        suboptions:
+            fos_ip_addr:
+                description:
+                - IP address of the FOS switch
+                required: true
+                type: str
+            fos_user_name:
+                description:
+                - Login name of FOS switch
+                required: true
+                type: str
+            fos_password:
+                description:
+                - Password of FOS switch
+                required: true
+                type: str
+            https:
+                description:
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                  or False for HTTP
+                choices:
+                    - True
+                    - False
+                    - self
+                required: true
+                type: str
+
         type: dict
         required: true
     vfid:
         description:
-        - vfid of the switch to target. The value can be -1 for
-          FOS without VF enabled. For VF enabled FOS, a valid vfid
-          should be given
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        type: int
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds to retry once more if
-          server is busy.
-        required: false
+        - Throttling delay in seconds. Enables second retry on first
+          failure.
+        type: int
     timeout:
         description:
-        - rest timeout in seconds for operations taking longer than
-          default timeout.
-        required: false
+        - REST timeout in seconds for operations that take longer than FOS
+          default value.
+        type: int
     module_name:
         description:
         - Yang module name. Hyphen or underscore are used interchangebly.
           If the Yang module name is xy-z, either xy-z or xy_z are acceptable.
         required: true
+        type: str
     obj_name:
         description:
         - Yang name for the list object. Hyphen or underscore are used
           interchangebly. If the Yang list name is xy-z, either
           xy-z or xy_z are acceptable.
         required: true
+        type: str
     attributes:
         description:
-        - list of attributes for the object to match to return.
-          names match Yang rest attributes with "-" replaced with "_".
+        - List of attributes for the object to match to return.
+          Names match Yang rest attributes with "-" replaced with "_".
           If none is given, the module returns all valid entries.
           Using hyphen in the name may result in errenously behavior
           based on Ansible parsing.
-
+        type: dict  
 '''
 
 
 EXAMPLES = """
 
-  var:
+  vars:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
       fos_user_name: admin
-      fos_password: fibranne
+      fos_password: password
       https: False
     wwn_to_search: "11:22:33:44:55:66:77:88"
 
@@ -113,7 +130,7 @@ msg:
 
 
 """
-Brocade Fibre Channel Port Configuration
+Brocade Fibre Channel gather facts
 """
 
 

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 # Copyright 2019 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
@@ -10,55 +10,71 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'certified'}
-
-
 DOCUMENTATION = '''
 
 module: brocade_chassis
-short_description: Brocade chassis Configuration
+short_description: Brocade Fibre Channel chassis configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update chassis configuration.
+- Update Fibre Channel chassis configuration
 
 options:
-
     credential:
         description:
-        - login information including
-          fos_ip_addr - ip address of the FOS switch
-          fos_user_name - login name of FOS switch REST API
-          fos_password - password of FOS switch REST API
-          https - True for HTTPS, self for self-signed HTTPS, or False for HTTP
-          ssh_hostkeymust - hostkeymust arguement for ssh attributes only. Default True.
+        - Login information
+        suboptions:
+            fos_ip_addr:
+                description:
+                - IP address of the FOS switch
+                required: true
+                type: str
+            fos_user_name:
+                description:
+                - Login name of FOS switch
+                required: true
+                type: str
+            fos_password:
+                description:
+                - Password of FOS switch
+                required: true
+                type: str
+            https:
+                description:
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                  or False for HTTP
+                choices:
+                    - True
+                    - False
+                    - self
+                required: true
+                type: str
+
         type: dict
         required: true
     vfid:
         description:
-        - vfid of the switch to target. The value can be -1 for
-          FOS without VF enabled. For VF enabled FOS, a valid vfid
-          should be given
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        type: int
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds to retry once more if
-          server is busy.
-        required: false
+        - Throttling delay in seconds. Enables second retry on first
+          failure.
+        type: int
     timeout:
         description:
-        - rest timeout in seconds for operations taking longer than
-          default timeout.
-        required: false
+        - REST timeout in seconds for operations that take longer than FOS
+          default value.
+        type: int
     chassis:
         description:
-        - list of chassis attributes. All writable attributes supported
+        - List of chassis attributes. All writable attributes supported
           by BSN REST API with - replaced with _.
           Some examples are
           - chassis_user_friendly_name - chassis name in string
         required: true
+        type: dict
 
 '''
 
@@ -98,7 +114,7 @@ msg:
 
 
 """
-Brocade Fibre Channel switch Configuration
+Brocade Fibre Channel chassis Configuration
 """
 
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import singleton_helper

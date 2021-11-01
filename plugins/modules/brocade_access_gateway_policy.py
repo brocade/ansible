@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 # Copyright 2019 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
@@ -10,53 +10,76 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'certified'}
-
-
 DOCUMENTATION = '''
 
 module: brocade_access_gateway_policy
-short_description: Brocade AG policy
+short_description: Brocade Fibre Channel AG policy configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update AG policy
+- Update Fibre Channel AG policy configuration
 
 options:
-
     credential:
         description:
-        - login information including
-          fos_ip_addr - ip address of the FOS switch
-          fos_user_name - login name of FOS switch REST API
-          fos_password - password of FOS switch REST API
-          https - True for HTTPS, self for self-signed HTTPS, or False for HTTP
+        - Login information
+        suboptions:
+            fos_ip_addr:
+                description:
+                - IP address of the FOS switch
+                required: true
+                type: str
+            fos_user_name:
+                description:
+                - Login name of FOS switch
+                required: true
+                type: str
+            fos_password:
+                description:
+                - Password of FOS switch
+                required: true
+                type: str
+            https:
+                description:
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                  or False for HTTP
+                choices:
+                    - True
+                    - False
+                    - self
+                required: true
+                type: str
+
         type: dict
         required: true
     vfid:
         description:
-        - vfid of the switch to target. The value can be -1 for
-          FOS without VF enabled. For VF enabled FOS, a valid vfid
-          should be given
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        type: int
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds to retry once more if
-          server is busy.
-        required: false
+        - Throttling delay in seconds. Enables second retry on first
+          failure.
+        type: int
     timeout:
         description:
-        - rest timeout in seconds for operations taking longer than
-          default timeout.
-        required: false
-    policy:
+        - REST timeout in seconds for operations that take longer than FOS
+          default value.
+        type: int
+    force:
         description:
-        - policy data structure
-          All writable attributes supported
-          by BSN REST API with - replaced with _.
+        - When enabling auto policy, switch is disabled, pg policy is disabled,
+          auto policy is enabled, and switch is enabled.
+          When enabling pg policy, switch is disabled, auto policy is disabled,
+          and switch is enabled.
+          If both policies are specified in the playbook, only the first entry
+          is processed.
+          Pause statement can be used to delay subsequent tasks to be executed
+          prior to switch online while executing multiple tasks from the
+          same playbook. 
         required: false
+        type: bool
 
 '''
 
@@ -96,7 +119,7 @@ msg:
 
 
 """
-Brocade Fibre Channel time time zone Configuration
+Brocade Fibre Channel AG policy configuration
 """
 
 
@@ -114,7 +137,8 @@ def main():
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
         timeout=dict(required=False, type='float'),
-        policy=dict(required=False, type='dict'))
+        policy=dict(required=False, type='dict'),
+        force=dict(required=False, type='bool'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -132,9 +156,10 @@ def main():
     timeout = input_params['timeout']
     vfid = input_params['vfid']
     policy = input_params['policy']
+    force = input_params['force']
     result = {"changed": False}
 
-    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_access_gateway", "policy", policy, result, timeout)
+    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_access_gateway", "policy", policy, result, timeout, force)
 
 
 if __name__ == '__main__':

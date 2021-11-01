@@ -1,0 +1,151 @@
+.. _{{ module }}_module:
+
+{% if short_description %}
+{%   set title = module %}
+{% else %}
+{%   set title = module %}
+{% endif %}
+
+{{ title }}
+{{ '=' * title|length }}
+
+{{ short_description }}
+
+.. contents::
+   :local:
+   :depth: 1
+
+
+{% if description -%}
+Synopsis
+--------
+
+{%   for desc in description %}
+{{ desc | rst_ify }}
+
+{%   endfor %}
+{% endif %}
+
+
+{% if requirements -%}
+Requirements
+------------
+The below requirements are needed on the host that executes this module.
+
+{%   for req in requirements %}
+- {{ req | rst_ify }}
+{%   endfor %}
+{% endif %}
+
+
+{% macro option_desc(opts, level) %}
+{%   for name, spec in opts.items() %}
+{%     set req = spec.required | default("optional") %}
+{%     set typ = spec.type | default("any") %}
+{%     set choice = spec.choices | default("none") %}
+
+  {{ "  " * level }} **{{ name }}**: {% for para in spec.description %}
+                                     {{ "  " * level }}{{ para | rst_ify }}
+  {%     endfor %}
+
+    {{ "  " * level }} *required: {{ req }}*
+
+    {{ "  " * level }} *type: {{ typ }}*
+    {%     if spec.choices %}
+    {{ "  " * level }} *choices: {{ choice }}*
+    {%     endif %}
+
+
+{%   if spec.suboptions %}
+{{ option_desc(spec.suboptions, level + 1) }}
+{%     endif %}
+{%   endfor %}
+{% endmacro %}
+
+{% if options -%}
+Parameters
+----------
+
+{{ option_desc(options, 0) }}
+{% endif %}
+
+
+{% if notes -%}
+Notes
+-----
+
+.. note::
+{%   for note in notes %}
+   - {{ note | rst_ify }}
+{%   endfor %}
+{% endif %}
+
+
+{% if seealso -%}
+See Also
+--------
+
+.. seealso::
+
+{% for item in seealso %}
+{%   if item.module is defined and item.description is defined %}
+   :ref:`{{ item.module }}_module`
+       {{ item.description | rst_ify }}
+{%   elif item.module is defined %}
+   :ref:`{{ item.module }}_module`
+      The official documentation on the **{{ item.module }}** module.
+{%   elif item.name is defined and item.link is defined and item.description is defined %}
+   `{{ item.name }} <{{ item.link }}>`_
+       {{ item.description | rst_ify }}
+{%   elif item.ref is defined and item.description is defined %}
+   :ref:`{{ item.ref }}`
+       {{ item.description | rst_ify }}
+{%   endif %}
+{% endfor %}
+{% endif %}
+
+
+{% if examples -%}
+Examples
+--------
+
+.. code-block:: yaml+jinja
+
+{{ examples | indent(4, True) }}
+{% endif %}
+
+{% macro result_desc(results, level) %}
+{%   for name, spec in results.items() %}
+{%     set ret = spec.returned %}
+{%     set typ = spec.type | default("any") %}
+{%     set sample = spec.sample %}
+   {{ "  " * level }} **{{ name }}**: {% for para in spec.description %}
+                                      {{ "  " * level }}{{ para | rst_ify }}
+   {%     endfor %}
+
+     *returned: {{ ret }}*
+
+     *type: {{ typ }}*
+
+{%     if spec.contains %}
+{{ result_desc(spec.contains, level + 1) }}
+{%     endif %}
+{%   endfor %}
+{% endmacro %}
+
+{% if returndocs -%}
+Return Values
+-------------
+
+{{ result_desc(returndocs, 0) }}
+{% endif %}
+
+{% if author is defined -%}
+Authors
+~~~~~~~
+
+{%   for author_name in author %}
+- {{ author_name }}
+{%   endfor %}
+
+{% endif %}
