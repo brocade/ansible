@@ -11,11 +11,11 @@ Welcome to FOS-ansible documentation!
    :maxdepth: 1
    :caption: Contents
 
-   _static/README.rst
-   generated_rst/modules/modules.rst
-   _static/documentation.rst
-   _static/test_version_matrix.rst
-   _static/CONTRIBUTING.rst
+   _static/readme
+   generated_rst/modules/modules
+   _static/test_version_matrix
+   _static/documentation
+   _static/contributing
    
 
 

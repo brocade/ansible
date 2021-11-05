@@ -25,7 +25,7 @@ def dynamic_rsts():
         fos_template = docs_dir / "fos-ansible.rst.j2"
         ansi_doc_extractor_cmd = "ansible-doc-extractor"
 
-        mods_lst = list()
+        mods_file_lst = list()
         template_arg = "--template " + str(fos_template)
 
         # preliminary checks
@@ -41,21 +41,18 @@ def dynamic_rsts():
         else:
             for _ in mod_path.iterdir():
                 if not _.stem.startswith("."):
-                    mods_lst.append(_)
-            if len(mods_lst) == 0:
+                    mods_file_lst.append(_)
+            if len(mods_file_lst) == 0:
                 raise FileNotFoundError(f"Could not find any modules under {mod_path}")
 
-        # iterate over the modules and extract the RST files
-        for mod in mods_lst:
-            out = err = None  # reinitialize the variables
-            cmd = ansi_doc_extractor_cmd + " " + str(mod_rst.parent) + " " + str(mod) + " " + template_arg
-            #import pdb;pdb.set_trace()
-            pid = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
-            out,err = pid.communicate()
-            print(out)
-            if pid.returncode != 0:
-                print(f"{err}")
-                raise RuntimeError(f"Failed to extract documentation from {mod}")
+        # extract the RST files from the modules
+        cmd = ansi_doc_extractor_cmd + " " + str(mod_rst.parent) + "/ " + str(mod_path) + "/* " + template_arg
+        pid = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
+        out,err = pid.communicate()
+        print(out)
+        if pid.returncode != 0:
+            print(f"{err}")
+            raise RuntimeError(f"Failed to extract documentation from {mod}")
 
         # toctree update for RST files extracted via ansible-doc-extractor module
         if mod_rst.exists():
@@ -73,18 +70,18 @@ def dynamic_rsts():
         mod_rst_fp.write("   :titlesonly:\n")
         mod_rst_fp.write("\n")
 
-        mod_lst = list()  # list of RST files that should be updated
+        mods_rst_lst = list()  # list of RST files that should be updated
         for rst in mod_rst.parent.iterdir():
             if rst.name == mod_rst.name:  # ignore modules.rst; same file as the one that's been updated
                 continue
             elif rst.name.startswith("."):  # ignore hidden files
                 continue
-            mod_lst.append(rst.name)
-        mod_lst = sorted(mod_lst)
+            mods_rst_lst.append(rst.name)
+        mods_rst_lst = sorted(mods_rst_lst)
 
         # file update
         mod_rst_fp = open(str(mod_rst), "a")
-        for rst in mod_lst:
+        for rst in mods_rst_lst:
             mod_rst_fp.write("   " + rst + "\n")
         mod_rst_fp.close()
 
@@ -126,15 +123,13 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 html_theme_options = {
-    'fixed_sidebar': True,
-    'github_repo': 'https://github.com/brocade/ansible',
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-#html_static_path = ['static']
-html_show_sourcelink = True
+#html_static_path = ['_static']
+html_show_sourcelink = False

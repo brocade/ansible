@@ -41,19 +41,24 @@ The below requirements are needed on the host that executes this module.
 {% macro option_desc(opts, level) %}
 {%   for name, spec in opts.items() %}
 {%     set req = spec.required | default("optional") %}
-{%     set typ = spec.type | default("any") %}
+{%     set typ = spec.type | default("any") | rst_ify %}
 {%     set choice = spec.choices | default("none") %}
 
   {{ "  " * level }} **{{ name }}**: {% for para in spec.description %}
-                                     {{ "  " * level }}{{ para | rst_ify }}
+                                     {{ "  " * level}}{{ para | rst_ify }}
   {%     endfor %}
 
     {{ "  " * level }} *required: {{ req }}*
 
     {{ "  " * level }} *type: {{ typ }}*
-    {%     if spec.choices %}
-    {{ "  " * level }} *choices: {{ choice }}*
-    {%     endif %}
+
+  {% if spec.choices %}
+  {{ "  " * level }} *choices:*
+
+    {% for entry in choice %}
+    {{ "  " * (level + 1) }}{{ '| ' }}*{{ entry }}*
+    {%    endfor %}
+ {%     endif %}
 
 
 {%   if spec.suboptions %}

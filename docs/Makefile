@@ -7,6 +7,7 @@ SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = .
 BUILDDIR      = _build
+GENERATED_RST = generated_rst
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -18,3 +19,11 @@ help:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+.PHONY: clean
+clean:
+	@echo "Removing everything from $(BUILDDIR) directory..."
+	rm -rf $(BUILDDIR)/*
+	@echo "Removing everything from $(GENERATED_RST) directory..."
+	rm -rf $(GENERATED_RST)/*
+

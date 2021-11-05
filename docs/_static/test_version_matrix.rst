@@ -1,1 +1,1 @@
-../../test_version_matrix.rst
+.. include:: ../../test_version_matrix.rst
