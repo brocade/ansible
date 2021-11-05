@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 # Copyright 2019 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
@@ -10,58 +10,76 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'certified'}
-
-
 DOCUMENTATION = '''
 
 module: brocade_list_obj
-short_description: Brocade general list processing
+short_description: Brocade Fibre Channel general list processing
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update list of obj based on module name and list name provided
+- Update Fibre Channel list of objects based on module name and list name provided
 
 options:
-
     credential:
         description:
-        - login information including
-          fos_ip_addr - ip address of the FOS switch
-          fos_user_name - login name of FOS switch REST API
-          fos_password - password of FOS switch REST API
-          https - True for HTTPS, self for self-signed HTTPS, or False for HTTP
+        - Login information
+        suboptions:
+            fos_ip_addr:
+                description:
+                - IP address of the FOS switch
+                required: true
+                type: str
+            fos_user_name:
+                description:
+                - Login name of FOS switch
+                required: true
+                type: str
+            fos_password:
+                description:
+                - Password of FOS switch
+                required: true
+                type: str
+            https:
+                description:
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                  or False for HTTP
+                choices:
+                    - True
+                    - False
+                    - self
+                required: true
+                type: str
+
         type: dict
         required: true
     vfid:
         description:
-        - vfid of the switch to target. The value can be -1 for
-          FOS without VF enabled. For VF enabled FOS, a valid vfid
-          should be given
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        type: int
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds to retry once more if
-          server is busy.
-        required: false
+        - Throttling delay in seconds. Enables second retry on first
+          failure.
+        type: int
     timeout:
         description:
-        - rest timeout in seconds for operations taking longer than
-          default timeout.
-        required: false
+        - REST timeout in seconds for operations that take longer than FOS
+          default value.
+        type: int
     module_name:
         description:
         - Yang module name. Hyphen or underscore are used interchangebly.
           If the Yang module name is xy-z, either xy-z or xy_z are acceptable.
         required: true
+        type: str
     list_name:
         description:
         - Yang name for the list object. Hyphen or underscore are used
           interchangebly. If the Yang list name is xy-z, either
           xy-z or xy_z are acceptable.
         required: true
+        type: str
     all_entries:
         description:
         - Boolean to indicate if the entries specified are full
@@ -74,6 +92,7 @@ options:
           of entries only. i.e.  the module will not attempt to
           delete objects that do not show up in the entries.
         required: false
+        type: bool
     entries:
         description:
         - List of objects. Name of each attributes within
@@ -81,7 +100,8 @@ options:
           is replaced with underscore. Using hyphen in the name
           may result in errenously behavior based on Ansible
           parsing.
-        required: false
+        required: true
+        type: list
     delete_entries:
         description:
         - name of the entries to be deleted. mutually exclusive

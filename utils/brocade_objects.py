@@ -30,6 +30,17 @@ Brocade logging utils
 REST_PREFIX = "/rest/running/"
 OP_PREFIX = "/rest/operations/"
 
+BASE64_PWD_ERROR = "Password can not be decoded"
+
+def to_base64(s):
+
+    if not isinstance(s, str):
+       return BASE64_PWD_ERROR
+
+    try:
+       return base64.b64encode(s.encode('ascii')).decode('utf-8')
+    except Exception:
+       return BASE64_PWD_ERROR
 
 def to_human_singleton(module_name, obj_name, attributes):
     yang_to_human(attributes)
@@ -58,13 +69,13 @@ def to_fos_singleton(module_name, obj_name, attributes, result):
         # if going to fos, we need to encode password
         if module_name == "brocade_security" and obj_name == "password":
             if k == "old-password":
-                attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
+                attributes[k] = to_base64(attributes[k])
             if k == "new-password":
-                attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
+                attributes[k] = to_base64(attributes[k])
 
         if module_name == "brocade_security" and (obj_name == "security_certificate_action" or obj_name == "sshutil_public_key_action" or obj_name == "sec_crypto_cfg_template_action"):
             if k == "remote-user-password":
-                attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
+                attributes[k] = to_base64(attributes[k])
 
     if module_name == "brocade_access_gateway" and obj_name == "policy":
         to_fos_access_gateway_policy(attributes, result)
@@ -112,6 +123,8 @@ def singleton_get(login, password, fos_ip_addr, module_name, obj_name, fos_versi
         return 0, ({"Response" : {str_to_yang(obj_name): {}}})
     if module_name == "brocade_security" and obj_name == "sshutil_public_key_action":
         return 0, ({"Response" : {str_to_yang(obj_name): {}}})
+    if module_name == "brocade_security" and obj_name == "password":
+        return 0, ({"Response" : {str_to_yang(obj_name): {}}})
 
     full_url, validate_certs = full_url_get(is_https,
                                             fos_ip_addr,
@@ -144,11 +157,11 @@ def to_human_list(module_name, list_name, attributes_list, result):
             if "authentication_password" in attributes:
                 pword = attributes["authentication_password"]
                 if str(pword) != "None":
-                    attributes["authentication_password"] = base64.b64decode(pword)
+                    attributes["authentication_password"] = to_base64(pword)
             if "privacy_password" in attributes:
                 pword = attributes["privacy_password"]
                 if str(pword) != "None":
-                    attributes["privacy_password"] = base64.b64decode(pword)
+                    attributes["privacy_password"] = to_base64(pword)
 
         if module_name == "brocade_security" and list_name == "user_config":
             if "virtual_fabric_role_id_list" in attributes and "role_id" in attributes["virtual_fabric_role_id_list"]:
@@ -239,11 +252,11 @@ def to_fos_list(module_name, list_name, attributes_list, result):
             if "authentication-password" in attributes:
                 pword = attributes["authentication-password"]
                 if str(pword) != "None":
-                    attributes["authentication-password"] = base64.b64encode(pword.encode('ascii')).decode('utf-8')
+                    attributes["authentication-password"] = to_base64(pword)
             if "privacy-password" in attributes:
                 pword = attributes["privacy-password"]
                 if str(pword) != "None":
-                    attributes["privacy-password"] = base64.b64encode(pword.encode('ascii')).decode('utf-8')
+                    attributes["privacy-password"] = to_base64(pword)
 
         if module_name == "brocade_interface" and list_name == "fibrechannel":
             to_fos_fc(attributes, result)
@@ -255,7 +268,7 @@ def to_fos_list(module_name, list_name, attributes_list, result):
             if "password" in attributes:
                 pword = attributes["password"]
                 if str(pword) != "None":
-                    attributes["password"] = base64.b64encode(pword.encode('ascii')).decode('utf-8')
+                    attributes["password"] = to_base64(pword)
 
         for k, v in attributes.items():
             if isinstance(v, bool):
@@ -657,7 +670,7 @@ def list_delete(login, password, fos_ip_addr, module_name, list_name, fos_versio
                      full_url, xml_str, timeout)
 
 
-def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, obj_name, attributes, result, timeout):
+def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, obj_name, attributes, result, timeout, force=False):
 
     if not is_full_human(attributes, result):
         module.exit_json(**result)
@@ -716,14 +729,143 @@ def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
             exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
         if not module.check_mode:
-            ret_code = 0
-            ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
-                                       module_name, obj_name,
-                                       fos_version, https,
-                                       auth, vfid, result, diff_attributes,
+            if module_name == "brocade_access_gateway" and obj_name == "policy" and force == True:
+                if 'auto-policy-enabled' in diff_attributes and diff_attributes['auto-policy-enabled'] == '1':
+                    switch_module = "brocade_fibrechannel_switch"
+                    switch_obj = "fibrechannel_switch"
+                    ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
+                                       switch_module, switch_obj, fos_version,
+                                       https, auth, vfid, result,
                                        ssh_hostkeymust, timeout)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+                    if ret_code != 0:
+                        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+                    resp_attributes = response["Response"][str_to_yang(switch_obj)]
+                    to_human_singleton(switch_module, switch_obj, resp_attributes)
+
+                    switch_enabled = False
+                    if resp_attributes['enabled_state'] == '2':
+                        switch_enabled = True
+                        result["switch_precondition"] = "switch is enabled"
+
+                    if switch_enabled:
+                        # let's disable switch first
+                        policy = {}
+                        policy['name'] = resp_attributes['name']
+                        policy['enabled-state'] = '3'
+                        ret_code = 0
+                        ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+                                                   switch_module, switch_obj,
+                                                   fos_version, https,
+                                                   auth, vfid, result, policy,
+                                                   ssh_hostkeymust, timeout)
+                        if ret_code != 0:
+                            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+                    # let's disable the pg group first
+                    policy = {}
+                    policy['port-group-policy-enabled'] = '0'
+                    ret_code = 0
+                    ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+                                               module_name, obj_name,
+                                               fos_version, https,
+                                               auth, vfid, result, policy,
+                                               ssh_hostkeymust, timeout)
+                    if ret_code != 0:
+                        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+                    # let's enable the auto first
+                    policy = {}
+                    policy['auto-policy-enabled'] = '1'
+                    ret_code = 0
+                    ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+                                               module_name, obj_name,
+                                               fos_version, https,
+                                               auth, vfid, result, policy,
+                                               ssh_hostkeymust, timeout)
+                    if ret_code != 0:
+                        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+                    if switch_enabled:
+                        # let's enable switch last
+                        policy = {}
+                        policy['name'] = resp_attributes['name']
+                        policy['enabled-state'] = '2'
+                        ret_code = 0
+                        ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+                                                   switch_module, switch_obj,
+                                                   fos_version, https,
+                                                   auth, vfid, result, policy,
+                                                   ssh_hostkeymust, timeout)
+                        if ret_code != 0:
+                            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+                elif 'port-group-policy-enabled' in diff_attributes and diff_attributes['port-group-policy-enabled'] == '1':
+                    switch_module = "brocade_fibrechannel_switch"
+                    switch_obj = "fibrechannel_switch"
+                    ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
+                                       switch_module, switch_obj, fos_version,
+                                       https, auth, vfid, result,
+                                       ssh_hostkeymust, timeout)
+                    if ret_code != 0:
+                        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+                    resp_attributes = response["Response"][str_to_yang(switch_obj)]
+                    to_human_singleton(switch_module, switch_obj, resp_attributes)
+
+                    switch_enabled = False
+                    if resp_attributes['enabled_state'] == '2':
+                        switch_enabled = True
+                        result["switch_precondition"] = "switch is enabled"
+
+                    if switch_enabled:
+                        # let's disable switch first
+                        policy = {}
+                        policy['name'] = resp_attributes['name']
+                        policy['enabled-state'] = '3'
+                        ret_code = 0
+                        ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+                                                   switch_module, switch_obj,
+                                                   fos_version, https,
+                                                   auth, vfid, result, policy,
+                                                   ssh_hostkeymust, timeout)
+                        if ret_code != 0:
+                            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+                    # let's disable the auto first
+                    policy = {}
+                    policy['auto-policy-enabled'] = '0'
+                    ret_code = 0
+                    ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+                                               module_name, obj_name,
+                                               fos_version, https,
+                                               auth, vfid, result, policy,
+                                               ssh_hostkeymust, timeout)
+                    if ret_code != 0:
+                        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+                    if switch_enabled:
+                        # let's enable switch last
+                        policy = {}
+                        policy['name'] = resp_attributes['name']
+                        policy['enabled-state'] = '2'
+                        ret_code = 0
+                        ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+                                                   switch_module, switch_obj,
+                                                   fos_version, https,
+                                                   auth, vfid, result, policy,
+                                                   ssh_hostkeymust, timeout)
+                        if ret_code != 0:
+                            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+            else:
+                ret_code = 0
+                ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+                                           module_name, obj_name,
+                                           fos_version, https,
+                                           auth, vfid, result, diff_attributes,
+                                           ssh_hostkeymust, timeout)
+                if ret_code != 0:
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
         result["changed"] = True
     else:
@@ -863,7 +1005,7 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
     if module_name == "brocade_logging" and list_name == "syslog_server":
         new_add_entries = []
         for add_entry in add_entries:
-            secured = ("secured_mode" in add_entry and add_entry["secured_mode"] == True)
+            secured = ("secure_mode" in add_entry and add_entry["secure_mode"] == True)
             if not secured:
                 new_add_entry = {}
                 new_add_entry["server"] = add_entry["server"]
@@ -1118,10 +1260,10 @@ def to_fos_operation(op_name, in_name, attributes, result):
         # if going to fos, we need to encode password
         if op_name == "supportsave" and in_name == "connection":
             if k == "password":
-                attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
+                attributes[k] = to_base64(attributes[k])
         if op_name == "firmwaredownload" and in_name == "firmwaredownload_parameters":
             if k == "password":
-                attributes[k] = base64.b64encode(attributes[k].encode('ascii')).decode('utf-8')
+                attributes[k] = to_base64(attributes[k])
 
     for k, v in attributes.items():
         if isinstance(v, bool):

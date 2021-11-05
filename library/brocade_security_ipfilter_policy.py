@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 # Copyright 2019 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
@@ -10,65 +10,84 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'certified'}
-
-
 DOCUMENTATION = '''
 
 module: brocade_security_ipfilter_policy
-short_description: Brocade security ipfilter policy Configuration
+short_description: Brocade Fibre Channel security ipfilter policy configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update security ipfilter policy configuration
+- Update Fibre Channel security ipfilter policy configuration
 
 options:
-
     credential:
         description:
-        - login information including
-          fos_ip_addr - ip address of the FOS switch
-          fos_user_name - login name of FOS switch REST API
-          fos_password - password of FOS switch REST API
-          https - True for HTTPS, self for self-signed HTTPS, or False for HTTP
+        - Login information
+        suboptions:
+            fos_ip_addr:
+                description:
+                - IP address of the FOS switch
+                required: true
+                type: str
+            fos_user_name:
+                description:
+                - Login name of FOS switch
+                required: true
+                type: str
+            fos_password:
+                description:
+                - Password of FOS switch
+                required: true
+                type: str
+            https:
+                description:
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                  or False for HTTP
+                choices:
+                    - True
+                    - False
+                    - self
+                required: true
+                type: str
+
         type: dict
         required: true
     vfid:
         description:
-        - vfid of the switch to target. The value can be -1 for
-          FOS without VF enabled. For VF enabled FOS, a valid vfid
-          should be given
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        type: int
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds to retry once more if
-          server is busy.
-        required: false
+        - Throttling delay in seconds. Enables second retry on first
+          failure.
+        type: int
     timeout:
         description:
-        - rest timeout in seconds for operations taking longer than
-          default timeout.
-        required: false
+        - REST timeout in seconds for operations that take longer than FOS
+          default value.
+        type: int
     ipfilter_policies:
         description:
-        - list of ipfilter policies data structure
+        - List of ipfilter policies data structure.
           All writable attributes supported
           by BSN REST API with - replaced with _.
         required: false
+        type: list
     active_policy:
         description:
-        - name of the active policy. mutually exclusive
+        - Name of the active policy. Mutually exclusive
           with ipfilter_policies and delete_policy.
           This shoud come after policies are created and
           filled with rules
         required: false
+        type: str
     delete_policies:
         description:
-        - name of the policy to be deleted. mutually exclusive
+        - Name of the policy to be deleted. Mutually exclusive
           with ipfilter_policies and active_policy.
         required: false
+        type: list
 
 '''
 
@@ -82,7 +101,7 @@ EXAMPLES = """
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
       fos_user_name: admin
-      fos_password: fibranne
+      fos_password: password
       https: False
 
   tasks:

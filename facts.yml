@@ -43,6 +43,14 @@
         - brocade_security_ipfilter_policy
         - brocade_security_user_config
         - brocade_security_password_cfg
+        - brocade_snmp_v1_account
+        - brocade_snmp_v1_trap
+        - brocade_snmp_v3_account
+        - brocade_snmp_v3_trap
+        - brocade_maps_maps_config
+        - brocade_security_sec_crypto_cfg_template_action
+        - brocade_security_sshutil_public_key
+        - brocade_security_ldap_role_map
 
   - name: print ansible_facts gathered
     debug:

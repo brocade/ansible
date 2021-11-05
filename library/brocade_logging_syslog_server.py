@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 # Copyright 2019 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
@@ -10,54 +10,83 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'certified'}
-
-
 DOCUMENTATION = '''
 
-module: brocade_logging_audit
-short_description: Brocade loggig syslog server Configuration
+module: brocade_logging_syslog
+short_description: Brocade Fibre Channel loggig syslog server configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update logging audit configuration.
+- Update Fibre Channel logging audit configuration
 
 options:
-
     credential:
         description:
-        - login information including
-          fos_ip_addr - ip address of the FOS switch
-          fos_user_name - login name of FOS switch REST API
-          fos_password - password of FOS switch REST API
-          https - True for HTTPS, self for self-signed HTTPS, or False for HTTP
+        - Login information
+        suboptions:
+            fos_ip_addr:
+                description:
+                - IP address of the FOS switch
+                required: true
+                type: str
+            fos_user_name:
+                description:
+                - Login name of FOS switch
+                required: true
+                type: str
+            fos_password:
+                description:
+                - Password of FOS switch
+                required: true
+                type: str
+            https:
+                description:
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                  or False for HTTP
+                choices:
+                    - True
+                    - False
+                    - self
+                required: true
+                type: str
+
         type: dict
         required: true
     vfid:
         description:
-        - vfid of the switch to target. The value can be -1 for
-          FOS without VF enabled. For VF enabled FOS, a valid vfid
-          should be given
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        type: int
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds to retry once more if
-          server is busy.
-        required: false
+        - Throttling delay in seconds. Enables second retry on first
+          failure.
+        type: int
     timeout:
         description:
-        - rest timeout in seconds for operations taking longer than
-          default timeout.
+        - REST timeout in seconds for operations that take longer than FOS
+          default value.
+        type: int
+    all_entries:
+        description:
+        - Boolean to indicate if the entries specified are full
+          list of objects or not. By default, all_entries are
+          thought to be true if not specified. If all_entries
+          is set to true, the entries is used to calculate the change
+          of existing entryies, addition, and deletion. If
+          all_entries is set to false, the entries is used to
+          calculate the change of existing entries and addition
+          of entries only. i.e. the module will not attempt to
+          delete objects that do not show up in the entries.
         required: false
+        type: bool
     syslog_servers:
         description:
-        - list of syslog server config data structure
+        - List of syslog server config data structure.
           All writable attributes supported
           by BSN REST API with - replaced with _.
         required: true
-
+        type: list 
 '''
 
 
@@ -97,7 +126,7 @@ msg:
 
 
 """
-Brocade Fibre Channel syslog server Configuration
+Brocade Fibre Channel syslog server configuration
 """
 
 
@@ -115,7 +144,8 @@ def main():
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
         timeout=dict(required=False, type='float'),
-        syslog_servers=dict(required=True, type='list'))
+        syslog_servers=dict(required=True, type='list'),
+        all_entries=dict(required=False, type='bool'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -134,8 +164,12 @@ def main():
     vfid = input_params['vfid']
     syslog_servers = input_params['syslog_servers']
     result = {"changed": False}
+    all_entries = input_params['all_entries']
 
-    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_logging", "syslog_server", syslog_servers, True, result, timeout)
+    if all_entries == None:
+        all_entries = False
+
+    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_logging", "syslog_server", syslog_servers, all_entries, result, timeout)
 
 
 if __name__ == '__main__':

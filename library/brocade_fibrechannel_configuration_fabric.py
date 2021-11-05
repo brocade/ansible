@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 # Copyright 2019 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
@@ -10,56 +10,73 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'certified'}
-
-
 DOCUMENTATION = '''
 
 module: brocade_fibrechannel_configuration_fabric
-short_description: Brocade Fibre Channel fabric Configuration
+short_description: Brocade Fibre Channel fabric configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update fabric configuration.
+- Update Fibre Channel fabric configuration
 
 options:
-
     credential:
         description:
-        - login information including
-          fos_ip_addr - ip address of the FOS switch
-          fos_user_name - login name of FOS switch REST API
-          fos_password - password of FOS switch REST API
-          https - True for HTTPS, self for self-signed HTTPS, or False for HTTP
-          ssh_hostkeymust - hostkeymust arguement for ssh attributes only. Default True.
+        - Login information
+        suboptions:
+            fos_ip_addr:
+                description:
+                - IP address of the FOS switch
+                required: true
+                type: str
+            fos_user_name:
+                description:
+                - Login name of FOS switch
+                required: true
+                type: str
+            fos_password:
+                description:
+                - Password of FOS switch
+                required: true
+                type: str
+            https:
+                description:
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                  or False for HTTP
+                choices:
+                    - True
+                    - False
+                    - self
+                required: true
+                type: str
+
         type: dict
         required: true
     vfid:
         description:
-        - vfid of the switch to target. The value can be -1 for
-          FOS without VF enabled. For VF enabled FOS, a valid vfid
-          should be given
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        type: int
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds to retry once more if
-          server is busy.
-        required: false
+        - Throttling delay in seconds. Enables second retry on first
+          failure.
+        type: int
     timeout:
         description:
-        - rest timeout in seconds for operations taking longer than
-          default timeout.
-        required: false
+        - REST timeout in seconds for operations that take longer than FOS
+          default value.
+        type: int
     fabric:
         description:
-        - list of fabric configuraiton attributes. All writable
+        - List of fabric configuraiton attributes. All writable
           attributes supported by BSN REST API with - replaced with _.
-          Some examples are
-          - insistent_domain_id_enabled - indicate if insistent domain
-            id feature is enabled
         required: true
+notes:
+    - Specifying either fabric_principal_enabled and fabric_principal_priority 
+      may lead to failures.Both of them need to be specified in the playbook.
+      Examples are insistent_domain_id_enabled - indicate if insistent domain
+      id feature is enabled
 
 '''
 
@@ -74,6 +91,7 @@ EXAMPLES = """
       fos_user_name: admin
       fos_password: xxxx
       https: False
+
   tasks:
 
   - name: initial fabric configuration
@@ -103,7 +121,7 @@ msg:
 
 
 """
-Brocade Fibre Channel switch Configuration
+Brocade Fibre Channel fabric Configuration
 """
 
 

@@ -1,6 +1,6 @@
 ---
 
-# Copyright 2019 Broadcom. All rights reserved.
+# Copyright 2021 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -42,7 +42,7 @@
       show_status:
         message_id: "{{result.operation_resp.show_status.message_id}}"
     register: status_result
-    until: status_result.operation_resp.show_status.status == "done" or status_result.operation_resp.show_status.status == "delivered"
+    until: status_result.operation_resp is not defined or status_result.operation_resp.show_status.status == "done" or status_result.operation_resp.show_status.status == "delivered"
     retries: 100
     delay: 10
 

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 # Copyright 2019 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
@@ -10,53 +10,76 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'certified'}
-
-
 DOCUMENTATION = '''
 
 module: brocade_facts
-short_description: Brocade facts gathering
+short_description: Brocade Fibre Channel facts gathering
 version_added: '2.6'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Gather FOS facts.
+- Gather FOS facts
 
 options:
-
     credential:
         description:
-        - login information including
-          fos_ip_addr - ip address of the FOS switch
-          fos_user_name - login name of FOS switch REST API
-          fos_password - password of FOS switch REST API
-          https - True for HTTPS, self for self-signed HTTPS, or False for HTTP
-          ssh_hostkeymust - hostkeymust arguement for ssh attributes only. Default True.
+        - Login information
+        suboptions:
+            fos_ip_addr:
+                description:
+                - IP address of the FOS switch
+                required: true
+                type: str
+            fos_user_name:
+                description:
+                - Login name of FOS switch
+                required: true
+                type: str
+            fos_password:
+                description:
+                - Password of FOS switch
+                required: true
+                type: str
+            https:
+                description:
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                  or False for HTTP
+                choices:
+                    - True
+                    - False
+                    - self
+                required: true
+                type: str
+
         type: dict
         required: true
     vfid:
         description:
-        - vfid of the switch to target. The value can be -1 for
-          FOS without VF enabled. For VF enabled FOS, a valid vfid
-          should be given
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        type: int
         required: false
     throttle:
         description:
-        - rest throttling delay in seconds to retry once more if
-          server is busy.
-        required: false
+        - Throttling delay in seconds. Enables second retry on first
+          failure.
+        type: int
     timeout:
         description:
-        - rest timeout in seconds for operations taking longer than
-          default timeout.
-        required: false
+        - REST timeout in seconds for operations that take longer than FOS
+          default value.
+        type: int
     gather_subset:
         description:
-        - list of areas to be gathered. If this option is missing,
+        - List of areas to be gathered. If this option is missing,
           all areas' facts will be gathered. Same behavior applies
-          if "all" is listed as part of gather_subset. Valid entries are:
+          if "all" is listed as part of gather_subset.
+        elements:
+            all
+            brocade_access_gateway_port_group
+            brocade_access_gateway_n_port_map
+            brocade_access_gateway_f_port_list
+            brocade_access_gateway_device_list
+            brocade_access_gateway_policy
+            brocade_access_gateway_n_port_settings
             brocade_zoning
             brocade_interface_fibrechannel
             brocade_chassis_chassis
@@ -77,18 +100,28 @@ options:
             brocade_security_user_config
             brocade_security_password_cfg
             brocade_security_security_certificate
-        required: true
+            brocade_snmp_v1_account
+            brocade_snmp_v1_trap
+            brocade_snmp_v3_account
+            brocade_snmp_v3_trap
+            brocade_maps_maps_config
+            brocade_security_sec_crypto_cfg_template_action
+            brocade_security_sshutil_public_key
+            brocade_security_ldap_role_map
+        required: false
+        default: all
+        type: list
 
 '''
 
 
 EXAMPLES = """
 
-  var:
+  vars:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
       fos_user_name: admin
-      fos_password: fibranne
+      fos_password: password
       https: False
 
   tasks:
@@ -98,6 +131,12 @@ EXAMPLES = """
       credential: "{{credential}}"
       vfid: -1
       gather_subset:
+        - brocade_access_gateway_port_group
+        - brocade_access_gateway_n_port_map
+        - brocade_access_gateway_f_port_list
+        - brocade_access_gateway_device_list
+        - brocade_access_gateway_policy
+        - brocade_access_gateway_n_port_settings
         - brocade_zoning
         - brocade_interface_fibrechannel
         - brocade_chassis_chassis
@@ -112,6 +151,14 @@ EXAMPLES = """
         - brocade_security_ipfilter_rule
         - brocade_security_ipfilter_policy
         - brocade_security_user_config
+        - brocade_snmp_v1_account
+        - brocade_snmp_v1_trap
+        - brocade_snmp_v3_account
+        - brocade_snmp_v3_trap
+        - brocade_maps_maps_config
+        - brocade_security_sec_crypto_cfg_template_action
+        - brocade_security_sshutil_public_key
+        - brocade_security_ldap_role_map
 
   - name: print ansible_facts gathered
     debug:
@@ -131,7 +178,7 @@ msg:
 
 
 """
-Brocade Fibre Channel Port Configuration
+Brocade Fibre Channel gather FOS facts
 """
 
 
@@ -172,9 +219,15 @@ valid_areas = [
     "brocade_security_password_cfg",
     "brocade_security_security_certificate",
     "brocade_security_sshutil_public_key",
-    "brocade_security_sec_crypto_cfg_template"
+    "brocade_security_sec_crypto_cfg_template",
+    "brocade_snmp_v1_account",
+    "brocade_snmp_v1_trap",
+    "brocade_snmp_v3_account",
+    "brocade_snmp_v3_trap",
+    "brocade_maps_maps_config",
+    "brocade_security_sec_crypto_cfg_template_action",
+    "brocade_security_ldap_role_map"
     ]
-
 
 def main():
     """
@@ -347,6 +400,35 @@ def main():
                 module_name = "brocade_snmp"
                 obj_name = "system"
                 get_singleton = True
+            elif area == "brocade_snmp_v1_account":
+                module_name = "brocade_snmp"
+                list_name = "v1_account"
+                get_list = True
+            elif area == "brocade_snmp_v1_trap":
+                module_name = "brocade_snmp"
+                list_name = "v1_trap"
+                get_list = True
+            elif area == "brocade_snmp_v3_account":
+                module_name = "brocade_snmp"
+                list_name = "v3_account"
+                get_list = True
+            elif area == "brocade_snmp_v3_trap":
+                module_name = "brocade_snmp"
+                list_name = "v3_trap"
+                get_list = True
+            elif area == "brocade_maps_maps_config":
+                module_name = "brocade_maps"
+                obj_name = "maps_config"
+                get_singleton = True
+            elif area == "brocade_security_sec_crypto_cfg_template_action":
+                module_name = "brocade_security"
+                obj_name = "sec_crypto_cfg_template_action"
+                get_singleton = True
+            elif area == "brocade_security_ldap_role_map":
+                module_name = "brocade_security"
+                list_name = "ldap_role_map"
+                get_list = True
+
 
             if get_singleton:
                 ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
@@ -387,20 +469,22 @@ def main():
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
                 zoning = {}
-                zoning["defined-configuration"] = (
+                zoning["defined_configuration"] = (
                     response["Response"]["defined-configuration"]
                 )
+
+                to_human_zoning(zoning["defined_configuration"])
 
                 ret_code, response = effective_get(
                     fos_ip_addr, https, auth, vfid, result, timeout)
                 if ret_code != 0:
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-                zoning["effective-configuration"] = (
+                zoning["effective_configuration"] = (
                     response["Response"]["effective-configuration"]
                 )
 
-                to_human_zoning(zoning["effective-configuration"])
+                to_human_zoning(zoning["effective_configuration"])
 
                 facts[area] = zoning
             elif area == "brocade_zoning_simple":
