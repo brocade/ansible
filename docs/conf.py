@@ -10,17 +10,27 @@
 #
 import os
 import sys
+from pathlib import Path
+import subprocess
+from shutil import copyfile
+
 sys.path.insert(0, os.path.abspath('genrated_rst/'))
 
 # -- Extract RST files from the modules---------------------------------------
-from pathlib import Path
-import subprocess
-
 conf_path = Path(__file__)
 docs_dir = conf_path.parent
+base_dir = conf_path.parents[1]
+generated_rsts = docs_dir / 'generated_rst'
+static_rsts = [
+                'README.rst',
+                'test_version_matrix.rst',
+                'CONTRIBUTING.rst',
+               ]
+                
+                
 
 def dynamic_rsts():
-        mod_rst = docs_dir / "generated_rst" / "modules" / "modules.rst"
+        mod_rst = generated_rsts / "modules" / "modules.rst"
         mod_path = docs_dir.parent / 'library'
         fos_template = docs_dir / "fos-ansible.rst.j2"
         ansi_doc_extractor_cmd = "ansible-doc-extractor"
@@ -85,7 +95,16 @@ def dynamic_rsts():
             mod_rst_fp.write("   " + rst + "\n")
         mod_rst_fp.close()
 
+# -- Copy RST files from base directory---------------------------------------
+def cp_base_dir_rsts():
+#    import pdb; pdb.set_trace()
+    for _ in static_rsts:
+        copyfile(str(base_dir / _), str(generated_rsts / _))
+        
+
+
 dynamic_rsts()
+cp_base_dir_rsts()
 
 # -- Project information -----------------------------------------------------
 
