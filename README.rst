@@ -23,7 +23,7 @@ Step2: Add library path ANSIBLE_LIBRARY variable
 
    BASH example:
 
-       if the repository is cloned under /home/myaccount/ansible,
+       # if the repository is cloned under /home/myaccount/ansible
 
        export ANSIBLE_LIBRARY="/home/myaccount/ansible/library"
 

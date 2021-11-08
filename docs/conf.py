@@ -15,7 +15,6 @@ import subprocess
 from shutil import copyfile
 
 sys.path.insert(0, os.path.abspath('genrated_rst/'))
-sys.path.insert(0, os.path.abspath('_static/'))
 
 # -- Extract RST files from the modules---------------------------------------
 conf_path = Path(__file__)

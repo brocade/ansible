@@ -14,14 +14,5 @@ Welcome to FOS-ansible documentation!
    generated_rst/README
    generated_rst/modules/modules
    generated_rst/test_version_matrix
-   _static/documentation
+   documentation
    generated_rst/CONTRIBUTING
-   
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
