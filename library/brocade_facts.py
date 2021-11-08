@@ -41,7 +41,7 @@ options:
                 type: str
             https:
                 description:
-                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS,
                   or False for HTTP
                 choices:
                     - True
@@ -54,7 +54,7 @@ options:
         required: true
     vfid:
         description:
-        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG.
         type: int
         required: false
     throttle:
@@ -72,42 +72,42 @@ options:
         - List of areas to be gathered. If this option is missing,
           all areas' facts will be gathered. Same behavior applies
           if "all" is listed as part of gather_subset.
-        elements:
-            all
-            brocade_access_gateway_port_group
-            brocade_access_gateway_n_port_map
-            brocade_access_gateway_f_port_list
-            brocade_access_gateway_device_list
-            brocade_access_gateway_policy
-            brocade_access_gateway_n_port_settings
-            brocade_zoning
-            brocade_interface_fibrechannel
-            brocade_chassis_chassis
-            brocade_fibrechannel_configuration_fabric
-            brocade_fibrechannel_configuration_port_configuration
-            brocade_fibrechannel_switch
-            brocade_fibrechannel_trunk_trunk
-            brocade_fibrechannel_trunk_performance
-            brocade_fibrechannel_trunk_trunk_area
-            brocade_time_clock_server
-            brocade_time_time_zone
-            brocade_logging_syslog_server
-            brocade_logging_audit
-            brocade_media_media_rdp
-            brocade_snmp_system
-            brocade_security_ipfilter_rule
-            brocade_security_ipfilter_policy
-            brocade_security_user_config
-            brocade_security_password_cfg
-            brocade_security_security_certificate
-            brocade_snmp_v1_account
-            brocade_snmp_v1_trap
-            brocade_snmp_v3_account
-            brocade_snmp_v3_trap
-            brocade_maps_maps_config
-            brocade_security_sec_crypto_cfg_template_action
-            brocade_security_sshutil_public_key
-            brocade_security_ldap_role_map
+        choices:
+            - all
+            - brocade_access_gateway_port_group
+            - brocade_access_gateway_n_port_map
+            - brocade_access_gateway_f_port_list
+            - brocade_access_gateway_device_list
+            - brocade_access_gateway_policy
+            - brocade_access_gateway_n_port_settings
+            - brocade_zoning
+            - brocade_interface_fibrechannel
+            - brocade_chassis_chassis
+            - brocade_fibrechannel_configuration_fabric
+            - brocade_fibrechannel_configuration_port_configuration
+            - brocade_fibrechannel_switch
+            - brocade_fibrechannel_trunk_trunk
+            - brocade_fibrechannel_trunk_performance
+            - brocade_fibrechannel_trunk_trunk_area
+            - brocade_time_clock_server
+            - brocade_time_time_zone
+            - brocade_logging_syslog_server
+            - brocade_logging_audit
+            - brocade_media_media_rdp
+            - brocade_snmp_system
+            - brocade_security_ipfilter_rule
+            - brocade_security_ipfilter_policy
+            - brocade_security_user_config
+            - brocade_security_password_cfg
+            - brocade_security_security_certificate
+            - brocade_snmp_v1_account
+            - brocade_snmp_v1_trap
+            - brocade_snmp_v3_account
+            - brocade_snmp_v3_trap
+            - brocade_maps_maps_config
+            - brocade_security_sec_crypto_cfg_template_action
+            - brocade_security_sshutil_public_key
+            - brocade_security_ldap_role_map
         required: false
         default: all
         type: list

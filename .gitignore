@@ -3,7 +3,6 @@
 # force add directories
 
 # files
-**/*.rst
 **/*.swp
 **/*.pyc
 **/*.pickle

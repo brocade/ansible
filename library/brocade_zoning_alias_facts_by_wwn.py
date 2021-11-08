@@ -12,7 +12,7 @@ __metaclass__ = type
 
 DOCUMENTATION = '''
 
-module: brocade_facts
+module: brocade_zoning_alias_facts_by_wwn
 short_description: Brocade Fibre Channel facts gathering of zoning by WWN
 version_added: '2.6'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
