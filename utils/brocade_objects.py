@@ -978,6 +978,11 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
             if not "password" in diff_entry:
                 new_diff_entries.append(diff_entry)
         diff_entries = new_diff_entries
+    if module_name == "brocade_security" and list_name == "auth_spec":
+        # authentication_mode needs to be specifid as its mandatory one
+        if "authentication_mode" not in diff_entries[0]:
+            diff_entries[0]["authentication_mode"] = current_entries[0]["authentication_mode"]
+            result["kept_the_same"] = "authentication_mode"
 
     ret_code = to_fos_list(module_name, list_name, diff_entries, result)
     result["diff_retcode"] = ret_code
