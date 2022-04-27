@@ -18,9 +18,9 @@ Brocade Zoning utils
 """
 
 
-REST_DEFINED = "/rest/running/zoning/defined-configuration"
-REST_EFFECTIVE = "/rest/running/zoning/effective-configuration"
-REST_EFFECTIVE_CHECKSUM = "/rest/running/zoning/"\
+REST_DEFINED = "/rest/running/brocade-zone/defined-configuration"
+REST_EFFECTIVE = "/rest/running/brocade-zone/effective-configuration"
+REST_EFFECTIVE_CHECKSUM = "/rest/running/brocade-zone/"\
     "effective-configuration/checksum"
 
 
@@ -776,13 +776,8 @@ def zoning_common(fos_ip_addr, https, auth, vfid, result, module, input_list,
                 if not module.check_mode:
                     ret_code = 0
                     failed_msg = ""
-                    if cfgname is not None:
-                        failed_msg = "CFG ENABLE failed"
-                        ret_code = cfg_enable(fos_ip_addr, https, auth, vfid,
-                                            result, checksum, cfgname, timeout)
-                    else:
-                        failed_msg = "CFG SAVE failed"
-                        ret_code = cfg_save(fos_ip_addr, https, auth, vfid,
+                    failed_msg = "CFG SAVE failed"
+                    ret_code = cfg_save(fos_ip_addr, https, auth, vfid,
                                         result, checksum, timeout)
                     if ret_code != 0:
                         ret_code = cfg_abort(fos_ip_addr, https, auth,
