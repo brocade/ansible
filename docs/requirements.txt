@@ -1,4 +1,4 @@
-ansible==4.5.0
+ansible==7.0.0
 ansible-doc-extractor==0.1.7
 sphinx==4.1.2
 sphinx-rtd-theme==1.0.0
