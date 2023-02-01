@@ -32,6 +32,33 @@ OP_PREFIX = "/rest/operations/"
 
 BASE64_PWD_ERROR = "Password can not be decoded"
 
+def get_moduleName(fos_version, module_name):
+    result = ""
+    if module_name == "brocade_fibrechannel_switch" or module_name == "switch":
+        if fos_version < "v9.0":
+            result = "switch"
+        else:
+            result = "brocade_fibrechannel_switch"
+    elif module_name == "brocade_fibrechannel_logical_switch" or module_name == "logical_switch":
+        if fos_version < "v9.0":
+            result = "logical_switch"
+        else:
+            result = "brocade_fibrechannel_logical_switch"
+    elif module_name == "brocade_fibrechannel_diagnostics" or module_name == "diagnostics":
+        if fos_version < "v9.0":
+            result = "diagnostics"
+        else:
+            result = "brocade_fibrechannel_diagnostics"
+    elif module_name == "brocade_fabric" or module_name == "fabric":
+        if fos_version < "v9.0":
+            result = "fabric"
+        else:
+            result = "brocade_fabric"
+    else:
+        result = module_name
+
+    return result
+
 def to_base64(s):
 
     if not isinstance(s, str):
@@ -170,7 +197,7 @@ def to_human_list(module_name, list_name, attributes_list, result):
                     new_list.append(attributes["virtual_fabric_role_id_list"]["role_id"])
                     attributes["virtual_fabric_role_id_list"]["role_id"] = new_list
 
-        if module_name == "brocade_fibrechannel_switch" and list_name == "fibrechannel_switch":
+        if (module_name == "brocade_fibrechannel_switch" or module_name == "switch") and list_name == "fibrechannel_switch":
 
             to_human_switch(attributes)
 
@@ -237,7 +264,7 @@ def to_fos_list(module_name, list_name, attributes_list, result):
         if module_name == "brocade_interface" and list_name == "fibrechannel":
             to_fos_fc(attributes, result)
 
-        if module_name == "brocade_fibrechannel_switch" and list_name == "fibrechannel_switch":
+        if (module_name == "brocade_fibrechannel_switch" or module_name == "switch") and list_name == "fibrechannel_switch":
             to_fos_switch(attributes, result)
 
         if module_name == "brocade_security" and list_name == "user_config":
@@ -270,6 +297,9 @@ list_keys = {
         "extension_tunnel" : ["name"],
         "extension_circuit" : ["name", "circuit_id"],
     },
+    "fabric": {
+        "fabric_switch" : ["name"],
+    },
     "brocade_fabric": {
         "fabric_switch" : ["name"],
     },
@@ -277,11 +307,20 @@ list_keys = {
         "hba" : ["hba_id"],
         "port" : ["port_name"],
     },
+    "diagnostics": {
+        "fibrechannel_diagnostics" : ["name"],
+    },
     "brocade_fibrechannel_diagnostics": {
         "fibrechannel_diagnostics" : ["name"],
     },
+    "logical_switch": {
+        "fibrechannel_logical_switch" : ["fabric_id"],
+    },
     "brocade_fibrechannel_logical_switch": {
         "fibrechannel_logical_switch" : ["fabric_id"],
+    },
+    "switch": {
+        "fibrechannel_switch" : ["name"],
     },
     "brocade_fibrechannel_switch": {
         "fibrechannel_switch" : ["name"],
@@ -372,7 +411,7 @@ def list_entry_keys(module_name, list_name):
     return []
 
 def list_get(login, password, fos_ip_addr, module_name, list_name, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout):
-    if module_name == "brocade_fibrechannel_switch" and list_name == "fibrechannel_switch":
+    if (module_name == "brocade_fibrechannel_switch" or module_name == "switch") and list_name == "fibrechannel_switch":
         return fc_switch_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout)
     if module_name == "brocade_interface" and list_name == "fibrechannel":
         return fc_port_get(fos_ip_addr, is_https, auth, vfid, result, timeout)
@@ -510,7 +549,7 @@ def list_patch(login, password, fos_ip_addr, module_name, list_name, fos_version
         :return: list of dict of chassis configurations
         :rtype: list
     """
-    if module_name == "brocade_fibrechannel_switch" and list_name == "fibrechannel_switch":
+    if (module_name == "brocade_fibrechannel_switch" or module_name == "switch") and list_name == "fibrechannel_switch":
         return fc_switch_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, entries[0], ssh_hostkeymust, timeout)
     if module_name == "brocade_interface" and list_name == "fibrechannel":
         return fc_port_patch(fos_ip_addr, is_https, auth, vfid, result, entries, timeout)
@@ -658,6 +697,7 @@ def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
     if ret_code != 0:
         module.exit_json(**result)
 
+    module_name = get_moduleName(fos_version, module_name)
     result['ssh_hostkeymust'] = ssh_hostkeymust
 
     ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
@@ -705,7 +745,7 @@ def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
         if not module.check_mode:
             if module_name == "brocade_access_gateway" and obj_name == "policy" and force == True:
                 if 'auto-policy-enabled' in diff_attributes and diff_attributes['auto-policy-enabled'] == '1':
-                    switch_module = "brocade_fibrechannel_switch"
+                    switch_module = get_moduleName(fos_version, "brocade_fibrechannel_switch")
                     switch_obj = "fibrechannel_switch"
                     ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
                                        switch_module, switch_obj, fos_version,
@@ -774,7 +814,7 @@ def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
                             exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
                 elif 'port-group-policy-enabled' in diff_attributes and diff_attributes['port-group-policy-enabled'] == '1':
-                    switch_module = "brocade_fibrechannel_switch"
+                    switch_module = get_moduleName(fos_version, "brocade_fibrechannel_switch")
                     switch_obj = "fibrechannel_switch"
                     ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
                                        switch_module, switch_obj, fos_version,
@@ -871,6 +911,7 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
     if ret_code != 0:
         module.exit_json(**result)
 
+    module_name = get_moduleName(fos_version, module_name)
     ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
                                   module_name, list_name, fos_version,
                                   https, auth, vfid, result,
@@ -890,7 +931,7 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
     # for switch list object only, we only support one for now
     # and allow users to not specifcy the WWN of the switch
     # thus missing key of the entry. We'll get it from the switch
-    if module_name == "brocade_fibrechannel_switch" and list_name == "fibrechannel_switch":
+    if (module_name == "brocade_fibrechannel_switch" or module_name == "switch") and list_name == "fibrechannel_switch":
         if len(entries) != 1:
             result["failed"] = True
             result["msg"] = "Only one entry in an array is supported"
@@ -1041,6 +1082,7 @@ def list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, 
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
+    module_name = get_moduleName(fos_version, module_name)
     current_entries = response["Response"][str_to_yang(list_name)]
     if not isinstance(current_entries, list):
         if current_entries is None:

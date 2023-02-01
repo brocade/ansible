@@ -172,7 +172,7 @@ def main():
     if ret_code != 0:
         module.exit_json(**result)
 
-    object_name_dict, new_name_dict = zoning_find_pair_common(module, fos_ip_addr, https, auth, vfid, "alias", object_name, new_name, result, timeout)
+    object_name_dict, new_name_dict = zoning_find_pair_common(module, fos_ip_addr, https, fos_version, auth, vfid, "alias", object_name, new_name, result, timeout)
 
     result["object_name_dict"] = object_name_dict
     result["new_name_dict"] = new_name_dict
@@ -181,14 +181,14 @@ def main():
     if len(object_name_dict) > 0:
         object_name_dict["name"] = new_name
         obj_list = [object_name_dict]
-        zoning_common(fos_ip_addr, https, auth, vfid, result, module, obj_list,
+        zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, obj_list,
                   False, False, None, "alias",
                   alias_process_diff, alias_process_diff_to_delete, alias_get,
                   alias_post, alias_delete, None, timeout)
         ret_code = logout(fos_ip_addr, https, auth, result, timeout)
         module.exit_json(**result)
 
-    object_name_dict, new_name_dict = zoning_find_pair_common(module, fos_ip_addr, https, auth, vfid, "zone", object_name, new_name, result, timeout)
+    object_name_dict, new_name_dict = zoning_find_pair_common(module, fos_ip_addr, https, fos_version, auth, vfid, "zone", object_name, new_name, result, timeout)
 
     result["object_name_dict"] = object_name_dict
     result["new_name_dict"] = new_name_dict
@@ -203,14 +203,14 @@ def main():
 
         object_name_dict["name"] = new_name
         obj_list = [object_name_dict]
-        zoning_common(fos_ip_addr, https, auth, vfid, result, module, obj_list,
+        zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, obj_list,
                   False, False, None, "zone",
                   zone_process_diff, zone_process_diff_to_delete, zone_get,
                   zone_post, zone_delete, None, timeout)
         ret_code = logout(fos_ip_addr, https, auth, result, timeout)
         module.exit_json(**result)
 
-    object_name_dict, new_name_dict = zoning_find_pair_common(module, fos_ip_addr, https, auth, vfid, "cfg", object_name, new_name, result, timeout)
+    object_name_dict, new_name_dict = zoning_find_pair_common(module, fos_ip_addr, https, fos_version, auth, vfid, "cfg", object_name, new_name, result, timeout)
 
     result["object_name_dict"] = object_name_dict
     result["new_name_dict"] = new_name_dict
@@ -219,7 +219,7 @@ def main():
     if len(object_name_dict) > 0:
         object_name_dict["name"] = new_name
         obj_list = [object_name_dict]
-        zoning_common(fos_ip_addr, https, auth, vfid, result, module, obj_list,
+        zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, obj_list,
                   False, False, None, "cfg",
                   cfg_process_diff, cfg_process_diff_to_delete, cfg_get,
                   cfg_post, cfg_delete, None, timeout)

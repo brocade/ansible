@@ -159,7 +159,7 @@ def main():
     if ret_code != 0:
         module.exit_json(**result)
 
-    ret_code, response = effective_get(fos_ip_addr, https, auth, vfid, result, timeout)
+    ret_code, response = effective_get(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
@@ -178,16 +178,16 @@ def main():
             exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
         if not module.check_mode:
-            ret_code = effective_patch(fos_ip_addr, https,
+            ret_code = effective_patch(fos_ip_addr, https, fos_version,
                                        auth, vfid, result, diff_attributes, timeout)
             if ret_code != 0:
                 exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
             checksum = resp_effective["checksum"]
-            ret_code = cfg_save(fos_ip_addr, https, auth, vfid,
+            ret_code = cfg_save(fos_ip_addr, https, fos_version, auth, vfid,
                                 result, checksum, timeout)
             if ret_code != 0:
-                ret_code = cfg_abort(fos_ip_addr, https, auth, vfid, result, timeout)
+                ret_code = cfg_abort(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
                 exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
         result["changed"] = True
