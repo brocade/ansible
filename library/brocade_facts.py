@@ -184,7 +184,7 @@ Brocade Fibre Channel gather FOS facts
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
 from ansible.module_utils.brocade_zoning import defined_get, effective_get, to_human_zoning
-from ansible.module_utils.brocade_objects import singleton_get, list_get, to_human_singleton, to_human_list
+from ansible.module_utils.brocade_objects import singleton_get, list_get, to_human_singleton, to_human_list, get_moduleName
 from ansible.module_utils.brocade_yang import str_to_yang
 from ansible.module_utils.basic import AnsibleModule
 
@@ -286,6 +286,7 @@ def main():
         if (gather_subset is None or area in gather_subset or "all" in gather_subset):
             get_list = False
             get_singleton = False
+            module_name = ""
 
             if area == "brocade_access_gateway_port_group":
                 module_name = "brocade_access_gateway"
@@ -428,7 +429,7 @@ def main():
                 list_name = "ldap_role_map"
                 get_list = True
 
-
+            module_name = get_moduleName(fos_version, module_name)
             if get_singleton:
                 ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
                                                    module_name, obj_name, fos_version,
@@ -463,7 +464,7 @@ def main():
                 facts[area] = obj_list
             elif area == "brocade_zoning":
                 ret_code, response = defined_get(
-                    fos_ip_addr, https, auth, vfid, result, timeout)
+                    fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
                 if ret_code != 0:
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
@@ -473,7 +474,7 @@ def main():
                 )
 
                 ret_code, response = effective_get(
-                    fos_ip_addr, https, auth, vfid, result, timeout)
+                    fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
                 if ret_code != 0:
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 

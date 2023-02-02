@@ -23,7 +23,8 @@ Brocade Connections utils
 DEFAULT_THROTTLE = 4
 REST_LOGIN = "/rest/login"
 REST_LOGOUT = "/rest/logout"
-REST_SWITCH = "/rest/running/brocade-fibrechannel-switch/fibrechannel-switch"
+REST_SWITCH_URI = "/rest/running/switch/fibrechannel-switch"
+REST_SWITCH_NEW_URI = "/rest/running/brocade-fibrechannel-switch/fibrechannel-switch"
 
 
 def login(fos_ip_addr, fos_user_name, fos_password, is_https, throttle, result, timeout):
@@ -67,7 +68,7 @@ def login(fos_ip_addr, fos_user_name, fos_password, is_https, throttle, result, 
 
     full_switch_url, validate_certs = full_url_get(is_https,
                                                    fos_ip_addr,
-                                                   REST_SWITCH)
+                                                   REST_SWITCH_NEW_URI)
 
     auth = {}
     auth["auth"] = login_resp.info()["Authorization"]
@@ -80,10 +81,18 @@ def login(fos_ip_addr, fos_user_name, fos_password, is_https, throttle, result, 
     rtype, rdict = url_get_to_dict(fos_ip_addr, is_https, auth, -1,
                                            result, full_switch_url, timeout)
     if rtype != 0:
-        result["failed"] = True
-        result["msg"] = "API failed to return switch firmware version"
-        logout(fos_ip_addr, is_https, auth, result, timeout)
-        return -1, None, None
+        #Try with old switch URI
+        full_switch_url, validate_certs = full_url_get(is_https,
+                                                   fos_ip_addr,
+                                                   REST_SWITCH_URI)
+        # get fos version from the default switch
+        rtype, rdict = url_get_to_dict(fos_ip_addr, is_https, auth, -1,
+                                           result, full_switch_url, timeout)
+        if rtype != 0:
+            result["failed"] = True
+            result["msg"] = "API failed to return switch firmware version"
+            logout(fos_ip_addr, is_https, auth, result, timeout)
+            return -1, None, None
 
 #    time.sleep(auth["throttle"] * 2)
 
