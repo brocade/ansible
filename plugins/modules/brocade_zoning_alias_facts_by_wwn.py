@@ -12,7 +12,7 @@ __metaclass__ = type
 
 DOCUMENTATION = '''
 
-module: brocade_facts
+module: brocade_zoning_alias_facts_by_wwn
 short_description: Brocade Fibre Channel facts gathering of zoning by WWN
 version_added: '2.6'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
@@ -168,7 +168,7 @@ def main():
 
     facts['ssh_hostkeymust'] = ssh_hostkeymust
 
-    ret_code, response = defined_get(fos_ip_addr, https, auth, vfid, result, timeout)
+    ret_code, response = defined_get(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module)
 

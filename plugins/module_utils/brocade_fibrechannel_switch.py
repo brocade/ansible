@@ -17,8 +17,18 @@ Brocade Fibre Channel switch utils
 """
 
 
-REST_SWITCH = "/rest/running/brocade-fibrechannel-switch/fibrechannel-switch"
+REST_SWITCH_URI = "/rest/running/switch/fibrechannel-switch"
+REST_SWITCH_NEW_URI = "/rest/running/brocade-fibrechannel-switch/fibrechannel-switch"
 
+
+def get_switchURI(fos_version):
+    result = ""
+    if fos_version < "v9.0":
+        result = REST_SWITCH_URI
+    else:
+        result = REST_SWITCH_NEW_URI
+
+    return result
 
 def to_human_switch(switch_config):
     # convert all boolean strings to boolean
@@ -82,9 +92,10 @@ def fc_switch_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfi
         :return: dict of switch configurations
         :rtype: dict
     """
+    switchURI = get_switchURI(fos_version)
     full_fc_switch_url, validate_certs = full_url_get(is_https,
                                                       fos_ip_addr,
-                                                      REST_SWITCH)
+                                                      switchURI)
 
     rtype, rdict = url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
                            result, full_fc_switch_url, timeout)
@@ -226,9 +237,10 @@ def fc_switch_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
     if len(l_diffs) <= 1:
         return 0
 
+    switchURI = get_switchURI(fos_version)
     full_fc_switch_url, validate_certs = full_url_get(is_https,
                                                       fos_ip_addr,
-                                                      REST_SWITCH)
+                                                      switchURI)
 
     return (url_patch_single_object(fos_ip_addr, is_https, auth,
                                     vfid, result, full_fc_switch_url,

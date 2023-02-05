@@ -17,8 +17,8 @@ Brocade configuration utils
 """
 
 
-REST_FABRIC = "/rest/running//brocade-fibrechannel-configuration/fabric"
-REST_PORT_CONFIGURATION = "/rest/running//brocade-fibrechannel-configuration/port-configuration"
+REST_FABRIC = "/rest/running/brocade-fibrechannel-configuration/fabric"
+REST_PORT_CONFIGURATION = "/rest/running/brocade-fibrechannel-configuration/port-configuration"
 
 
 def fabric_principal(login, password, fos_ip_addr, ssh_hostkeymust):
