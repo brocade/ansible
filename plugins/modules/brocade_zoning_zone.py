@@ -212,7 +212,7 @@ def main():
     if ret_code != 0:
         module.exit_json(**result)
 
-    zoning_common(fos_ip_addr, https, auth, vfid, result, module, zones,
+    zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, zones,
                   members_add_only, members_remove_only, zones_to_delete, "zone",
                   zone_process_diff, zone_process_diff_to_delete, zone_get,
                   zone_post, zone_delete, None, timeout)

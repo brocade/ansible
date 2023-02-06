@@ -41,7 +41,7 @@ options:
                 type: str
             https:
                 description:
-                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS,
                   or False for HTTP
                 choices:
                     - True
@@ -54,7 +54,7 @@ options:
         required: true
     vfid:
         description:
-        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG.
         type: int
         required: false
     throttle:
@@ -72,42 +72,42 @@ options:
         - List of areas to be gathered. If this option is missing,
           all areas' facts will be gathered. Same behavior applies
           if "all" is listed as part of gather_subset.
-        elements:
-            all
-            brocade_access_gateway_port_group
-            brocade_access_gateway_n_port_map
-            brocade_access_gateway_f_port_list
-            brocade_access_gateway_device_list
-            brocade_access_gateway_policy
-            brocade_access_gateway_n_port_settings
-            brocade_zoning
-            brocade_interface_fibrechannel
-            brocade_chassis_chassis
-            brocade_fibrechannel_configuration_fabric
-            brocade_fibrechannel_configuration_port_configuration
-            brocade_fibrechannel_switch
-            brocade_fibrechannel_trunk_trunk
-            brocade_fibrechannel_trunk_performance
-            brocade_fibrechannel_trunk_trunk_area
-            brocade_time_clock_server
-            brocade_time_time_zone
-            brocade_logging_syslog_server
-            brocade_logging_audit
-            brocade_media_media_rdp
-            brocade_snmp_system
-            brocade_security_ipfilter_rule
-            brocade_security_ipfilter_policy
-            brocade_security_user_config
-            brocade_security_password_cfg
-            brocade_security_security_certificate
-            brocade_snmp_v1_account
-            brocade_snmp_v1_trap
-            brocade_snmp_v3_account
-            brocade_snmp_v3_trap
-            brocade_maps_maps_config
-            brocade_security_sec_crypto_cfg_template_action
-            brocade_security_sshutil_public_key
-            brocade_security_ldap_role_map
+        choices:
+            - all
+            - brocade_access_gateway_port_group
+            - brocade_access_gateway_n_port_map
+            - brocade_access_gateway_f_port_list
+            - brocade_access_gateway_device_list
+            - brocade_access_gateway_policy
+            - brocade_access_gateway_n_port_settings
+            - brocade_zoning
+            - brocade_interface_fibrechannel
+            - brocade_chassis_chassis
+            - brocade_fibrechannel_configuration_fabric
+            - brocade_fibrechannel_configuration_port_configuration
+            - brocade_fibrechannel_switch
+            - brocade_fibrechannel_trunk_trunk
+            - brocade_fibrechannel_trunk_performance
+            - brocade_fibrechannel_trunk_trunk_area
+            - brocade_time_clock_server
+            - brocade_time_time_zone
+            - brocade_logging_syslog_server
+            - brocade_logging_audit
+            - brocade_media_media_rdp
+            - brocade_snmp_system
+            - brocade_security_ipfilter_rule
+            - brocade_security_ipfilter_policy
+            - brocade_security_user_config
+            - brocade_security_password_cfg
+            - brocade_security_security_certificate
+            - brocade_snmp_v1_account
+            - brocade_snmp_v1_trap
+            - brocade_snmp_v3_account
+            - brocade_snmp_v3_trap
+            - brocade_maps_maps_config
+            - brocade_security_sec_crypto_cfg_template_action
+            - brocade_security_sshutil_public_key
+            - brocade_security_ldap_role_map
         required: false
         default: all
         type: list
@@ -184,7 +184,7 @@ Brocade Fibre Channel gather FOS facts
 
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_zoning import defined_get, effective_get, to_human_zoning
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import singleton_get, list_get, to_human_singleton, to_human_list
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import singleton_get, list_get, to_human_singleton, to_human_list, get_moduleName
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import str_to_yang
 from ansible.module_utils.basic import AnsibleModule
 
@@ -286,6 +286,7 @@ def main():
         if (gather_subset is None or area in gather_subset or "all" in gather_subset):
             get_list = False
             get_singleton = False
+            module_name = ""
 
             if area == "brocade_access_gateway_port_group":
                 module_name = "brocade_access_gateway"
@@ -428,7 +429,7 @@ def main():
                 list_name = "ldap_role_map"
                 get_list = True
 
-
+            module_name = get_moduleName(fos_version, module_name)
             if get_singleton:
                 ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
                                                    module_name, obj_name, fos_version,
@@ -463,7 +464,7 @@ def main():
                 facts[area] = obj_list
             elif area == "brocade_zoning":
                 ret_code, response = defined_get(
-                    fos_ip_addr, https, auth, vfid, result, timeout)
+                    fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
                 if ret_code != 0:
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
@@ -473,7 +474,7 @@ def main():
                 )
 
                 ret_code, response = effective_get(
-                    fos_ip_addr, https, auth, vfid, result, timeout)
+                    fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
                 if ret_code != 0:
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
