@@ -168,7 +168,7 @@ def main():
 
     facts['ssh_hostkeymust'] = ssh_hostkeymust
 
-    ret_code, response = defined_get(fos_ip_addr, https, auth, vfid, result, timeout)
+    ret_code, response = defined_get(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
     if ret_code != 0:
         exit_after_login(fos_ip_addr, https, auth, result, module)
 

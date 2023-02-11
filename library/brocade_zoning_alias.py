@@ -211,7 +211,7 @@ def main():
     if ret_code != 0:
         module.exit_json(**result)
 
-    zoning_common(fos_ip_addr, https, auth, vfid, result, module, aliases,
+    zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, aliases,
                   members_add_only, members_remove_only, aliases_to_delete, "alias",
                   alias_process_diff, alias_process_diff_to_delete,
                   alias_get, alias_post, alias_delete,
