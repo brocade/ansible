@@ -226,6 +226,11 @@ def chassis_not_ready_message(errs):
 
 def url_helper(url, body, method, auth, result, validate_certs, timeout, credential=None):
     myheaders = {}
+    root_dict = {}
+    root_dict["errors"] = {}
+    root_dict["errors"]["error"] = {}
+    root_dict["errors"]["error"]["error-message"] = {}
+
     if credential == None:   
         myheaders={
             "Authorization": auth["auth"],
