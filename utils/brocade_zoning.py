@@ -620,7 +620,7 @@ def zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, i
                   members_add_only, members_remove_only,
                   to_delete_list, type_str, type_diff_processing,
                   type_diff_processing_to_delete, type_get,
-                  type_post, type_delete, active_cfg, timeout):
+                  type_post, type_delete, active_cfg, disable_cfg, timeout):
     """
         common flow of zone database updates.
 
@@ -840,9 +840,9 @@ def zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, i
                 ret_code = cfg_enable(fos_ip_addr, https, fos_version, auth, vfid,
                                       result, checksum, active_cfg, timeout)
                 result["changed"] = True
-            elif active_cfg is None and cfgname is not None:
+            elif active_cfg is None and cfgname is not None and disable_cfg is True:
                 ret_code = cfg_disable(fos_ip_addr, https, fos_version, auth, vfid, result,
-                                                          checksum, timeout)
+                                                         checksum, timeout)
                 result["changed"] = True
 
             if ret_code != 0:
