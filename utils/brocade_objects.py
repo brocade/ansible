@@ -723,194 +723,198 @@ def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
     if ret_code != 0:
         module.exit_json(**result)
 
-    module_name = get_moduleName(fos_version, module_name)
-    result['ssh_hostkeymust'] = ssh_hostkeymust
+    try:
+        module_name = get_moduleName(fos_version, module_name)
+        result['ssh_hostkeymust'] = ssh_hostkeymust
 
-    ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
+        ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
                                        module_name, obj_name, fos_version,
                                        https, auth, vfid, result,
                                        ssh_hostkeymust, timeout)
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
-
-    resp_attributes = response["Response"][str_to_yang(obj_name)]
-
-    to_human_singleton(module_name, obj_name, resp_attributes)
-
-    diff_attributes = generate_diff(result, resp_attributes, attributes)
-
-    # any object specific special processing
-    if module_name == "brocade_maps" and obj_name == "maps_config":
-        # relay_ip_address and domain_name needs to be specifid
-        # at the same time based on FOS REST requirements
-        if "relay_ip_address" in diff_attributes and "domain_name" not in diff_attributes:
-            diff_attributes["domain_name"] = resp_attributes["domain_name"]
-            result["kept the same"] = "domain_name"
-        elif "relay_ip_address" not in diff_attributes and "domain_name" in diff_attributes:
-            diff_attributes["relay_ip_address"] = resp_attributes["relay_ip_address"]
-            result["kept the same"] = "relay_ip_address"
-
-        if "relay_ip_address" in diff_attributes and diff_attributes["relay_ip_address"] == None:
-            result["failed"] = True
-            result['msg'] = "must specify relay_ip_address if configured empty"
-            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
-        elif "domain_name" in diff_attributes and diff_attributes["domain_name"] == None:
-            result["failed"] = True
-            result['msg'] = "must specify domain_name if configured empty"
-            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
-
-    result["diff_attributes"] = diff_attributes
-    result["current_attributes"] = resp_attributes
-    result["new_attributes"] = attributes
-
-    if len(diff_attributes) > 0:
-        ret_code = to_fos_singleton(module_name, obj_name, diff_attributes, result)
         if ret_code != 0:
             exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-        if not module.check_mode:
-            if module_name == "brocade_access_gateway" and obj_name == "policy" and force == True:
-                if 'auto-policy-enabled' in diff_attributes and diff_attributes['auto-policy-enabled'] == '1':
-                    switch_module = get_moduleName(fos_version, "brocade_fibrechannel_switch")
-                    switch_obj = "fibrechannel_switch"
-                    ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
+        resp_attributes = response["Response"][str_to_yang(obj_name)]
+
+        to_human_singleton(module_name, obj_name, resp_attributes)
+
+        diff_attributes = generate_diff(result, resp_attributes, attributes)
+
+        # any object specific special processing
+        if module_name == "brocade_maps" and obj_name == "maps_config":
+            # relay_ip_address and domain_name needs to be specifid
+            # at the same time based on FOS REST requirements
+            if "relay_ip_address" in diff_attributes and "domain_name" not in diff_attributes:
+                diff_attributes["domain_name"] = resp_attributes["domain_name"]
+                result["kept the same"] = "domain_name"
+            elif "relay_ip_address" not in diff_attributes and "domain_name" in diff_attributes:
+                diff_attributes["relay_ip_address"] = resp_attributes["relay_ip_address"]
+                result["kept the same"] = "relay_ip_address"
+
+            if "relay_ip_address" in diff_attributes and diff_attributes["relay_ip_address"] == None:
+                result["failed"] = True
+                result['msg'] = "must specify relay_ip_address if configured empty"
+                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+            elif "domain_name" in diff_attributes and diff_attributes["domain_name"] == None:
+                result["failed"] = True
+                result['msg'] = "must specify domain_name if configured empty"
+                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+        result["diff_attributes"] = diff_attributes
+        result["current_attributes"] = resp_attributes
+        result["new_attributes"] = attributes
+
+        if len(diff_attributes) > 0:
+            ret_code = to_fos_singleton(module_name, obj_name, diff_attributes, result)
+            if ret_code != 0:
+                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+            if not module.check_mode:
+                if module_name == "brocade_access_gateway" and obj_name == "policy" and force == True:
+                    if 'auto-policy-enabled' in diff_attributes and diff_attributes['auto-policy-enabled'] == '1':
+                        switch_module = get_moduleName(fos_version, "brocade_fibrechannel_switch")
+                        switch_obj = "fibrechannel_switch"
+                        ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
                                        switch_module, switch_obj, fos_version,
                                        https, auth, vfid, result,
                                        ssh_hostkeymust, timeout)
-                    if ret_code != 0:
-                        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+                        if ret_code != 0:
+                            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-                    resp_attributes = response["Response"][str_to_yang(switch_obj)]
-                    to_human_singleton(switch_module, switch_obj, resp_attributes)
+                        resp_attributes = response["Response"][str_to_yang(switch_obj)]
+                        to_human_singleton(switch_module, switch_obj, resp_attributes)
 
-                    switch_enabled = False
-                    if resp_attributes['enabled_state'] == '2':
-                        switch_enabled = True
-                        result["switch_precondition"] = "switch is enabled"
+                        switch_enabled = False
+                        if resp_attributes['enabled_state'] == '2':
+                            switch_enabled = True
+                            result["switch_precondition"] = "switch is enabled"
 
-                    if switch_enabled:
-                        # let's disable switch first
-                        policy = {}
-                        policy['name'] = resp_attributes['name']
-                        policy['enabled-state'] = '3'
-                        ret_code = 0
-                        ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+                        if switch_enabled:
+                            # let's disable switch first
+                            policy = {}
+                            policy['name'] = resp_attributes['name']
+                            policy['enabled-state'] = '3'
+                            ret_code = 0
+                            ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
                                                    switch_module, switch_obj,
                                                    fos_version, https,
                                                    auth, vfid, result, policy,
                                                    ssh_hostkeymust, timeout)
+                            if ret_code != 0:
+                                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+                        # let's disable the pg group first
+                        policy = {}
+                        policy['port-group-policy-enabled'] = '0'
+                        ret_code = 0
+                        ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+                                               module_name, obj_name,
+                                               fos_version, https,
+                                               auth, vfid, result, policy,
+                                               ssh_hostkeymust, timeout)
+                        if ret_code != 0:
+                            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+                        # let's enable the auto first
+                        policy = {}
+                        policy['auto-policy-enabled'] = '1'
+                        ret_code = 0
+                        ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+                                               module_name, obj_name,
+                                               fos_version, https,
+                                               auth, vfid, result, policy,
+                                               ssh_hostkeymust, timeout)
                         if ret_code != 0:
                             exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-                    # let's disable the pg group first
-                    policy = {}
-                    policy['port-group-policy-enabled'] = '0'
-                    ret_code = 0
-                    ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
-                                               module_name, obj_name,
-                                               fos_version, https,
-                                               auth, vfid, result, policy,
-                                               ssh_hostkeymust, timeout)
-                    if ret_code != 0:
-                        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
-                    # let's enable the auto first
-                    policy = {}
-                    policy['auto-policy-enabled'] = '1'
-                    ret_code = 0
-                    ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
-                                               module_name, obj_name,
-                                               fos_version, https,
-                                               auth, vfid, result, policy,
-                                               ssh_hostkeymust, timeout)
-                    if ret_code != 0:
-                        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
-
-                    if switch_enabled:
-                        # let's enable switch last
-                        policy = {}
-                        policy['name'] = resp_attributes['name']
-                        policy['enabled-state'] = '2'
-                        ret_code = 0
-                        ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+                        if switch_enabled:
+                            # let's enable switch last
+                            policy = {}
+                            policy['name'] = resp_attributes['name']
+                            policy['enabled-state'] = '2'
+                            ret_code = 0
+                            ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
                                                    switch_module, switch_obj,
                                                    fos_version, https,
                                                    auth, vfid, result, policy,
                                                    ssh_hostkeymust, timeout)
-                        if ret_code != 0:
-                            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+                            if ret_code != 0:
+                                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-                elif 'port-group-policy-enabled' in diff_attributes and diff_attributes['port-group-policy-enabled'] == '1':
-                    switch_module = get_moduleName(fos_version, "brocade_fibrechannel_switch")
-                    switch_obj = "fibrechannel_switch"
-                    ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
+                    elif 'port-group-policy-enabled' in diff_attributes and diff_attributes['port-group-policy-enabled'] == '1':
+                        switch_module = get_moduleName(fos_version, "brocade_fibrechannel_switch")
+                        switch_obj = "fibrechannel_switch"
+                        ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
                                        switch_module, switch_obj, fos_version,
                                        https, auth, vfid, result,
                                        ssh_hostkeymust, timeout)
-                    if ret_code != 0:
-                        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+                        if ret_code != 0:
+                            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-                    resp_attributes = response["Response"][str_to_yang(switch_obj)]
-                    to_human_singleton(switch_module, switch_obj, resp_attributes)
+                        resp_attributes = response["Response"][str_to_yang(switch_obj)]
+                        to_human_singleton(switch_module, switch_obj, resp_attributes)
 
-                    switch_enabled = False
-                    if resp_attributes['enabled_state'] == '2':
-                        switch_enabled = True
-                        result["switch_precondition"] = "switch is enabled"
+                        switch_enabled = False
+                        if resp_attributes['enabled_state'] == '2':
+                            switch_enabled = True
+                            result["switch_precondition"] = "switch is enabled"
 
-                    if switch_enabled:
-                        # let's disable switch first
-                        policy = {}
-                        policy['name'] = resp_attributes['name']
-                        policy['enabled-state'] = '3'
-                        ret_code = 0
-                        ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+                        if switch_enabled:
+                            # let's disable switch first
+                            policy = {}
+                            policy['name'] = resp_attributes['name']
+                            policy['enabled-state'] = '3'
+                            ret_code = 0
+                            ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
                                                    switch_module, switch_obj,
                                                    fos_version, https,
                                                    auth, vfid, result, policy,
                                                    ssh_hostkeymust, timeout)
-                        if ret_code != 0:
-                            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+                            if ret_code != 0:
+                                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-                    # let's disable the auto first
-                    policy = {}
-                    policy['auto-policy-enabled'] = '0'
-                    ret_code = 0
-                    ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+                        # let's disable the auto first
+                        policy = {}
+                        policy['auto-policy-enabled'] = '0'
+                        ret_code = 0
+                        ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
                                                module_name, obj_name,
                                                fos_version, https,
                                                auth, vfid, result, policy,
                                                ssh_hostkeymust, timeout)
-                    if ret_code != 0:
-                        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+                        if ret_code != 0:
+                            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-                    if switch_enabled:
-                        # let's enable switch last
-                        policy = {}
-                        policy['name'] = resp_attributes['name']
-                        policy['enabled-state'] = '2'
-                        ret_code = 0
-                        ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+                        if switch_enabled:
+                            # let's enable switch last
+                            policy = {}
+                            policy['name'] = resp_attributes['name']
+                            policy['enabled-state'] = '2'
+                            ret_code = 0
+                            ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
                                                    switch_module, switch_obj,
                                                    fos_version, https,
                                                    auth, vfid, result, policy,
                                                    ssh_hostkeymust, timeout)
-                        if ret_code != 0:
-                            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+                            if ret_code != 0:
+                                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-            else:
-                ret_code = 0
-                ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
+                else:
+                    ret_code = 0
+                    ret_code = singleton_patch(fos_user_name, fos_password, fos_ip_addr,
                                            module_name, obj_name,
                                            fos_version, https,
                                            auth, vfid, result, diff_attributes,
                                            ssh_hostkeymust, timeout)
-                if ret_code != 0:
-                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+                    if ret_code != 0:
+                        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-        result["changed"] = True
-    else:
+            result["changed"] = True
+        else:
+            logout(fos_ip_addr, https, auth, result, timeout)
+            module.exit_json(**result)
+    except Exception as e:
         logout(fos_ip_addr, https, auth, result, timeout)
-        module.exit_json(**result)
+        raise
 
     logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
@@ -937,193 +941,205 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
     if ret_code != 0:
         module.exit_json(**result)
 
-    module_name = get_moduleName(fos_version, module_name)
-    ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
+    try:
+        module_name = get_moduleName(fos_version, module_name)
+        ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
                                   module_name, list_name, fos_version,
                                   https, auth, vfid, result,
                                   ssh_hostkeymust, timeout)
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
-
-    current_entries = response["Response"][str_to_yang(list_name)]
-    if not isinstance(current_entries, list):
-        if current_entries is None:
-            current_entries = []
-        else:
-            current_entries = [current_entries]
-
-    to_human_list(module_name, list_name, current_entries, result)
-
-    # for switch list object only, we only support one for now
-    # and allow users to not specifcy the WWN of the switch
-    # thus missing key of the entry. We'll get it from the switch
-    if (module_name == "brocade_fibrechannel_switch" or module_name == "switch") and list_name == "fibrechannel_switch":
-        if len(entries) != 1:
-            result["failed"] = True
-            result["msg"] = "Only one entry in an array is supported"
+        if ret_code != 0:
             exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-        entries[0]["name"] = current_entries[0]["name"]
-
-    if module_name == "brocade_access_gateway" and list_name == "port_group":
-        for port_group in current_entries:
-            if "port_group_n_ports" in port_group and port_group["port_group_n_ports"] == None:
-                port_group["port_group_n_ports"] = {"n_port": None}
-            if "port_group_f_ports" in port_group and port_group["port_group_f_ports"] == None:
-                port_group["port_group_f_ports"] = {"f_port": None}
-
-    if module_name == "brocade_maps":
-        if list_name == "rule":
-            new_current_entries = []
-            for current_entry in current_entries:
-                # default rules cannot be changed anyway, any
-                # rules that are predefined should be removed
-                # from the comparison
-                if not current_entry["is_predefined"]:
-                    new_current_entries.append(current_entry)
-            current_entries = new_current_entries
-        elif list_name == "maps_policy":
-            new_current_entries = []
-            for current_entry in current_entries:
-                # default policies cannot be changed anyway, any
-                # policies that are predefined should be removed
-                # from the comparison
-                if not current_entry["is_predefined_policy"]:
-                    new_current_entries.append(current_entry)
-            current_entries = new_current_entries
-
-    if module_name == "brocade_fibrechannel_logical_switch":
-        if list_name == "fibrechannel_logical_switch":
-            new_current_entries = []
-            for current_entry in current_entries:
-                # only keep the non-default entries
-                if "fabric_id" in current_entry and current_entry["fabric_id"] != "128":
-                    new_current_entries.append(current_entry)
-            current_entries = new_current_entries
-
-    diff_entries = []
-    for entry in entries:
-        for current_entry in current_entries:
-            if list_entry_keys_matched(entry, current_entry, module_name, list_name):
-                diff_attributes = generate_diff(result, current_entry, entry)
-                if len(diff_attributes) > 0:
-                    for key in list_entry_keys(module_name, list_name):
-                        diff_attributes[key] = entry[key]
-                    diff_entries.append(diff_attributes)
-
-    if module_name == "brocade_security" and list_name == "user_config":
-        new_diff_entries = []
-        for diff_entry in diff_entries:
-            # password canot change using patch update
-            # any entries with password are popp'ed off.
-            if not "password" in diff_entry:
-                new_diff_entries.append(diff_entry)
-        diff_entries = new_diff_entries
-    if module_name == "brocade_security" and list_name == "auth_spec":
-        # authentication_mode needs to be specifid as its mandatory one
-        if "authentication_mode" not in diff_entries[0]:
-            diff_entries[0]["authentication_mode"] = current_entries[0]["authentication_mode"]
-            result["kept_the_same"] = "authentication_mode"
-
-    ret_code = to_fos_list(module_name, list_name, diff_entries, result)
-    result["diff_retcode"] = ret_code
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
-
-    remain_entries = []
-    add_entries = []
-    for entry in entries:
-
-        # check to see if the new entry matches any of the old ones
-        found = False
-        for current_entry in current_entries:
-            if list_entry_keys_matched(entry, current_entry, module_name, list_name):
-                remain_entries.append(current_entry)
-                found = True
-                break
-
-        if not found:
-            new_entry = {}
-            for k, v in entry.items():
-                new_entry[k] = v
-            add_entries.append(new_entry)
-
-    if module_name == "brocade_logging" and list_name == "syslog_server":
-        new_add_entries = []
-        for add_entry in add_entries:
-            secured = ("secure_mode" in add_entry and add_entry["secure_mode"] == True)
-            if not secured:
-                new_add_entry = {}
-                new_add_entry["server"] = add_entry["server"]
-                new_add_entries.append(new_add_entry)
+        current_entries = response["Response"][str_to_yang(list_name)]
+        if not isinstance(current_entries, list):
+            if current_entries is None:
+                current_entries = []
             else:
-                new_add_entries.append(add_entry)
-        add_entries = new_add_entries
+                current_entries = [current_entries]
 
-    if module_name == "brocade_maps" and list_name == "rule":
-        remaining_rules = []
-        for remain_entry in remain_entries:
-            remaining_rules.append(remain_entry["name"])
-        if len(remaining_rules) > 0:
-            result["remain_brocade_maps_rule"] = remaining_rules
-        else:
-            result["remain_brocade_maps_rule"] = None
+        to_human_list(module_name, list_name, current_entries, result)
 
-    ret_code = to_fos_list(module_name, list_name, add_entries, result)
-    result["add_retcode"] = ret_code
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+        # for switch list object only, we only support one for now
+        # and allow users to not specifcy the WWN of the switch
+        # thus missing key of the entry. We'll get it from the switch
+        if (module_name == "brocade_fibrechannel_switch" or module_name == "switch") and list_name == "fibrechannel_switch":
+            if len(entries) != 1:
+                result["failed"] = True
+                result["msg"] = "Only one entry in an array is supported"
+                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-    delete_entries = []
-    for current_entry in current_entries:
-        found = False
+            entries[0]["name"] = current_entries[0]["name"]
+
+        if module_name == "brocade_access_gateway" and list_name == "port_group":
+            for port_group in current_entries:
+                if "port_group_n_ports" in port_group and port_group["port_group_n_ports"] == None:
+                    port_group["port_group_n_ports"] = {"n_port": None}
+                if "port_group_f_ports" in port_group and port_group["port_group_f_ports"] == None:
+                    port_group["port_group_f_ports"] = {"f_port": None}
+
+        if module_name == "brocade_maps":
+            if list_name == "rule":
+                new_current_entries = []
+                for current_entry in current_entries:
+                    # default rules cannot be changed anyway, any
+                    # rules that are predefined should be removed
+                    # from the comparison
+                    if not current_entry["is_predefined"]:
+                        new_current_entries.append(current_entry)
+                current_entries = new_current_entries
+            elif list_name == "maps_policy":
+                new_current_entries = []
+                for current_entry in current_entries:
+                    invalid_entry_found = False
+                    for entry in entries:
+                        # default policies cannot be changed with rules, any
+                        # policies that are predefined should be removed
+                        # from the comparison if there are rules.
+                        if current_entry["is_predefined_policy"]:
+                            invalid_entry_found = True
+                            if not all_entries and entry["name"] == current_entry["name"]:
+                                if not "rule_list" in entry or "rule_list" in entry and entry["rule_list"] is None:
+                                    invalid_entry_found = False
+                                    break
+                    if not invalid_entry_found:
+                        new_current_entries.append(current_entry)
+                current_entries = new_current_entries
+
+        if module_name == "brocade_fibrechannel_logical_switch":
+            if list_name == "fibrechannel_logical_switch":
+                new_current_entries = []
+                for current_entry in current_entries:
+                    # only keep the non-default entries
+                    if "fabric_id" in current_entry and current_entry["fabric_id"] != "128":
+                        new_current_entries.append(current_entry)
+                current_entries = new_current_entries
+
+        diff_entries = []
         for entry in entries:
-            if list_entry_keys_matched(entry, current_entry, module_name, list_name):
-                found = True
-                break
+            for current_entry in current_entries:
+                if list_entry_keys_matched(entry, current_entry, module_name, list_name):
+                    diff_attributes = generate_diff(result, current_entry, entry)
+                    if len(diff_attributes) > 0:
+                        for key in list_entry_keys(module_name, list_name):
+                            diff_attributes[key] = entry[key]
+                        diff_entries.append(diff_attributes)
 
-        if not found:
-            delete_entry = {}
-            for key in list_entry_keys(module_name, list_name):
-                delete_entry[key] = current_entry[key]
+        if module_name == "brocade_security" and list_name == "user_config":
+            new_diff_entries = []
+            for diff_entry in diff_entries:
+                # password canot change using patch update
+                # any entries with password are popp'ed off.
+                if not "password" in diff_entry:
+                    new_diff_entries.append(diff_entry)
+            diff_entries = new_diff_entries
+        if module_name == "brocade_security" and list_name == "auth_spec":
+            # authentication_mode needs to be specifid as its mandatory one
+            if "authentication_mode" not in diff_entries[0]:
+                diff_entries[0]["authentication_mode"] = current_entries[0]["authentication_mode"]
+                result["kept_the_same"] = "authentication_mode"
 
-            delete_entries.append(delete_entry)
+        ret_code = to_fos_list(module_name, list_name, diff_entries, result)
+        result["diff_retcode"] = ret_code
+        if ret_code != 0:
+            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-    ret_code = to_fos_list(module_name, list_name, delete_entries, result)
-    result["delete_retcode"] = ret_code
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+        remain_entries = []
+        add_entries = []
+        for entry in entries:
 
-    result["response"] = response
-    result["current_entries"] = current_entries
-    result["diff_entries"] = diff_entries
-    result["add_entries"] = add_entries
-    result["delete_entries"] = delete_entries
+            # check to see if the new entry matches any of the old ones
+            found = False
+            for current_entry in current_entries:
+                if list_entry_keys_matched(entry, current_entry, module_name, list_name):
+                    remain_entries.append(current_entry)
+                    found = True
+                    break
 
-    if len(diff_entries) > 0:
-        if not module.check_mode:
-            ret_code = 0
-            ret_code = list_patch(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, diff_entries, ssh_hostkeymust, timeout)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+            if not found:
+                new_entry = {}
+                for k, v in entry.items():
+                    new_entry[k] = v
+                add_entries.append(new_entry)
 
-        result["changed"] = True
+        if module_name == "brocade_logging" and list_name == "syslog_server":
+            new_add_entries = []
+            for add_entry in add_entries:
+                secured = ("secure_mode" in add_entry and add_entry["secure_mode"] == True)
+                if not secured:
+                    new_add_entry = {}
+                    new_add_entry["server"] = add_entry["server"]
+                    new_add_entries.append(new_add_entry)
+                else:
+                    new_add_entries.append(add_entry)
+            add_entries = new_add_entries
 
-    if len(add_entries) > 0:
-        if not module.check_mode:
-            ret_code = list_post(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, add_entries, ssh_hostkeymust, timeout)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+        if module_name == "brocade_maps" and list_name == "rule":
+            remaining_rules = []
+            for remain_entry in remain_entries:
+                remaining_rules.append(remain_entry["name"])
+            if len(remaining_rules) > 0:
+                result["remain_brocade_maps_rule"] = remaining_rules
+            else:
+                result["remain_brocade_maps_rule"] = None
 
-        result["changed"] = True
+        ret_code = to_fos_list(module_name, list_name, add_entries, result)
+        result["add_retcode"] = ret_code
+        if ret_code != 0:
+            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-    if len(delete_entries) > 0 and all_entries:
-        if not module.check_mode:
-            ret_code = list_delete(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, delete_entries, ssh_hostkeymust, timeout)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+        delete_entries = []
+        for current_entry in current_entries:
+            found = False
+            for entry in entries:
+                if list_entry_keys_matched(entry, current_entry, module_name, list_name):
+                    found = True
+                    break
 
-        result["changed"] = True
+            if not found:
+                delete_entry = {}
+                for key in list_entry_keys(module_name, list_name):
+                    delete_entry[key] = current_entry[key]
+
+                delete_entries.append(delete_entry)
+
+        ret_code = to_fos_list(module_name, list_name, delete_entries, result)
+        result["delete_retcode"] = ret_code
+        if ret_code != 0:
+            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+        result["response"] = response
+        result["current_entries"] = current_entries
+        result["diff_entries"] = diff_entries
+        result["add_entries"] = add_entries
+        result["delete_entries"] = delete_entries
+
+        if len(diff_entries) > 0:
+            if not module.check_mode:
+                ret_code = 0
+                ret_code = list_patch(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, diff_entries, ssh_hostkeymust, timeout)
+                if ret_code != 0:
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+            result["changed"] = True
+
+        if len(add_entries) > 0:
+            if not module.check_mode:
+                ret_code = list_post(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, add_entries, ssh_hostkeymust, timeout)
+                if ret_code != 0:
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+            result["changed"] = True
+
+        if len(delete_entries) > 0 and all_entries:
+            if not module.check_mode:
+                ret_code = list_delete(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, delete_entries, ssh_hostkeymust, timeout)
+                if ret_code != 0:
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+            result["changed"] = True
+    except Exception as e:
+        logout(fos_ip_addr, https, auth, result, timeout)
+        raise
 
     logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
@@ -1146,55 +1162,59 @@ def list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, 
     if ret_code != 0:
         module.exit_json(**result)
 
-    ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
+    try:
+        ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
                                   module_name, list_name, fos_version,
                                   https, auth, vfid, result,
                                   ssh_hostkeymust, timeout)
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+        if ret_code != 0:
+            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-    module_name = get_moduleName(fos_version, module_name)
-    current_entries = response["Response"][str_to_yang(list_name)]
-    if not isinstance(current_entries, list):
-        if current_entries is None:
-            current_entries = []
-        else:
-            current_entries = [current_entries]
+        module_name = get_moduleName(fos_version, module_name)
+        current_entries = response["Response"][str_to_yang(list_name)]
+        if not isinstance(current_entries, list):
+            if current_entries is None:
+                current_entries = []
+            else:
+                current_entries = [current_entries]
 
-    to_human_list(module_name, list_name, current_entries, result)
+        to_human_list(module_name, list_name, current_entries, result)
 
-    delete_entries = []
-    for entry in entries:
+        delete_entries = []
+        for entry in entries:
 
-        # check to see if the new entry matches any of the old ones
-        found = False
-        for current_entry in current_entries:
-            if list_entry_keys_matched(entry, current_entry, module_name, list_name):
-                found = True
-                break
+            # check to see if the new entry matches any of the old ones
+            found = False
+            for current_entry in current_entries:
+                if list_entry_keys_matched(entry, current_entry, module_name, list_name):
+                    found = True
+                    break
 
-        if found:
-            new_entry = {}
-            for k, v in entry.items():
-                new_entry[k] = v
-            delete_entries.append(new_entry)
+            if found:
+                new_entry = {}
+                for k, v in entry.items():
+                    new_entry[k] = v
+                delete_entries.append(new_entry)
 
-    ret_code = to_fos_list(module_name, list_name, delete_entries, result)
-    result["add_retcode"] = ret_code
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+        ret_code = to_fos_list(module_name, list_name, delete_entries, result)
+        result["add_retcode"] = ret_code
+        if ret_code != 0:
+            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-    result["response"] = response
-    result["current_entries"] = current_entries
-    result["delete_entries"] = delete_entries
+        result["response"] = response
+        result["current_entries"] = current_entries
+        result["delete_entries"] = delete_entries
 
-    if len(delete_entries) > 0:
-        if not module.check_mode:
-            ret_code = list_delete(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, delete_entries, ssh_hostkeymust, timeout)
-            if ret_code != 0:
-                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+        if len(delete_entries) > 0:
+            if not module.check_mode:
+                ret_code = list_delete(fos_user_name, fos_password, fos_ip_addr, module_name, list_name, fos_version, https, auth, vfid, result, delete_entries, ssh_hostkeymust, timeout)
+                if ret_code != 0:
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-        result["changed"] = True
+            result["changed"] = True
+    except Exception as e:
+        logout(fos_ip_addr, https, auth, result, timeout)
+        raise
 
     logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
@@ -1214,27 +1234,31 @@ def operation_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
     if ret_code != 0:
         module.exit_json(**result)
 
-    result["input"] = attributes
+    try:
+        result["input"] = attributes
 
-    ret_code = to_fos_operation(op_name, in_name, attributes, result)
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+        ret_code = to_fos_operation(op_name, in_name, attributes, result)
+        if ret_code != 0:
+            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-    if not module.check_mode:
-        ret_code = 0
-        ret_code, resp = operation_post(fos_user_name, fos_password, fos_ip_addr,
+        if not module.check_mode:
+            ret_code = 0
+            ret_code, resp = operation_post(fos_user_name, fos_password, fos_ip_addr,
                                    op_name, in_name,
                                    fos_version, https,
                                    auth, vfid, result, attributes,
                                    ssh_hostkeymust, timeout)
-        if ret_code != 0:
-            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+            if ret_code != 0:
+                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-    result["changed"] = True
+        result["changed"] = True
 
-    to_human_operation(op_name, in_name, resp["Response"])
+        to_human_operation(op_name, in_name, resp["Response"])
 
-    result["operation_resp"] = resp["Response"]
+        result["operation_resp"] = resp["Response"]
+    except Exception as e:
+        logout(fos_ip_addr, https, auth, result, timeout)
+        raise
 
     logout(fos_ip_addr, https, auth, result, timeout)
 

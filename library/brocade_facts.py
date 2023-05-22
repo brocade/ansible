@@ -225,6 +225,8 @@ valid_areas = [
     "brocade_snmp_v3_account",
     "brocade_snmp_v3_trap",
     "brocade_maps_maps_config",
+    "brocade_maps_rule",
+    "brocade_maps_maps_policy",
     "brocade_security_sec_crypto_cfg_template_action",
     "brocade_security_ldap_role_map"
     ]
@@ -421,6 +423,14 @@ def main():
                 module_name = "brocade_maps"
                 obj_name = "maps_config"
                 get_singleton = True
+            elif area == "brocade_maps_rule":
+                module_name = "brocade_maps"
+                list_name = "rule"
+                get_list = True
+            elif area == "brocade_maps_maps_policy":
+                module_name = "brocade_maps"
+                list_name = "maps_policy"
+                get_list = True
             elif area == "brocade_security_sec_crypto_cfg_template_action":
                 module_name = "brocade_security"
                 obj_name = "sec_crypto_cfg_template_action"
@@ -477,7 +487,7 @@ def main():
                 to_human_zoning(zoning["defined-configuration"])
 
                 ret_code, response = effective_get(
-                    fos_ip_addr, https, auth, vfid, result, timeout)
+                    fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
                 if ret_code != 0:
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
@@ -490,7 +500,7 @@ def main():
                 facts[area] = zoning
             elif area == "brocade_zoning_simple":
                 ret_code, response = defined_get(
-                    fos_ip_addr, https, auth, vfid, result, timeout)
+                    fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
                 if ret_code != 0:
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 

@@ -215,7 +215,7 @@ def main():
                   members_add_only, members_remove_only, aliases_to_delete, "alias",
                   alias_process_diff, alias_process_diff_to_delete,
                   alias_get, alias_post, alias_delete,
-                  None, timeout)
+                  None, False, timeout)
 
     ret_code = logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
