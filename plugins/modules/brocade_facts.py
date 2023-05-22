@@ -181,13 +181,12 @@ msg:
 Brocade Fibre Channel gather FOS facts
 """
 
-
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_zoning import defined_get, effective_get, to_human_zoning
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import singleton_get, list_get, to_human_singleton, to_human_list, get_moduleName
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import singleton_get, list_get, to_human_singleton,
+ to_human_list, get_moduleName
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import str_to_yang
 from ansible.module_utils.basic import AnsibleModule
-
 
 valid_areas = [
     "brocade_access_gateway_port_group",
@@ -197,6 +196,7 @@ valid_areas = [
     "brocade_access_gateway_policy",
     "brocade_access_gateway_n_port_settings",
     "brocade_zoning",
+    "brocade_zoning_simple",
     "brocade_interface_fibrechannel",
     "brocade_chassis_chassis",
     "brocade_fabric_fabric_switch",
@@ -224,6 +224,8 @@ valid_areas = [
     "brocade_snmp_v3_account",
     "brocade_snmp_v3_trap",
     "brocade_maps_maps_config",
+    "brocade_maps_rule",
+    "brocade_maps_maps_policy",
     "brocade_security_sec_crypto_cfg_template_action",
     "brocade_security_ldap_role_map"
     ]
@@ -420,6 +422,14 @@ def main():
                 module_name = "brocade_maps"
                 obj_name = "maps_config"
                 get_singleton = True
+            elif area == "brocade_maps_rule":
+                module_name = "brocade_maps"
+                list_name = "rule"
+                get_list = True
+            elif area == "brocade_maps_maps_policy":
+                module_name = "brocade_maps"
+                list_name = "maps_policy"
+                get_list = True
             elif area == "brocade_security_sec_crypto_cfg_template_action":
                 module_name = "brocade_security"
                 obj_name = "sec_crypto_cfg_template_action"
@@ -472,6 +482,91 @@ def main():
                 zoning["defined-configuration"] = (
                     response["Response"]["defined-configuration"]
                 )
+
+                to_human_zoning(zoning["defined-configuration"])
+
+                ret_code, response = effective_get(
+                    fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
+                if ret_code != 0:
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+                zoning["effective-configuration"] = (
+                    response["Response"]["effective-configuration"]
+                )
+
+                to_human_zoning(zoning["effective-configuration"])
+
+                facts[area] = zoning
+            elif area == "brocade_zoning_simple":
+                ret_code, response = defined_get(
+                    fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
+                if ret_code != 0:
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+                zoning = {}
+                zoning["defined-configuration"] = {
+                    "aliases" : [],
+                    "zones" : [],
+                    "cfgs" : []
+                }
+
+                if response["Response"]["defined-configuration"]["cfg"] is not None:
+                    r_cfgs = response["Response"]["defined-configuration"]["cfg"]
+                    if not isinstance(response["Response"]["defined-configuration"]["cfg"], list):
+                        r_cfgs = [response["Response"]["defined-configuration"]["cfg"]]
+                    for cfg in r_cfgs:
+                        cfg_members = cfg["member-zone"]["zone-name"]
+                        if not isinstance(cfg["member-zone"]["zone-name"], list):
+                            cfg_members = [cfg["member-zone"]["zone-name"]]
+                        zoning["defined-configuration"]["cfgs"].append(
+                            {
+                                "name": cfg["cfg-name"],
+                                "members": cfg_members
+                            }
+                        )
+
+
+                if response["Response"]["defined-configuration"]["alias"] is not None:
+                    r_aliases = response["Response"]["defined-configuration"]["alias"]
+                    if not isinstance(response["Response"]["defined-configuration"]["alias"], list):
+                        r_aliases = [response["Response"]["defined-configuration"]["alias"]]
+                    for alias in r_aliases:
+                        alias_members = alias["member-entry"]["alias-entry-name"]
+                        if not isinstance(alias["member-entry"]["alias-entry-name"], list):
+                            alias_members = [alias["member-entry"]["alias-entry-name"]]
+                        zoning["defined-configuration"]["aliases"].append(
+                            {
+                                "name": alias["alias-name"],
+                                "members": alias_members
+                            }
+                        )
+
+                if response["Response"]["defined-configuration"]["zone"] is not None:
+                    r_zones = response["Response"]["defined-configuration"]["zone"]
+                    if not isinstance(response["Response"]["defined-configuration"]["zone"], list):
+                        r_zones = [response["Response"]["defined-configuration"]["zone"]]
+                    for zone in r_zones:
+                        zone_members = zone["member-entry"]["entry-name"]
+                        if not isinstance(zone["member-entry"]["entry-name"], list):
+                            zone_members = [zone["member-entry"]["entry-name"]]
+                        if "principal-entry-name" in zone["member-entry"]:
+                            pzone_members = zone["member-entry"]["principal-entry-name"]
+                            if not isinstance(zone["member-entry"]["principal-entry-name"], list):
+                                pzone_members = [zone["member-entry"]["principal-entry-name"]]
+                            zoning["defined-configuration"]["zones"].append(
+                                {
+                                    "name": zone["zone-name"],
+                                    "members": zone_members,
+                                    "principal_members": pzone_members
+                                }
+                            )
+                        else:
+                            zoning["defined-configuration"]["zones"].append(
+                                {
+                                    "name": zone["zone-name"],
+                                    "members": zone_members
+                                }
+                            )
 
                 ret_code, response = effective_get(
                     fos_ip_addr, https, fos_version, auth, vfid, result, timeout)

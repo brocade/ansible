@@ -219,7 +219,7 @@ def main():
     zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, cfgs,
                   members_add_only, members_remove_only, cfgs_to_delete, "cfg",
                   cfg_process_diff, cfg_process_diff_to_delete,
-                  cfg_get, cfg_post, cfg_delete, active_cfg, timeout)
+                  cfg_get, cfg_post, cfg_delete, active_cfg, False, timeout)
 
     ret_code = logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
