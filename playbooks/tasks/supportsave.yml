@@ -45,7 +45,7 @@
         message_id: "{{result.operation_resp.show_status.message_id}}"
     register: status_result
     until: status_result.operation_resp is not defined or status_result.operation_resp.show_status.status == "done" or status_result.operation_resp.show_status.status == "delivered"
-    retries: 100
+    retries: 150
     delay: 10
 
   - name: print show_status end result

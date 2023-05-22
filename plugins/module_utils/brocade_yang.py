@@ -56,15 +56,22 @@ def yang_to_human(attributes):
         if isinstance(v, dict):
             dict_v = {}
             for k1, v1 in v.items():
+                if isinstance(v1, dict):
+                    yang_to_human(v1)
                 dict_v[str_to_human(k1)] = v1
             yang_attributes[str_to_human(k)] = dict_v
         elif isinstance(v, list):
             new_list = []
             for entry in v:
-                new_dict = {}
-                for k1, v1 in entry.items():
-                    new_dict[str_to_human(k1)] = v1
-                new_list.append(new_dict)
+                if isinstance(entry, dict):
+                    new_dict = {}
+                    for k1, v1 in entry.items():
+                        if isinstance(v1, dict):
+                            yang_to_human(v1)
+                        new_dict[str_to_human(k1)] = v1
+                    new_list.append(new_dict)
+                else:
+                    new_list.append(entry)
             yang_attributes[str_to_human(k)] = new_list
         else:
             yang_attributes[str_to_human(k)] = v
