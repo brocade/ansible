@@ -12,12 +12,12 @@ __metaclass__ = type
 
 DOCUMENTATION = '''
 
-module: brocade_zoning_alias_facts_by_wwn
-short_description: Brocade Fibre Channel facts gathering of zoning by WWN
-version_added: '2.6'
+module: brocade_zoning_cfg_disable
+short_description: Brocade Fibre Channel zoning disable configuration
+version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Gather Fibre Channel FOS facts
+- Disable the cfgs that was effective.
 
 options:
     credential:
@@ -67,16 +67,18 @@ options:
         - REST timeout in seconds for operations that take longer than FOS
           default value.
         type: int
-    wwn:
+    disable_cfg:
         description:
-        - WWN to search in the aliases within Zone DB.
-        required: true
-        type: str
+        - Cfg to be disabled.
+        required: false
+        type: bool
  
 '''
 
 
 EXAMPLES = """
+
+  gather_facts: False
 
   vars:
     credential:
@@ -84,20 +86,13 @@ EXAMPLES = """
       fos_user_name: admin
       fos_password: password
       https: False
-    wwn_to_search: "11:22:33:44:55:66:77:88"
 
   tasks:
 
-  - name: gather device alias info
-    brocade_zoning_alias_facts_by_wwn:
+  - name: Disable cfgs
+    brocade_zoning_cfg_disable:
       credential: "{{credential}}"
       vfid: -1
-      wwn: "{{wwn_to_search}}"
-
-  - name: print device alias information matching port_name
-    debug:
-      var: ansible_facts['alias']
-    when: ansible_facts['alias'] is defined
 
 """
 
@@ -111,15 +106,14 @@ msg:
 
 """
 
-
 """
-Brocade Fibre Channel facts gathering of zoning by WWN
+Brocade Fibre Channel zoning cfg disable
 """
 
 
-from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_zoning import defined_get
 from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible.module_utils.brocade_zoning import zoning_common, cfg_post, cfg_delete, cfg_get, cfg_process_diff, cfg_process_diff_to_delete
 
 
 def main():
@@ -131,12 +125,11 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
-        timeout=dict(required=False, type='float'),
-        wwn=dict(required=True, type='str'))
+        timeout=dict(required=False, type='float'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
-        supports_check_mode=False
+        supports_check_mode=True
     )
 
     input_params = module.params
@@ -146,14 +139,11 @@ def main():
     fos_user_name = input_params['credential']['fos_user_name']
     fos_password = input_params['credential']['fos_password']
     https = input_params['credential']['https']
-    ssh_hostkeymust = True
-    if 'ssh_hostkeymust' in input_params['credential']:
-        ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     timeout = input_params['timeout']
     vfid = input_params['vfid']
-    wwn = input_params['wwn']
     result = {"changed": False}
+    disable_cfg=True
 
     if vfid is None:
         vfid = 128
@@ -164,45 +154,12 @@ def main():
     if ret_code != 0:
         module.exit_json(**result)
 
-    facts = {}
+    zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, None,
+                  None, None, None, "cfg",
+                  cfg_process_diff, cfg_process_diff_to_delete,
+                  cfg_get, cfg_post, cfg_delete, None, disable_cfg, timeout)
 
-    facts['ssh_hostkeymust'] = ssh_hostkeymust
-
-    ret_code, response = defined_get(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
-
-    if ret_code != 0:
-        exit_after_login(fos_ip_addr, https, auth, result, module)
-
-    alias_list = []
-    if "alias" in response["Response"]["defined-configuration"]:
-        if isinstance(response["Response"]["defined-configuration"]["alias"], list):
-            alias_list = response["Response"]["defined-configuration"]["alias"]
-        else:
-            alias_list = [response["Response"]["defined-configuration"]["alias"]]
-
-    result["alias_list"] = alias_list
-
-    ret_list = []
-    for alias in alias_list:
-        if "member-entry" in alias and "alias-entry-name" in alias["member-entry"]:
-            if isinstance(alias["member-entry"]["alias-entry-name"], list):
-                for entry in alias["member-entry"]["alias-entry-name"]:
-                    if entry == wwn.lower():
-                        ret_list.append(alias)
-                        break
-            else:
-                if alias["member-entry"]["alias-entry-name"] == wwn.lower():
-                    ret_list.append(alias)
-
-    ret_dict = {}
-    if len(ret_list) > 0:
-        ret_dict["alias"] = ret_list
-
-    result["ansible_facts"] = ret_dict
-
-    logout(fos_ip_addr, https, auth, result, timeout)
+    ret_code = logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
 
 

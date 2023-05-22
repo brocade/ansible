@@ -74,7 +74,7 @@ EXAMPLES = """
 
 
   - name: configure maps rules
-    brocade_snmp_v1_trap:
+    brocade_maps_rule:
     credential: "{{credential}}"
     vfid: -1
     rules:
@@ -123,6 +123,7 @@ def main():
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
         timeout=dict(required=False, type='float'),
+        all_entries=dict(required=False, type='bool'),
         rules=dict(required=True, type='list'))
 
     module = AnsibleModule(
@@ -140,10 +141,11 @@ def main():
     throttle = input_params['throttle']
     timeout = input_params['timeout']
     vfid = input_params['vfid']
+    all_entries = input_params['all_entries']
     rules = input_params['rules']
     result = {"changed": False}
 
-    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_maps", "rule", rules, True, result, timeout)
+    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_maps", "rule", rules, all_entries, result, timeout)
 
 
 if __name__ == '__main__':
