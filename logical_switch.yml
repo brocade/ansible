@@ -1,0 +1,35 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: "{{fos_user_name}}"
+      fos_password: "{{fos_password}}"
+      https: "{{fos_https}}"
+    non_default_switches:
+      - fabric_id: 1
+        base_switch_enabled: 0
+        ficon_mode_enabled: 0
+        logical_isl_enabled: 1
+        port_member_list:
+          port_member:
+            - "0/0"
+            - "0/1"
+            - "0/2"
+
+  tasks:
+
+  - name: configure all non-default logical switch
+    brocade_fibrechannel_logical_switch_fibrechannel_logical_switch:
+      credential: "{{credential}}"
+      vfid: -1
+      logical_switches: "{{non_default_switches}}"
