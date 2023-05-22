@@ -12,17 +12,12 @@ __metaclass__ = type
 
 DOCUMENTATION = '''
 
-module: brocade_zoning_alias
-short_description: Brocade Fibre Channel zoning alias configuration
+module: brocade_zoning_cfg_disable
+short_description: Brocade Fibre Channel zoning disable configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Create, detroy, or update aliases. The whole of aliases and
-  aliases_to_delete are applied to FOS within a single login session
-  to termininate after the completion. If no active cfg is found,
-  cfgsave is executed before the completion of the session. If an
-  active cfg is found, cfgenable of the existing cfg is executed
-  to apply any potential changes before the completion of the session.
+- Disable the cfgs that was effective.
 
 options:
     credential:
@@ -72,37 +67,12 @@ options:
         - REST timeout in seconds for operations that take longer than FOS
           default value.
         type: int
-    aliases:
+    disable_cfg:
         description:
-        - List of aliases to be created or modified. If an alias does
-          not exist in the current Zone Database, the alias will be
-          created with the members specified. If an alias already
-          exist in the current Zone Database, the alias is updated to
-          reflect to members specificed. In other word, new members
-          will be added and removed members will be removed.
-          If no aliases_to_delete are listed, aliases is required.
-          aliases_to_delete and aliases are mutually exclusive.
-        required: false
-        type: list 
-    members_add_only:
-        description:
-        - If set to True, new members will be added and old members
-          not specified also remain.
+        - Cfg to be disabled.
         required: false
         type: bool
-    members_remove_only:
-        description:
-        - If set to True, members specified are removed.
-        required: false
-        type: bool
-    aliases_to_delete:
-        description:
-        - List of aliases to be deleted. If no aliases are listed,
-          aliases_to_delete is required.  aliases_to_delete and
-          aliases are mutually exclusive.
-        required: false
-        type: list
-
+ 
 '''
 
 
@@ -116,32 +86,13 @@ EXAMPLES = """
       fos_user_name: admin
       fos_password: password
       https: False
-    aliases:
-      - name: Host1
-        members:
-          - 11:22:33:44:55:66:77:88
-      - name: Target1
-        members:
-          - 22:22:33:44:55:66:77:99      
-      - name: Target2
-        members:
-          - 22:22:33:44:55:66:77:aa
-      - name: Target3
-        members:
-          - 22:22:33:44:55:66:77:bb
-    aliases_to_delete:
-      - name: Target1
-      - name: Target2
-      - name: Target3
 
   tasks:
 
-  - name: Create aliases
-    brocade_zoning_alias:
+  - name: Disable cfgs
+    brocade_zoning_cfg_disable:
       credential: "{{credential}}"
       vfid: -1
-      aliases: "{{aliases}}"
-      aliases_to_delete: "{{aliases_to_delete}}"
 
 """
 
@@ -155,15 +106,14 @@ msg:
 
 """
 
-
 """
-Brocade Fibre Channel zoning alias configuration
+Brocade Fibre Channel zoning cfg disable
 """
 
 
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_zoning import zoning_common, alias_post, alias_delete, alias_get, alias_process_diff, alias_process_diff_to_delete
+from ansible.module_utils.brocade_zoning import zoning_common, cfg_post, cfg_delete, cfg_get, cfg_process_diff, cfg_process_diff_to_delete
 
 
 def main():
@@ -175,11 +125,7 @@ def main():
         credential=dict(required=True, type='dict', no_log=True),
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='float'),
-        timeout=dict(required=False, type='float'),
-        aliases=dict(required=False, type='list'),
-        members_add_only=dict(required=False, type='bool'),
-        members_remove_only=dict(required=False, type='bool'),
-        aliases_to_delete=dict(required=False, type='list'))
+        timeout=dict(required=False, type='float'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -196,11 +142,8 @@ def main():
     throttle = input_params['throttle']
     timeout = input_params['timeout']
     vfid = input_params['vfid']
-    aliases = input_params['aliases']
-    members_add_only = input_params['members_add_only']
-    members_remove_only = input_params['members_remove_only']
-    aliases_to_delete = input_params['aliases_to_delete']
     result = {"changed": False}
+    disable_cfg=True
 
     if vfid is None:
         vfid = 128
@@ -211,11 +154,10 @@ def main():
     if ret_code != 0:
         module.exit_json(**result)
 
-    zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, aliases,
-                  members_add_only, members_remove_only, aliases_to_delete, "alias",
-                  alias_process_diff, alias_process_diff_to_delete,
-                  alias_get, alias_post, alias_delete,
-                  None, False, timeout)
+    zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, None,
+                  None, None, None, "cfg",
+                  cfg_process_diff, cfg_process_diff_to_delete,
+                  cfg_get, cfg_post, cfg_delete, None, disable_cfg, timeout)
 
     ret_code = logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)

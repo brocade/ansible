@@ -102,6 +102,11 @@ options:
           parsing.
         required: true
         type: list
+    delete_entries:
+        description:
+        - name of the entries to be deleted. mutually exclusive
+          with entries.
+        required: false
 
 '''
 
@@ -151,7 +156,7 @@ Brocade Fibre Channel Yang list processor
 
 from ansible.module_utils.brocade_connection import login, logout, exit_after_login
 from ansible.module_utils.brocade_yang import generate_diff, str_to_human, str_to_yang, is_full_human
-from ansible.module_utils.brocade_objects import list_get, to_fos_list, to_human_list, list_entry_keys_matched, list_entry_keys, list_patch, list_post, list_delete, list_helper
+from ansible.module_utils.brocade_objects import list_get, to_fos_list, to_human_list, list_entry_keys_matched, list_entry_keys, list_patch, list_post, list_delete, list_helper, list_delete_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -168,7 +173,8 @@ def main():
         module_name=dict(required=True, type='str'),
         list_name=dict(required=True, type='str'),
         all_entries=dict(required=False, type='bool'),
-        entries=dict(required=True, type='list'))
+        entries=dict(required=False, type='list'),
+        delete_entries=dict(required=False, type='list'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -192,7 +198,15 @@ def main():
     list_name = str_to_human(input_params['list_name'])
     entries = input_params['entries']
     all_entries = input_params['all_entries']
+    delete_entries = input_params['delete_entries']
     result = {"changed": False}
+
+    # if delete_entries is not None, then we make sure
+    # the attributes listed are not present.
+    # entries update does not happen at the same
+    # time
+    if delete_entries != None:
+        return list_delete_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, module_name, list_name, delete_entries, True, result, timeout)
 
     list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, entries, all_entries, result, timeout)
 

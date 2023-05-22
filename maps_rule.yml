@@ -1,0 +1,49 @@
+---
+
+# Copyright 2019 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: "{{fos_user_name}}"
+      fos_password: "{{fos_password}}"
+      https: "{{fos_https}}"
+
+  tasks:
+
+  - name: create my rules
+    brocade_maps_rule:
+      credential: "{{credential}}"
+      vfid: -1
+      rules:
+        - name: my_rule1
+          actions:
+            action:
+              - "raslog"
+          event_severity: null
+          group_name: "ALL_E_PORTS"
+          is_rule_on_rule: False
+          logical_operator: "g"
+          monitoring_system: "C3TXTO"
+          quiet_time: 0
+          threshold_value: 1
+          time_base: "Min"
+        - name: my_rule2
+          actions:
+            action:
+              - "raslog"
+          event_severity: null
+          group_name: "ALL_E_PORTS"
+          is_rule_on_rule: False
+          logical_operator: "g"
+          monitoring_system: "C3TXTO"
+          quiet_time: 0
+          threshold_value: 1
+          time_base: "Min"
