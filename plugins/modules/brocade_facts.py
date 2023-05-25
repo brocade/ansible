@@ -183,8 +183,7 @@ Brocade Fibre Channel gather FOS facts
 
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_zoning import defined_get, effective_get, to_human_zoning
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import singleton_get, list_get, to_human_singleton,
- to_human_list, get_moduleName
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import singleton_get, list_get, to_human_singleton, to_human_list, get_moduleName
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import str_to_yang
 from ansible.module_utils.basic import AnsibleModule
 
@@ -229,6 +228,7 @@ valid_areas = [
     "brocade_security_sec_crypto_cfg_template_action",
     "brocade_security_ldap_role_map"
     ]
+
 
 def main():
     """
@@ -505,9 +505,9 @@ def main():
 
                 zoning = {}
                 zoning["defined-configuration"] = {
-                    "aliases" : [],
-                    "zones" : [],
-                    "cfgs" : []
+                    "aliases": [],
+                    "zones": [],
+                    "cfgs": []
                 }
 
                 if response["Response"]["defined-configuration"]["cfg"] is not None:
@@ -524,7 +524,6 @@ def main():
                                 "members": cfg_members
                             }
                         )
-
 
                 if response["Response"]["defined-configuration"]["alias"] is not None:
                     r_aliases = response["Response"]["defined-configuration"]["alias"]
