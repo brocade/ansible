@@ -506,9 +506,9 @@ def main():
 
                 zoning = {}
                 zoning["defined-configuration"] = {
-                    "aliases" : [],
-                    "zones" : [],
-                    "cfgs" : []
+                    "aliases": [],
+                    "zones": [],
+                    "cfgs": []
                 }
 
                 if response["Response"]["defined-configuration"]["cfg"] is not None:
