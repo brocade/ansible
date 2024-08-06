@@ -1,0 +1,31 @@
+---
+
+# Copyright 2019-2024 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+# Note: Please set 'BROCADE_VERSION_PATH' environment variable
+# to the version file 'test_version_matrix.rst'
+# By default galaxy collection is installed under ~/.ansible/collections,
+# in that case the following example shows how to set the environment variable
+# in the Linux system
+# export BROCADE_VERSION_PATH=~/.ansible/collections/ansible_collections/brocade/fos/test_version_matrix.rst
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+  collections:
+    - brocade.fos
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: "{{fos_user_name}}"
+      fos_password: "{{fos_password}}"
+      https: "{{fos_https}}"
+
+  tasks:
+
+  - name: check module(s) are compatible with the given switch version
+    brocade_module_compatibility:
+      credential: "{{credential}}"

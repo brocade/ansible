@@ -24,7 +24,6 @@
       state_name: CA
       locality_name: SJ
       organization_name: Broadcom
-      unit_name: BSN
       domain_name: 10.155.107.74
     action_inputs:
       remote_user_name: user_name
