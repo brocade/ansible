@@ -21,3 +21,6 @@ notes section provide the details on the exceptions and release notes.
 |               |    9.0.1e,  |  firmwaredownload is v9.0.0.             |
 |               |    9.1.1b   |                                          |
 +---------------+-------------+------------------------------------------+
+|     1.3.4     |    9.2.0    |  The minimum FOS version for module      |
+|               |             |  firmwaredownload is v9.0.0.             |
++---------------+-------------+------------------------------------------+
