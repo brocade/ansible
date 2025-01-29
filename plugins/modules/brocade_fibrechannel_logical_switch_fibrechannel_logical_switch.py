@@ -18,7 +18,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = '''
 
 module: brocade_fibrechannel_logical_switch_fibrechannel_logical_switch
-short_description: Brocade logical Configuration
+short_description: Brocade Logical Switch Configuration
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
@@ -88,7 +88,7 @@ EXAMPLES = """
 
   tasks:
 
-  - name: initial syslog configuration
+  - name: initial logical switch configuration
     brocade_fibrechannel_logical_switch_fibrechannel_logical_switch:
       credential: "{{credential}}"
       vfid: -1
@@ -116,8 +116,9 @@ msg:
 
 
 """
-Brocade Fibre Channel syslog server Configuration
+Brocade Fibre Channel Logical Switch Configuration
 """
+
 
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import list_helper
 from ansible.module_utils.basic import AnsibleModule
@@ -129,10 +130,15 @@ def main():
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict', no_log=True),
+        credential=dict(required=True, type='dict', options=dict(
+            fos_ip_addr=dict(required=True, type='str'),
+            fos_user_name=dict(required=True, type='str'),
+            fos_password=dict(required=True, type='str', no_log=True),
+            https=dict(required=True, type='str'),
+            ssh_hostkeymust=dict(required=False, type='bool'))),
         vfid=dict(required=False, type='int'),
-        throttle=dict(required=False, type='float'),
-        timeout=dict(required=False, type='float'),
+        throttle=dict(required=False, type='int'),
+        timeout=dict(required=False, type='int'),
         all_entries=dict(required=False, type='bool'),
         logical_switches=dict(required=True, type='list'))
 

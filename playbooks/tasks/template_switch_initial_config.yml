@@ -98,6 +98,7 @@
       obj_name: "chassis"
       attributes:
         chassis_user_friendly_name: "chassis_name"
+        # shell_timeout is the REST name for telnet_timeout
         telnet_timeout: 30
 
   - name: FC ports configuration

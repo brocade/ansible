@@ -1,4 +1,4 @@
-# Copyright 2019-2024 Broadcom. All rights reserved.
+# Copyright 2019-2025 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -21,6 +21,7 @@ from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection imp
 import base64
 import os
 import re
+import time
 from pathlib import Path
 
 __metaclass__ = type
@@ -39,23 +40,24 @@ BASE64_PWD_ERROR = "Password can not be decoded"
 
 def get_moduleName(fos_version, module_name):
     result = ""
+    ifos_version = int(fos_version.split(".", 1)[0].replace("v", ""));
     if module_name == "brocade_fibrechannel_switch" or module_name == "switch":
-        if fos_version < "v9.0":
+        if ifos_version < 9:
             result = "switch"
         else:
             result = "brocade_fibrechannel_switch"
     elif module_name == "brocade_fibrechannel_logical_switch" or module_name == "logical_switch":
-        if fos_version < "v9.0":
+        if ifos_version < 9:
             result = "logical_switch"
         else:
             result = "brocade_fibrechannel_logical_switch"
     elif module_name == "brocade_fibrechannel_diagnostics" or module_name == "diagnostics":
-        if fos_version < "v9.0":
+        if ifos_version < 9:
             result = "diagnostics"
         else:
             result = "brocade_fibrechannel_diagnostics"
     elif module_name == "brocade_fabric" or module_name == "fabric":
-        if fos_version < "v9.0":
+        if ifos_version < 9:
             result = "fabric"
         else:
             result = "brocade_fabric"
@@ -425,6 +427,17 @@ list_keys = {
     },
     "brocade_module_id": {
         "my_list_name": ["my_key_leaf"],
+    },
+    "ipStorage": {
+        "vrf" : ["vrfID"],
+        "vlan" : ["vlanID"],
+        "interface" : ["interface"],
+        "staticArp" : ["ipAddress", "vlanID"],
+        "staticRoute" : ["destination", "nextHop"],
+        "lag" : ["name"],
+    },
+    "trafficClass": {
+        "configuration" : ["trafficClassName"],
     },
 }
 
@@ -1045,6 +1058,9 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
                     if len(diff_attributes) > 0:
                         for key in list_entry_keys(module_name, list_name):
                             diff_attributes[key] = entry[key]
+
+                        if list_name == "fibrechannel_logical_switch" and "port_member_list" in entry and "port_member_list" in diff_attributes:
+                            continue
                         diff_entries.append(diff_attributes)
 
         if module_name == "brocade_security" and list_name == "user_config":
@@ -1072,13 +1088,19 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
 
             # check to see if the new entry matches any of the old ones
             found = False
+            # check to see if the leaf diff is found or not
+            found_diff = False
             for current_entry in current_entries:
                 if list_entry_keys_matched(entry, current_entry, module_name, list_name):
                     remain_entries.append(current_entry)
                     found = True
+                    if list_name == "fibrechannel_logical_switch" and "port_member_list" in entry:
+                        add_diff_attributes = generate_diff(result, current_entry, entry)
+                        if len(add_diff_attributes) > 0 and "port_member_list" in add_diff_attributes and len(entry) == 2:
+                            found_diff = True
                     break
 
-            if not found:
+            if not found or found_diff:
                 new_entry = {}
                 for k, v in entry.items():
                     new_entry[k] = v
@@ -1113,15 +1135,23 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
         delete_entries = []
         for current_entry in current_entries:
             found = False
+            found_diff = False
             for entry in entries:
                 if list_entry_keys_matched(entry, current_entry, module_name, list_name):
                     found = True
+                    if list_name == "fibrechannel_logical_switch" and "port_member_list" in entry:
+                        delete_diff_attributes = generate_diff(result, current_entry, entry)
+                        if len(delete_diff_attributes) > 0 and "port_member_list" in delete_diff_attributes and len(entry) == 2:
+                            found_diff = True
                     break
 
-            if not found:
+            if not found or found_diff:
                 delete_entry = {}
                 for key in list_entry_keys(module_name, list_name):
                     delete_entry[key] = current_entry[key]
+
+                if found_diff:
+                    delete_entry["port_member_list"] = current_entry["port_member_list"]
 
                 delete_entries.append(delete_entry)
 
@@ -1147,6 +1177,16 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
 
             result["changed"] = True
 
+        if len(delete_entries) > 0 and all_entries:
+            if not module.check_mode:
+                ret_code = list_delete(fos_user_name, fos_password, fos_ip_addr, module_name,
+                                       list_name, fos_version, https, auth, vfid, result,
+                                       delete_entries, ssh_hostkeymust, timeout)
+                if ret_code != 0:
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+            result["changed"] = True
+
         if len(add_entries) > 0:
             if not module.check_mode:
                 ret_code = list_post(fos_user_name, fos_password, fos_ip_addr, module_name,
@@ -1157,15 +1197,6 @@ def list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hos
 
             result["changed"] = True
 
-        if len(delete_entries) > 0 and all_entries:
-            if not module.check_mode:
-                ret_code = list_delete(fos_user_name, fos_password, fos_ip_addr, module_name,
-                                       list_name, fos_version, https, auth, vfid, result,
-                                       delete_entries, ssh_hostkeymust, timeout)
-                if ret_code != 0:
-                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
-
-            result["changed"] = True
     except Exception as e:
         logout(fos_ip_addr, https, auth, result, timeout)
         raise
@@ -1373,6 +1404,300 @@ def moduleCompatibility_helper(module, fos_ip_addr, fos_user_name, fos_password,
     module.exit_json(**result)
 
 
+def list_operation(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, op_entries, all_entries, result, timeout, fos_version, auth):
+
+    if len(op_entries) > 0:
+        if not module.check_mode:
+            result["input"] = op_entries
+            if list_name == "vrf":
+                op_name = "ipStorageVrf"
+                in_name = "ipStorageVrfParameters"
+            elif list_name == "vlan":
+                op_name = "ipStorageVlan"
+                in_name = "ipStorageVlanParameters"
+            elif list_name == "interface":
+                op_name = "ipStorageInterface"
+                in_name = "ipStorageInterfaceParameters"
+            elif list_name == "staticArp":
+                op_name = "ipStorageArp"
+                in_name = "ipStorageArpParameters"
+            elif list_name == "staticRoute":
+                op_name = "ipStorageRoute"
+                in_name = "ipStorageRouteParameters"
+            elif list_name == "lag":
+                op_name = "ipStorageLag"
+                in_name = "ipStorageLagParameters"
+            elif list_name == "configuration":
+                op_name = "trafficClass"
+                in_name = "trafficClassParameters"
+            else:
+                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+            ret_code = to_fos_operation(op_name, in_name, op_entries, result)
+            if ret_code != 0:
+                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+            ret_code, resp = operation_post(fos_user_name, fos_password, fos_ip_addr,
+                                   op_name, in_name,
+                                   fos_version, https,
+                                   auth, vfid, result, op_entries,
+                                   ssh_hostkeymust, timeout)
+            if ret_code != 0:
+                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+            to_human_operation(op_name, in_name, resp["Response"])
+            message_id = resp["Response"]["show_status"]["message_id"]
+            attributes = {}
+            attributes["message_id"] = message_id
+            tcount = 0
+            while tcount < 1000:
+                tcount += 10
+                time.sleep(10)
+                result["input"] = attributes
+                ret_code = to_fos_operation("show_status", "show_status", attributes, result)
+                if ret_code != 0:
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+                ret_code, resp = operation_post(fos_user_name, fos_password, fos_ip_addr,
+                                   "show_status", "show_status",
+                                   fos_version, https,
+                                   auth, vfid, result, attributes,
+                                   ssh_hostkeymust, timeout)
+                if ret_code != 0:
+                    exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+                to_human_operation("show_status", "show_status", resp["Response"])
+                status = resp["Response"]["show_status"]["status"]
+                if status == "done" or status == "delivered":
+                    break
+
+        result["changed"] = True
+
+
+def list_operation_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, entries, all_entries, result, timeout):
+
+    if not is_full_human(entries, result):
+        module.exit_json(**result)
+
+    if all_entries == None:
+        result["all_entries_default"] = all_entries
+        all_entries = True
+
+    if vfid is None:
+        vfid = 128
+
+    if entries == None:
+        entries = []
+
+    ret_code, auth, fos_version = login(fos_ip_addr,
+                           fos_user_name, fos_password,
+                           https, throttle, result, timeout)
+    if ret_code != 0:
+        module.exit_json(**result)
+
+    module_name = get_moduleName(fos_version, module_name)
+    ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
+                                  module_name, list_name, fos_version,
+                                  https, auth, vfid, result,
+                                  ssh_hostkeymust, timeout)
+    if ret_code != 0:
+        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+    current_entries = response["Response"][str_to_yang(list_name)]
+    if not isinstance(current_entries, list):
+        if current_entries is None:
+            current_entries = []
+        else:
+            current_entries = [current_entries]
+
+    to_human_list(module_name, list_name, current_entries, result)
+
+    if list_name == "staticArp" or list_name == "staticRoute" or list_name == "lag":
+        deletefirst_entries = []
+        if all_entries:
+            for current_entry in current_entries:
+                    deletefirst_attributes = {}
+                    deletefirst_attributes["action"] = "delete"
+                    for key in list_entry_keys(module_name, list_name):
+                        deletefirst_attributes[key] = current_entry[key]
+                    if list_name == "staticRoute" and not "vrfID" in deletefirst_attributes and "vrfID" in current_entry:
+                        deletefirst_attributes["vrfID"] = current_entry["vrfID"]
+                    deletefirst_entries.append(deletefirst_attributes)
+
+            current_entries.clear()
+        else:
+            for entry in entries:
+                for current_entry in current_entries:
+                    if list_entry_keys_matched(entry, current_entry, module_name, list_name):
+                        deletefirst_attributes = {}
+                        deletefirst_attributes["action"] = "delete"
+                        for key in list_entry_keys(module_name, list_name):
+                            deletefirst_attributes[key] = entry[key]
+                        if list_name == "staticRoute" and not "vrfID" in deletefirst_attributes and "vrfID" in current_entry:
+                            deletefirst_attributes["vrfID"] = current_entry["vrfID"]
+                        deletefirst_entries.append(deletefirst_attributes)
+                        current_entries.remove(current_entry)
+                        break
+
+        if len(deletefirst_entries) > 0:
+            list_operation(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, deletefirst_entries, all_entries, result, timeout, fos_version, auth)
+
+    diff_entries = []
+    for entry in entries:
+        if list_name == "configuration" and entry["trafficClassName"] == "sysTcDefault":
+            result["response"] = "Cannot update system traffic class"
+            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+
+        for current_entry in current_entries:
+            if list_entry_keys_matched(entry, current_entry, module_name, list_name):
+                if list_name == "vrf" and current_entry["vrfID"] == "0":
+                   continue
+                if list_name == "configuration" and current_entry["trafficClassName"] == "sysTcDefault":
+                    continue
+                diff_attributes = generate_diff(result, current_entry, entry)
+                if len(diff_attributes) > 0:
+                    if list_name == "vrf":
+                        for key in list_entry_keys(module_name, list_name):
+                            diff_attributes[key] = entry[key]
+                        diff_attributes["action"] = "dhcpConfig"
+                        if not "dhcpEnabled" in diff_attributes and "dhcpEnabled" in entry:
+                            diff_attributes["dhcpEnabled"] = entry["dhcpEnabled"]
+                        diff_entries.append(diff_attributes)
+                    elif list_name == "vlan":
+                        for k, v in diff_attributes.items():
+                            diff_vlan_attributes = {}
+                            for key in list_entry_keys(module_name, list_name):
+                                diff_vlan_attributes[key] = entry[key]
+                            diff_vlan_attributes[k] = v
+                            if k == "interfaces":
+                                if all_entries:
+                                    diff_v_attributes = {}
+                                    for key in list_entry_keys(module_name, list_name):
+                                        diff_v_attributes[key] = entry[key]
+                                    diff_v_attributes["action"] = "interfaceRemove"
+                                    diff_v_attributes["interfaces"] = current_entry["interfaces"]
+                                    diff_entries.append(diff_v_attributes)
+                                diff_vlan_attributes["action"] = "interfaceAdd"
+                                diff_vlan_attributes["interfaces"] = v
+                            elif k == "gateway":
+                                diff_vlan_attributes["action"] = "gatewayConfig"
+                                diff_vlan_attributes[k] = v
+                            diff_entries.append(diff_vlan_attributes)
+                    elif list_name == "interface":
+                        for k, v in diff_attributes.items():
+                            diff_interface_attributes = {}
+                            for key in list_entry_keys(module_name, list_name):
+                                diff_interface_attributes[key] = entry[key]
+                            if entry["nativeVlanID"] is not None:
+                                diff_interface_attributes["action"] = "config"
+                                diff_interface_attributes["nativeVlanID"] = entry["nativeVlanID"]
+                            else:
+                                diff_interface_attributes["action"] = "default"
+                            diff_entries.append(diff_interface_attributes)
+                    elif list_name == "configuration":
+                        for k, v in diff_attributes.items():
+                            diff_conf_attributes = {}
+                            for key in list_entry_keys(module_name, list_name):
+                                diff_conf_attributes[key] = entry[key]
+                            if k == "interfaces":
+                                sflow_entry = []
+                                if "interface" in v:
+                                    sflow_entry = v["interface"]
+
+                                current_sflow_entry = []
+                                if "applicableTraffic" in current_entry:
+                                    c_sflow_entry = current_entry["applicableTraffic"]
+                                    c_sflow_entry = re.findall(r'\((.*?)\)', c_sflow_entry)
+                                    if c_sflow_entry:
+                                        current_sflow_entry = c_sflow_entry[0].split(",")
+
+                                if sflow_entry != current_sflow_entry:
+                                    if all_entries:
+                                        diff_sflow_attributes = {}
+                                        for key in list_entry_keys(module_name, list_name):
+                                            diff_sflow_attributes[key] = entry[key]
+
+                                        if len(current_sflow_entry) > 0:
+                                            diff_sflow_attributes["action"] = "memberRemove"
+                                            diff_sflow_attributes[k] = {"interface": current_sflow_entry}
+                                            diff_entries.append(diff_sflow_attributes)
+
+                                    if k in entry:
+                                        diff_conf_attributes["action"] = "memberAdd"
+                                        diff_conf_attributes["interfaces"] = entry[k]
+                                        diff_entries.append(diff_conf_attributes)
+
+    add_entries = []
+    for entry in entries:
+
+        # check to see if the new entry matches any of the old ones
+        found = False
+        for current_entry in current_entries:
+            if list_entry_keys_matched(entry, current_entry, module_name, list_name):
+                found = True
+                if list_name == "interface":
+                    if "nativeVlanID" in entry and "nativeVlanID" in current_entry and entry["nativeVlanID"] == current_entry["nativeVlanID"]:
+                        found = True
+                    else:
+                        found = False
+                break
+
+        if not found:
+            new_entry = {}
+            new_entry["action"] = "create"
+            for k, v in entry.items():
+                if list_name == "interface":
+                    if k == "nativeVlanID":
+                        new_entry["action"] = "config"
+                    else:
+                        new_entry["action"] = "default"
+                new_entry[k] = v
+            add_entries.append(new_entry)
+
+    delete_entries = []
+    for current_entry in current_entries:
+        found = False
+        for entry in entries:
+            if list_entry_keys_matched(entry, current_entry, module_name, list_name):
+                found = True
+                break
+
+        if not found:
+            if list_name == "vrf" and current_entry["vrfID"] == "0":
+               continue
+            if list_name == "configuration" and current_entry["trafficClassName"] == "sysTcDefault":
+               continue
+            if list_name == "interface":
+               continue
+            delete_entry = {}
+            for key in list_entry_keys(module_name, list_name):
+                delete_entry["action"] = "delete"
+                delete_entry[key] = current_entry[key]
+
+            if list_name == "staticRoute" and "vrfID" in current_entry:
+                delete_entry["vrfID"] = current_entry["vrfID"]
+
+            delete_entries.append(delete_entry)
+
+    result["response"] = response
+    result["current_entries"] = current_entries
+    result["diff_entries"] = diff_entries
+    result["add_entries"] = add_entries
+    result["delete_entries"] = delete_entries
+
+    if len(diff_entries) > 0:
+        list_operation(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, diff_entries, all_entries, result, timeout, fos_version, auth)
+
+    if len(delete_entries) > 0 and all_entries:
+        list_operation(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, delete_entries, all_entries, result, timeout, fos_version, auth)
+
+    if len(add_entries) > 0:
+        list_operation(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, add_entries, all_entries, result, timeout, fos_version, auth)
+
+    logout(fos_ip_addr, https, auth, result, timeout)
+    module.exit_json(**result)
+
+
 def operation_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle,
                      vfid, op_name, in_name, attributes, result, timeout):
 
@@ -1417,31 +1742,53 @@ def operation_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ss
     module.exit_json(**result)
 
 
-def operation_xml_str(result, obj_name, attributes):
-    obj_name_yang = str_to_yang(obj_name)
-    xml_str = ""
+def operation_xml_str(result, op_name, obj_name, attributes_list):
+     obj_name_yang = str_to_yang(obj_name)
+     xml_str = ""
 
-    xml_str = xml_str + "<" + obj_name_yang + ">\n"
+     if op_name == "supportsave" or op_name == "firmwaredownload" or op_name == "show_status" or op_name == "configupload" or op_name == "configdownload":
+         xml_str = xml_str + "<" + obj_name_yang + ">\n"
 
-    for k, v in attributes.items():
-        xml_str = xml_str + "<" + k + ">"
+         for k, v in attributes_list.items():
+             xml_str = xml_str + "<" + k + ">"
 
-        if isinstance(v, dict):
-            xml_str = xml_str + "\n"
-            for k1, v1 in v.items():
-                if isinstance(v1, list):
-                    for entry in v1:
-                        xml_str = xml_str + "<" + k1 + ">" + str(entry) + "</" + k1 + ">\n"
-                else:
-                    xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">\n"
-        else:
-            xml_str = xml_str + str(v)
+             if isinstance(v, dict):
+                 xml_str = xml_str + "\n"
+                 for k1, v1 in v.items():
+                     if isinstance(v1, list):
+                         for entry in v1:
+                             xml_str = xml_str + "<" + k1 + ">" + str(entry) + "</" + k1 + ">\n"
+                     else:
+                         xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">\n"
+             else:
+                 xml_str = xml_str + str(v)
 
-        xml_str = xml_str + "</" + k + ">\n"
+             xml_str = xml_str + "</" + k + ">\n"
 
-    xml_str = xml_str + "</" + obj_name_yang + ">\n"
+         xml_str = xml_str + "</" + obj_name_yang + ">\n"
+     else:
+         for attributes in attributes_list:
+             xml_str = xml_str + "<" + obj_name_yang + ">\n"
 
-    return xml_str
+             for k, v in attributes.items():
+                 xml_str = xml_str + "<" + k + ">"
+
+                 if isinstance(v, dict):
+                     xml_str = xml_str + "\n"
+                     for k1, v1 in v.items():
+                         if isinstance(v1, list):
+                             for entry in v1:
+                                 xml_str = xml_str + "<" + k1 + ">" + str(entry) + "</" + k1 + ">\n"
+                         else:
+                             xml_str = xml_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">\n"
+                 else:
+                    xml_str = xml_str + str(v)
+
+                 xml_str = xml_str + "</" + k + ">\n"
+
+             xml_str = xml_str + "</" + obj_name_yang + ">\n"
+
+     return xml_str
 
 
 def operation_post(login, password, fos_ip_addr, op_name, in_name, fos_version, is_https, auth, vfid, result,
@@ -1468,7 +1815,7 @@ def operation_post(login, password, fos_ip_addr, op_name, in_name, fos_version, 
                                             fos_ip_addr,
                                             OP_PREFIX + op_name)
 
-    xml_str = operation_xml_str(result, in_name, attributes)
+    xml_str = operation_xml_str(result, op_name, in_name, attributes)
 
     result["post_url"] = full_url
     result["post_str"] = xml_str
@@ -1477,24 +1824,35 @@ def operation_post(login, password, fos_ip_addr, op_name, in_name, fos_version, 
                          full_url, xml_str, timeout)
 
 
-def to_fos_operation(op_name, in_name, attributes, result):
-    human_to_yang(attributes)
+def to_fos_operation(op_name, in_name, attributes_list, result):
+    if op_name == "supportsave" or op_name == "firmwaredownload" or op_name == "show_status" or op_name == "configupload" or op_name == "configdownload":
+        human_to_yang(attributes_list)
 
-    for k, v in attributes.items():
-        # if going to fos, we need to encode password
-        if op_name == "supportsave" and in_name == "connection":
-            if k == "password":
-                attributes[k] = to_base64(attributes[k])
-        if op_name == "firmwaredownload" and in_name == "firmwaredownload_parameters":
-            if k == "password":
-                attributes[k] = to_base64(attributes[k])
+        for k, v in attributes_list.items():
+            # if going to fos, we need to encode password
+            if op_name == "supportsave" and in_name == "connection":
+                if k == "password":
+                     attributes_list[k] = to_base64(attributes_list[k])
+            if op_name == "firmwaredownload" and in_name == "firmwaredownload_parameters":
+                if k == "password":
+                    attributes_list[k] = to_base64(attributes_list[k])
 
-    for k, v in attributes.items():
-        if isinstance(v, bool):
-            if v:
-                attributes[k] = "true"
-            else:
-                attributes[k] = "false"
+        for k, v in attributes_list.items():
+            if isinstance(v, bool):
+                if v == True:
+                    attributes_list[k] = "true"
+                else:
+                    attributes_list[k] = "false"
+    else:
+        for attributes in attributes_list:
+            human_to_yang(attributes)
+
+            for k, v in attributes.items():
+                if isinstance(v, bool):
+                    if v == True:
+                        attributes[k] = "true"
+                    else:
+                        attributes[k] = "false"
 
     return 0
 

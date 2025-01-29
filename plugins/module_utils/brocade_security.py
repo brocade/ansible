@@ -1,4 +1,4 @@
-# Copyright 2019 Broadcom. All rights reserved.
+# Copyright 2019-2025 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -174,7 +174,8 @@ def user_config_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
     """
     l_users = users[:]
 
-    if fos_version < "v9.0":
+    ifos_version = int(fos_version.split(".", 1)[0].replace("v", ""))
+    if ifos_version < 9:
         # walk through all the users and check for account-enabled
         # if pre 9.0 since the attribute patch is not supported pre 
         for l_user in l_users:

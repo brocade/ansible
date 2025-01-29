@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python
 
 # Copyright 2019 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
@@ -96,7 +96,7 @@ EXAMPLES = """
   tasks:
 
   - name: gather device info
-    brocade_list_obj_facts:
+    brocade_singleton_obj_facts:
       credential: "{{credential}}"
       vfid: -1
       module_name: "brocade-snmp"
@@ -136,10 +136,15 @@ def main():
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict', no_log=True),
+        credential=dict(required=True, type='dict', options=dict(
+            fos_ip_addr=dict(required=True, type='str'),
+            fos_user_name=dict(required=True, type='str'),
+            fos_password=dict(required=True, type='str', no_log=True),
+            https=dict(required=True, type='str'),
+            ssh_hostkeymust=dict(required=False, type='bool'))),
         vfid=dict(required=False, type='int'),
-        throttle=dict(required=False, type='float'),
-        timeout=dict(required=False, type='float'),
+        throttle=dict(required=False, type='int'),
+        timeout=dict(required=False, type='int'),
         module_name=dict(required=True, type='str'),
         obj_name=dict(required=True, type='str'))
 

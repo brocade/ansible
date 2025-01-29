@@ -136,6 +136,7 @@ def exit_after_login(fos_ip_addr, https, auth, result, module, timeout):
         :return: 0
         :rtype: int
     """
+    result["failed"] = True
     logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
     return 0

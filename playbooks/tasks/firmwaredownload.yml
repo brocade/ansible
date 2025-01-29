@@ -54,8 +54,10 @@
     debug:
       var: status_result.operation_resp
 
-  # pause for 60 seconds to make sure switch has rebooted
-  - pause: seconds=60
+  # pause for few minutes to make sure switch has rebooted
+  - name: pause for few minutes for switch reboot
+    pause:
+      minutes: 10
 
   - name: show status after reboot
     brocade_operation_show_status:

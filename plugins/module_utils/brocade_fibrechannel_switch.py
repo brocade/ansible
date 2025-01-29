@@ -23,7 +23,8 @@ REST_SWITCH_NEW_URI = "/rest/running/brocade-fibrechannel-switch/fibrechannel-sw
 
 def get_switchURI(fos_version):
     result = ""
-    if fos_version < "v9.0":
+    ifos_version = int(fos_version.split(".", 1)[0].replace("v", ""));
+    if ifos_version < 9:
         result = REST_SWITCH_URI
     else:
         result = REST_SWITCH_NEW_URI
@@ -106,8 +107,9 @@ def fc_switch_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfi
         return -1, None
 
     result["fos_version"] = fos_version
-    result["fos_version_check"] = fos_version < "v9.0"
-    if fos_version < "v9.0":
+    ifos_version = int(fos_version.split(".", 1)[0].replace("v", ""))
+    result["fos_version_check"] = ifos_version < 9
+    if ifos_version < 9:
         rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "dlsshow", "showcommand")
         if rssh == 0:
             if "DLS is not set with Lossless disabled" in sshstr or "Error: This command is not supported in AG mode" in sshstr:
@@ -148,7 +150,8 @@ def fc_switch_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
     """
     l_diffs = diff_attributes.copy()
 
-    if fos_version < "v9.0":
+    ifos_version = int(fos_version.split(".", 1)[0].replace("v", ""));
+    if ifos_version < 9:
         in_mode_3 = False
 
         rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "aptpolicy", "showcommand")

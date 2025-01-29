@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2019 Broadcom. All rights reserved.
+# Copyright 2024 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -12,12 +12,12 @@ __metaclass__ = type
 
 DOCUMENTATION = '''
 
-module: brocade_logging_syslog
-short_description: Brocade Fibre Channel loggig syslog server configuration
+module: brocade_operation
+short_description: Brocade IPS operations
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update Fibre Channel logging audit configuration
+- Perform IPS operations for list of objects based on module name and list name provided
 
 options:
     credential:
@@ -41,7 +41,7 @@ options:
                 type: str
             https:
                 description:
-                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS,
                   or False for HTTP
                 choices:
                     - True
@@ -54,7 +54,7 @@ options:
         required: true
     vfid:
         description:
-        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG.
         type: int
         required: false
     throttle:
@@ -67,6 +67,19 @@ options:
         - REST timeout in seconds for operations that take longer than FOS
           default value.
         type: int
+    module_name:
+        description:
+        - Yang module name. Hyphen or underscore are used interchangebly.
+          If the Yang module name is xy-z, either xy-z or xy_z are acceptable.
+        required: true
+        type: str
+    list_name:
+        description:
+        - Yang name for the list object. Hyphen or underscore are used
+          interchangebly. If the Yang list name is xy-z, either
+          xy-z or xy_z are acceptable.
+        required: true
+        type: str
     all_entries:
         description:
         - Boolean to indicate if the entries specified are full
@@ -76,17 +89,20 @@ options:
           of existing entryies, addition, and deletion. If
           all_entries is set to false, the entries is used to
           calculate the change of existing entries and addition
-          of entries only. i.e. the module will not attempt to
+          of entries only. i.e.  the module will not attempt to
           delete objects that do not show up in the entries.
         required: false
         type: bool
-    syslog_servers:
+    entries:
         description:
-        - List of syslog server config data structure.
-          All writable attributes supported
-          by BSN REST API with - replaced with _.
+        - List of objects. Name of each attributes within
+          each entries should match the Yang name except hyphen
+          is replaced with underscore. Using hyphen in the name
+          may result in errenously behavior based on Ansible
+          parsing.
         required: true
-        type: list 
+        type: list
+
 '''
 
 
@@ -103,14 +119,17 @@ EXAMPLES = """
 
   tasks:
 
-  - name: initial syslog configuration
-    brocade_logging_syslog_server:
+  - name: list object example
+    brocade_list_obj:
       credential: "{{credential}}"
       vfid: -1
-      syslog_servers:
-        - port: 514
-          secure_mode: False
-          server: "10.155.2.151"
+      module_name: "brocade-snmp"
+      list_name: "v1-account"
+      all_entries: False
+      entries:
+        - index: 1
+          community_name: "new name"
+
 
 """
 
@@ -126,13 +145,14 @@ msg:
 
 
 """
-Brocade Fibre Channel syslog server configuration
+Brocade Fibre Channel Yang list processor
 """
 
 
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import list_helper
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import generate_diff, str_to_human, str_to_yang, is_full_human
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import list_get, to_fos_list, to_human_list, list_entry_keys_matched, list_entry_keys, list_patch, list_post, list_delete, list_operation_helper
 from ansible.module_utils.basic import AnsibleModule
-
 
 def main():
     """
@@ -149,7 +169,8 @@ def main():
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='int'),
         timeout=dict(required=False, type='int'),
-        syslog_servers=dict(required=True, type='list'),
+        module_name=dict(required=True, type='str'),
+        entries=dict(required=True, type='list'),
         all_entries=dict(required=False, type='bool'))
 
     module = AnsibleModule(
@@ -164,17 +185,41 @@ def main():
     fos_user_name = input_params['credential']['fos_user_name']
     fos_password = input_params['credential']['fos_password']
     https = input_params['credential']['https']
+    ssh_hostkeymust = True
+    if 'ssh_hostkeymust' in input_params['credential']:
+        ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     timeout = input_params['timeout']
     vfid = input_params['vfid']
-    syslog_servers = input_params['syslog_servers']
-    result = {"changed": False}
+    entries = input_params['entries']
     all_entries = input_params['all_entries']
+    result = {"changed": False}
+    module_name = input_params['module_name']
+    list_name = ""
 
-    if all_entries == None:
-        all_entries = False
+    if module_name == "vrf":
+        module_name = "ipStorage"
+        list_name =  "vrf"
+    elif module_name == "vlan":
+        module_name = "ipStorage"
+        list_name =  "vlan"
+    elif module_name == "interface":
+        module_name = "ipStorage"
+        list_name =  "interface"
+    elif module_name == "staticArp":
+        module_name = "ipStorage"
+        list_name =  "staticArp"
+    elif module_name == "staticRoute":
+        module_name = "ipStorage"
+        list_name =  "staticRoute"
+    elif module_name == "lag":
+        module_name = "ipStorage"
+        list_name =  "lag"
+    elif module_name == "configuration":
+        module_name = "trafficClass"
+        list_name =  "configuration"
 
-    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_logging", "syslog_server", syslog_servers, all_entries, result, timeout)
+    list_operation_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, entries, all_entries, result, timeout)
 
 
 if __name__ == '__main__':
