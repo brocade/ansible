@@ -25,6 +25,6 @@ notes section provide the details on the exceptions and release notes.
 |     1.3.4     |    9.2.0b   |  The minimum FOS version for module      |
 |               |             |  firmwaredownload is v9.0.0.             |
 +---------------+-------------+------------------------------------------+
-|     2.0.0     |    9.2.1    |  The minimum FOS version for module      |
-|               |             |  firmwaredownload is v9.0.0.             |
+|     2.0.0     |    9.2.1a   |                                          |
+|               |             |                                          |
 +---------------+-------------+------------------------------------------+
