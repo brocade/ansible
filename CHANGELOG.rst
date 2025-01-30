@@ -25,4 +25,4 @@ FOS-Ansible 2.0.0 release
 - Issue related to some times error is ignored is fixed with throwing proper error to upper layers
 - Masked logging of the password mentioned in the credentials of the playbook
 - Corrected typo in logical switch playbook by removing syslog
-- Python version 3.11 is tested with this ansible release
+- Tested with Ansible module 10.3.0 (core 2.17.7) running Python 3.11.0
