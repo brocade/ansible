@@ -1,0 +1,90 @@
+---
+
+# Copyright 2025 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+fabric_id: 9
+
+logicalswitches:
+    - fabric_id: 9
+      base_switch_enabled: 0
+      ficon_mode_enabled: 0
+      logical_isl_enabled: 1
+      ip_storage_switch_enabled: true
+
+vrfs:
+    - vrfID: 28
+    - vrfID: 29
+    - vrfID: 30
+    - vrfID: 31
+    - vrfID: 32
+    - vrfID: 33
+      dhcpEnabled: true
+      dhcpServer: 33.20.30.40
+    - vrfID: 34
+      dhcpEnabled: false
+
+vlans:
+    - vlanID: 28
+      vrfID:  28
+      gateway: 28.2.3.4/24
+    - vlanID: 29
+      vrfID:  29
+      gateway: 29.2.3.4/24
+    - vlanID: 33
+      vrfID:  33
+      gateway: 33.2.3.4/24
+    - vlanID: 34
+      vrfID:  33
+      gateway: 34.2.3.5/24
+      interfaces:
+            interface: 1/2/5
+
+interfaces:
+    - interface: 1/2/5
+      nativeVlanID:  33
+    - interface: 1/2/4
+
+staticroutes:
+    - destination: 11.2.3.0/24
+      nextHop: 28.2.3.5
+      vrfID: 28
+      metric: 16
+    - destination: 12.2.3.0/24
+      nextHop: 29.2.3.5
+      vrfID: 29
+    - destination: 13.2.3.0/24
+      nextHop: 33.2.4.5
+
+
+staticarps:
+    - ipAddress: 28.2.3.7
+      vlanID: 28
+      macAddress: 28:20:30:40:50:60
+      interface: 1/2/5
+    - ipAddress: 29.2.3.7
+      vlanID: 29
+      macAddress: 29:20:30:40:50:60
+      interface: 1/2/4
+    - ipAddress: 33.2.3.7
+      vlanID: 33
+      macAddress: 33:20:30:40:50:60
+      interface: 1/2/3
+
+
+lags:
+    - name: 1/LAG2
+    - name: 1/LAG3
+    - name: 1/LAG4
+      interfaces:
+            interface: 1/2/10
+
+
+trafclasses:
+    - trafficClassName: traf1
+      interfaces:
+            interface: 1/2/17
+      features:
+          feature: sFlow

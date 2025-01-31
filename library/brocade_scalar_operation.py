@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2019-2025 Broadcom. All rights reserved.
+# Copyright 2025 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -12,12 +12,12 @@ __metaclass__ = type
 
 DOCUMENTATION = '''
 
-module: brocade_chassis
-short_description: Brocade Fibre Channel chassis configuration
+module: brocade_scalar_operation
+short_description: Brocade Fibre Channel operation with the container input
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update Fibre Channel chassis configuration
+- Perform specified operation
 
 options:
     credential:
@@ -41,7 +41,7 @@ options:
                 type: str
             https:
                 description:
-                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS,
                   or False for HTTP
                 choices:
                     - True
@@ -54,7 +54,7 @@ options:
         required: true
     vfid:
         description:
-        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG.
         type: int
         required: false
     throttle:
@@ -67,17 +67,17 @@ options:
         - REST timeout in seconds for operations that take longer than FOS
           default value.
         type: int
-    chassis:
+    module_name:
         description:
-        - List of chassis attributes. All writable attributes supported
-          by BSN REST API with - replaced with _.
-          Some examples are
-          - chassis_user_friendly_name - chassis name in string
-          - telnet_timeout - shell_timeout is the corresponding REST name.
-                             Displays Bash timeout value in minutes.
-                             Setting this to 0 disables bash timeout.
+        - Yang module name. Hyphen or underscore are used interchangebly.
+          If the Yang module name is xy-z, either xy-z or xy_z are acceptable.
         required: true
+        type: str
+    entries:
+        description:
+        - Operation parameters
         type: dict
+        required: true
 
 '''
 
@@ -95,13 +95,13 @@ EXAMPLES = """
 
   tasks:
 
-  - name: initial chassis configuration
-    brocade_chassis:
+  - name: perform operation
+    brocade_scalar_operation:
       credential: "{{credential}}"
+      module_name: "configupload"
       vfid: -1
-      chassis:
-        chassis_user_friendly_name: "chassis_name"
-        telnet_timeout: 30
+      entries:
+        config_upload_download_option: "virtual-fabric"
 
 """
 
@@ -117,10 +117,10 @@ msg:
 
 
 """
-Brocade Fibre Channel chassis Configuration
+Brocade Fibre Channel operation
 """
 
-from ansible.module_utils.brocade_objects import singleton_helper
+from ansible.module_utils.brocade_objects import operation_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -139,7 +139,8 @@ def main():
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='int'),
         timeout=dict(required=False, type='int'),
-        chassis=dict(required=True, type='dict'))
+        module_name=dict(required=True, type='str'),
+        entries=dict(required=True, type='dict'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -159,10 +160,15 @@ def main():
     throttle = input_params['throttle']
     timeout = input_params['timeout']
     vfid = input_params['vfid']
-    chassis = input_params['chassis']
+    entries = input_params['entries']
     result = {"changed": False}
+    module_name = input_params['module_name']
 
-    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_chassis", "chassis", chassis, result, timeout)
+    class_name = ""
+    if module_name == "configupload" or module_name == "configdownload":
+        class_name = module_name + "_parameters"
+
+    operation_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, class_name, entries, result, timeout)
 
 
 if __name__ == '__main__':
