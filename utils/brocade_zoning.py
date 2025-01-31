@@ -742,17 +742,11 @@ def zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, i
         if active_cfg is None:
             if need_to_save:
                 if not module.check_mode:
-                    # if something changed and there is already an active cfg
-                    # reenable that cfg
+                    # Just save config when there is no active_cfg value.
+                    # According to documentation of module brocade_zoning_cfg.
                     ret_code = 0
-                    failed_msg = ""
-                    if cfgname is not None:
-                        failed_msg = "CFG ENABLE failed"
-                        ret_code = cfg_enable(fos_ip_addr, https, fos_version, auth, vfid,
-                                            result, checksum, cfgname, timeout)
-                    else:
-                        failed_msg = "CFG SAVE failed"
-                        ret_code = cfg_save(fos_ip_addr, https, fos_version, auth, vfid,
+                    failed_msg = "CFG SAVE failed"
+                    ret_code = cfg_save(fos_ip_addr, https, fos_version, auth, vfid,
                                         result, checksum, timeout)
                     if ret_code != 0:
                         ret_code = cfg_abort(fos_ip_addr, https, fos_version,
@@ -803,15 +797,11 @@ def zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, i
         if active_cfg is None:
             if need_to_save:
                 if not module.check_mode:
+                    # Just save config when there is no active_cfg value.
+                    # According to documentation of module brocade_zoning_cfg.
                     ret_code = 0
-                    failed_msg = ""
-                    if cfgname is not None:
-                        failed_msg = "CFG ENABLE failed"
-                        ret_code = cfg_enable(fos_ip_addr, https, fos_version, auth, vfid,
-                                            result, checksum, cfgname, timeout)
-                    else:
-                        failed_msg = "CFG SAVE failed"
-                        ret_code = cfg_save(fos_ip_addr, https, fos_version, auth, vfid,
+                    failed_msg = "CFG SAVE failed"
+                    ret_code = cfg_save(fos_ip_addr, https, fos_version, auth, vfid,
                                         result, checksum, timeout)
                     if ret_code != 0:
                         ret_code = cfg_abort(fos_ip_addr, https, fos_version, auth,
