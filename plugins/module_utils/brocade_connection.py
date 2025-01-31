@@ -1,4 +1,4 @@
-# Copyright 2019 Broadcom. All rights reserved.
+# Copyright 2019-2025 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -136,6 +136,7 @@ def exit_after_login(fos_ip_addr, https, auth, result, module, timeout):
         :return: 0
         :rtype: int
     """
+    result["failed"] = True
     logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
     return 0

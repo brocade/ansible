@@ -1,0 +1,57 @@
+---
+
+# Copyright 2025 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+  collections:
+    - brocade.fos
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: "{{fos_user_name}}"
+      fos_password: "{{fos_password}}"
+      https: "{{fos_https}}"
+    fabric_id: 5
+    vrfs:
+      - vrfID: 28
+        action: create
+      - vrfID: 29
+        action: create
+      - vrfID: 30
+        action: create
+
+
+  tasks:
+
+  - name: ips delete operation
+    brocade_list_operation:
+      credential: "{{credential}}"
+      module_name: vrf
+      vfid: "{{fabric_id}}"
+      entries: "{{vrfs}}"
+    register: result
+
+  - name: print initial results gathered
+    debug:
+      var: result.operation_resp
+
+  - name: show status of operation
+    brocade_operation_show_status:
+      credential: "{{credential}}"
+      vfid: "{{fabric_id}}"
+      show_status:
+        message_id: "{{result.operation_resp.show_status.message_id}}"
+    register: status_result
+    until: status_result.operation_resp is not defined or status_result.operation_resp.show_status.status == "done" or status_result.operation_resp.show_status.status == "delivered"
+    retries: 100
+    delay: 10
+
+  - name: print show_status end result
+    debug:
+      var: status_result.operation_resp

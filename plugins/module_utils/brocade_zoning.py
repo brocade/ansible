@@ -1,4 +1,4 @@
-# Copyright 2019 Broadcom. All rights reserved.
+# Copyright 2019-2025 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -28,13 +28,14 @@ REST_EFFECTIVE_NEW_URI = "/rest/running/brocade-zone/effective-configuration"
 
 def get_zoneURI(fos_version, typeURI):
     result = ""
+    ifos_version = int(fos_version.split(".", 1)[0].replace("v", ""))
     if typeURI == REST_DEFINED:
-        if fos_version < "v9.0":
+        if ifos_version < 9:
             result = REST_DEFINED_URI
         else:
             result = REST_DEFINED_NEW_URI
     elif typeURI == REST_EFFECTIVE:
-        if fos_version < "v9.0":
+        if ifos_version < 9:
             result = REST_EFFECTIVE_URI
         else:
             result = REST_EFFECTIVE_NEW_URI

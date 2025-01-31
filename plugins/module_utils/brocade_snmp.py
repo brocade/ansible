@@ -1,4 +1,4 @@
-# Copyright 2019 Broadcom. All rights reserved.
+# Copyright 2019-2025 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -37,7 +37,8 @@ def v1_trap_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
     """
     l_v1_traps = v1_traps[:]
 
-    if fos_version < "v9.0":
+    ifos_version = int(fos_version.split(".", 1)[0].replace("v", ""))
+    if ifos_version < 9:
         for l_v1_trap in l_v1_traps:
             if "host" in l_v1_trap and l_v1_trap["host"] == "0.0.0.0":
                 rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "snmpconfig --set snmpv1 -index " + str(l_v1_trap["index"]) + " -host 0.0.0.0" , "Committing configuration.....done.")
@@ -81,7 +82,8 @@ def v3_trap_patch(login, password, fos_ip_addr, fos_version, is_https, auth,
     """
     l_v3_traps = v3_traps[:]
 
-    if fos_version < "v9.0":
+    ifos_version = int(fos_version.split(".", 1)[0].replace("v", ""))
+    if ifos_version < 9:
         for l_v3_trap in l_v3_traps:
             if "host" in l_v3_trap and l_v3_trap["host"] == "0.0.0.0":
                 rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "snmpconfig --set snmpv3 -index " + str(l_v3_trap["trap-index"]) + " -host 0.0.0.0" , "Committing configuration.....done.")

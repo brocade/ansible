@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
+#!/usr/bin/python
 
-# Copyright 2019 Broadcom. All rights reserved.
+# Copyright 2019-2025 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -181,11 +181,13 @@ msg:
 Brocade Fibre Channel gather FOS facts
 """
 
+
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_zoning import defined_get, effective_get, to_human_zoning
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import singleton_get, list_get, to_human_singleton, to_human_list, get_moduleName
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import str_to_yang
 from ansible.module_utils.basic import AnsibleModule
+
 
 valid_areas = [
     "brocade_access_gateway_port_group",
@@ -229,17 +231,21 @@ valid_areas = [
     "brocade_security_ldap_role_map"
     ]
 
-
 def main():
     """
     Main function
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict', no_log=True),
+        credential=dict(required=True, type='dict', options=dict(
+            fos_ip_addr=dict(required=True, type='str'),
+            fos_user_name=dict(required=True, type='str'),
+            fos_password=dict(required=True, type='str', no_log=True),
+            https=dict(required=True, type='str'),
+            ssh_hostkeymust=dict(required=False, type='bool'))),
         vfid=dict(required=False, type='int'),
-        throttle=dict(required=False, type='float'),
-        timeout=dict(required=False, type='float'),
+        throttle=dict(required=False, type='int'),
+        timeout=dict(required=False, type='int'),
         gather_subset=dict(required=True, type='list'))
 
     module = AnsibleModule(
@@ -524,6 +530,7 @@ def main():
                                 "members": cfg_members
                             }
                         )
+
 
                 if response["Response"]["defined-configuration"]["alias"] is not None:
                     r_aliases = response["Response"]["defined-configuration"]["alias"]

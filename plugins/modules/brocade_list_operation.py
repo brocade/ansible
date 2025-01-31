@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright 2019-2025 Broadcom. All rights reserved.
+# Copyright 2025 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -12,12 +12,12 @@ __metaclass__ = type
 
 DOCUMENTATION = '''
 
-module: brocade_snmp_system
-short_description: Brocade Fibre Channel SNMP system configuration
+module: brocade_list_operation
+short_description: Brocade Fibre Channel operation with the container input
 version_added: '2.7'
 author: Broadcom BSN Ansible Team <Automation.BSN@broadcom.com>
 description:
-- Update Fibre Channel SNMP system configuration.
+- Perform specified operation
 
 options:
     credential:
@@ -41,7 +41,7 @@ options:
                 type: str
             https:
                 description:
-                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS,
                   or False for HTTP
                 choices:
                     - True
@@ -54,7 +54,7 @@ options:
         required: true
     vfid:
         description:
-        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG.
         type: int
         required: false
     throttle:
@@ -67,14 +67,17 @@ options:
         - REST timeout in seconds for operations that take longer than FOS
           default value.
         type: int
-    snmp_system:
+    module_name:
         description:
-        - List of snmp system attributes. All writable attributes supported
-          by BSN REST API with - replaced with _.
-          Some examples are
-          - description - Description string
+        - Yang module name. Hyphen or underscore are used interchangebly.
+          If the Yang module name is xy-z, either xy-z or xy_z are acceptable.
         required: true
+        type: str
+    entries:
+        description:
+        - Operation parameters
         type: dict
+        required: true
 
 '''
 
@@ -92,20 +95,14 @@ EXAMPLES = """
 
   tasks:
 
-  - name: initial snmp system configuration
-    brocade_snmp_system:
+  - name: perform operation
+    brocade_list_operation:
       credential: "{{credential}}"
+      module_name: vrf
       vfid: -1
-      snmp_system:
-        audit_interval: 60
-        contact: "Field Support."
-        description: "DemoSwitch"
-        encryption_enabled: False
-        informs_enabled: False
-        location: "San Jose"
-        security_get_level: 0
-        security_set_level: 3
-        snmpv1_enabled: True
+      entries:
+        -vrfID: 28
+         action: delete
 
 """
 
@@ -121,11 +118,10 @@ msg:
 
 
 """
-Brocade Fibre Channel SNMP system configuration
+Brocade Fibre Channel operation
 """
 
-
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import singleton_helper
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import operation_helper
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -144,7 +140,8 @@ def main():
         vfid=dict(required=False, type='int'),
         throttle=dict(required=False, type='int'),
         timeout=dict(required=False, type='int'),
-        snmp_system=dict(required=True, type='dict'))
+        module_name=dict(required=True, type='str'),
+        entries=dict(required=True, type='list'))
 
     module = AnsibleModule(
         argument_spec=argument_spec,
@@ -158,13 +155,40 @@ def main():
     fos_user_name = input_params['credential']['fos_user_name']
     fos_password = input_params['credential']['fos_password']
     https = input_params['credential']['https']
+    ssh_hostkeymust = True
+    if 'ssh_hostkeymust' in input_params['credential']:
+        ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
     throttle = input_params['throttle']
     timeout = input_params['timeout']
     vfid = input_params['vfid']
-    snmp_system = input_params['snmp_system']
+    entries = input_params['entries']
     result = {"changed": False}
+    module_name = input_params['module_name']
 
-    singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_snmp", "system", snmp_system, result, timeout)
+    list_name = ""
+    if module_name == "vrf":
+        module_name = "ipStorageVrf"
+        list_name =  "ipStorageVrfParameters"
+    elif module_name == "vlan":
+        module_name = "ipStorageVlan"
+        list_name =  "ipStorageVlanParameters"
+    elif module_name == "interface":
+        module_name = "ipStorageInterface"
+        list_name =  "ipStorageInterfaceParameters"
+    elif module_name == "staticArp":
+        module_name = "ipStorageArp"
+        list_name =  "ipStorageArpParameters"
+    elif module_name == "staticRoute":
+        module_name = "ipStorageRoute"
+        list_name =  "ipStorageRouteParameters"
+    elif module_name == "lag":
+        module_name = "ipStorageLag"
+        list_name =  "ipStorageLagParameters"
+    elif module_name == "configuration":
+        module_name = "trafficClass"
+        list_name =  "trafficClassParameters"
+
+    operation_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, entries, result, timeout)
 
 
 if __name__ == '__main__':

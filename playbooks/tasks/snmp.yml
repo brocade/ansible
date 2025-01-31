@@ -1,6 +1,6 @@
 ---
 
-# Copyright 2019 Broadcom. All rights reserved.
+# Copyright 2019-2025 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -57,11 +57,17 @@
         manager_engine_id: "00:00:00:00:00:00:00:00:00"
         privacy_protocol: "aes128"
         user_name: "asc-test"
+        user_group: "read-only"
+        authentication_password: "password1"
+        privacy_password: "password1"
       - index: 2
         authentication_protocol: "sha"
         manager_engine_id: "00:00:00:00:00:00:00:00:00"
         privacy_protocol: "des"
         user_name: "snmpadmin2"
+        user_group: "read-write"
+        authentication_password: "password2"
+        privacy_password: "password2"
     v3_traps:
       - trap_index: 1
         host: "10.10.10.11"
@@ -127,7 +133,7 @@
       vfid: -1
       v1_traps: "{{v1_traps}}"
 
-  - name: v3 accounts - setup non-password attributes
+  - name: v3 accounts - setup attributes
     brocade_snmp_v3_account:
       credential: "{{credential}}"
       vfid: -1

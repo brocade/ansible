@@ -3,8 +3,7 @@ FOS-Ansible Introduction
 
 This repository provides reference example Modules & Playbooks for
 Ansible to manage Fibre Channel switches running different FOS versions.
-Tested with Ansible 4.5.0 running Python 3.8.5. Also, Tested with AWX
-13.0.0.
+Please refer CHANGELOG.rst for release specific details.
 
 Installation from Github.com
 ----------------------------
