@@ -1,0 +1,79 @@
+---
+
+# Copyright 2025 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+
+  vars_files:
+    ipsdb.yml
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: "{{fos_user_name}}"
+      fos_password: "{{fos_password}}"
+      https: "{{fos_https}}"
+
+
+  tasks:
+
+  - name: configure all non-default logical switch
+    brocade_fibrechannel_logical_switch_fibrechannel_logical_switch:
+      credential: "{{credential}}"
+      vfid: -1
+      all_entries: False
+      logical_switches: "{{logicalswitches}}"
+
+  - name: configure vrf
+    brocade_operation:
+      credential: "{{credential}}"
+      module_name: vrf
+      vfid: "{{fabric_id}}"
+      entries: "{{vrfs}}"
+
+  - name: configure vlan
+    brocade_operation:
+      credential: "{{credential}}"
+      module_name: vlan
+      vfid: "{{fabric_id}}"
+      entries: "{{vlans}}"
+
+  - name: configure interface
+    brocade_operation:
+      credential: "{{credential}}"
+      module_name: interface
+      vfid: "{{fabric_id}}"
+      entries: "{{interfaces}}"
+
+  - name: configure staticArp
+    brocade_operation:
+      credential: "{{credential}}"
+      module_name: staticArp
+      vfid: "{{fabric_id}}"
+      entries: "{{staticarps}}"
+
+  - name: configure staticRoute
+    brocade_operation:
+      credential: "{{credential}}"
+      module_name: staticRoute
+      vfid: "{{fabric_id}}"
+      entries: "{{staticroutes}}"
+
+  - name: configure lag
+    brocade_operation:
+      credential: "{{credential}}"
+      module_name: lag
+      vfid: "{{fabric_id}}"
+      entries: "{{lags}}"
+
+  - name: configure trafclass
+    brocade_operation:
+      credential: "{{credential}}"
+      module_name: configuration
+      vfid: "{{fabric_id}}"
+      entries: "{{trafclasses}}"
