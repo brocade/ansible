@@ -1,0 +1,33 @@
+---
+
+# Copyright 2025 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
+# GNU General Public License v3.0+
+# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+
+
+- hosts: san_eng_zone_seed_san_a
+  gather_facts: False
+
+  vars:
+    credential:
+      fos_ip_addr: "{{fos_ip_addr}}"
+      fos_user_name: "{{fos_user_name}}"
+      fos_password: "{{fos_password}}"
+      https: "{{fos_https}}"
+    configupload:
+      config_upload_download_option: "virtual-fabric"
+
+  tasks:
+
+  - name: configupload
+    brocade_scalar_operation:
+      credential: "{{credential}}"
+      module_name: "configupload"
+      vfid: -1
+      entries: "{{configupload}}"
+    register: result
+
+  - name: print results gathered
+    debug:
+      var: result.operation_resp

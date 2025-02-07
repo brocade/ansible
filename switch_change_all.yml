@@ -1,6 +1,6 @@
 ---
 
-# Copyright 2019 Broadcom. All rights reserved.
+# Copyright 2019-2025 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -75,6 +75,7 @@
       vfid: -1
       chassis:
         chassis_user_friendly_name: "new_chassis_name"
+        # shell_timeout is the REST name for telnet_timeout
         telnet_timeout: 60
 
   - name: Configure ports
