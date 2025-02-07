@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
+#!/usr/bin/python
 
-# Copyright 2019 Broadcom. All rights reserved.
+# Copyright 2019-2025 Broadcom. All rights reserved.
 # The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
 # GNU General Public License v3.0+
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
@@ -130,10 +130,15 @@ def main():
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict', no_log=True),
+        credential=dict(required=True, type='dict', options=dict(
+            fos_ip_addr=dict(required=True, type='str'),
+            fos_user_name=dict(required=True, type='str'),
+            fos_password=dict(required=True, type='str', no_log=True),
+            https=dict(required=True, type='str'),
+            ssh_hostkeymust=dict(required=False, type='bool'))),
         vfid=dict(required=False, type='int'),
-        throttle=dict(required=False, type='float'),
-        timeout=dict(required=False, type='float'),
+        throttle=dict(required=False, type='int'),
+        timeout=dict(required=False, type='int'),
         firmwaredownload=dict(required=True, type='dict'))
 
     module = AnsibleModule(
