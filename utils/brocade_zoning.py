@@ -7,7 +7,7 @@
 from __future__ import (absolute_import, division, print_function)
 from ansible.module_utils.brocade_url import url_post, url_patch, url_get_to_dict, url_delete,\
     full_url_get, url_patch_single_object
-from ansible.module_utils.brocade_connection import exit_after_login
+from ansible.module_utils.brocade_connection import exit_after_login, exit_afterfinish_login
 from ansible.module_utils.brocade_yang import yang_to_human, human_to_yang
 
 __metaclass__ = type
@@ -697,7 +697,7 @@ def zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, i
         # common_list has nothing and member_remove_only is True
         # and cfg is not enabled
         if (len(post_list) == 0 or (len(post_list) > 0 and members_remove_only == True)) and (len(remove_list) == 0 or (len(remove_list) > 0 and members_add_only == True) or (len(remove_list) > 0 and members_remove_only == True)) and (members_remove_only == None or (len(common_list) == 0 and members_remove_only == True)) and active_cfg is None:
-            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+            exit_afterfinish_login(fos_ip_addr, https, auth, result, module, timeout)
 
         need_to_save = False
         if len(post_list) > 0 and (members_remove_only == None or members_remove_only == False):
