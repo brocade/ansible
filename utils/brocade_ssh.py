@@ -16,7 +16,7 @@ def ssh_and_configure(login, password, ipaddr, hostkeymust, cmdstr, expected):
     except paramiko.ssh_exception.AuthenticationException:
         return -1, "invalid name/password"
     except Exception as e:
-        return -2, "skiiping due to error" + str(e)
+        return -2, "skipping due to error" + str(e)
 
     e_stdin, e_stdout, e_stderr = ssh.exec_command(cmdstr)
     e_resp = e_stdout.read().decode()
