@@ -36,7 +36,7 @@ REST_PREFIX = "/rest/running/"
 OP_PREFIX = "/rest/operations/"
 
 BASE64_PWD_ERROR = "Password can not be decoded"
-
+WEBL_REBOOT_TIME = 30
 
 def get_moduleName(fos_version, module_name):
     result = ""
@@ -952,6 +952,11 @@ def singleton_helper(module, fos_ip_addr, fos_user_name, fos_password, https,
     except Exception as e:
         logout(fos_ip_addr, https, auth, result, timeout)
         raise
+
+    if (module_name == "brocade_security" and obj_name == "security_certificate_action" and
+        len(diff_attributes) > 0 and diff_attributes["certificate-type"] == "https" and
+        diff_attributes["operation"] == "import"):
+        time.sleep(WEBL_REBOOT_TIME)
 
     logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
