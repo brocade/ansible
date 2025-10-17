@@ -1295,14 +1295,105 @@ def _read_file(path, result):
         result["response"] = f"{path} does not exist. Set 'BROCADE_VERSION_PATH' environment variable"
         module.exit_json(**result)
     with open(str(path), "r") as fp:
-        contents = fp.readlines()
-    return contents
+        contents = fp.read()
+    # Find the table section
+    table_pattern = r'\+===============.*?(?=\n\n|\Z)'
+    table_match = re.search(table_pattern, contents, re.DOTALL)
+
+    if not table_match:
+        return {}
+
+    table_text = table_match.group(0)
+    lines = table_text.split('\n')
+
+    result = {}
+    current_fos_ansible = None
+    current_ga_date = None
+    current_fos_versions = []
+    current_fos_version = None
+    current_tested_with = []
+    current_notes = None
+
+    for line in lines:
+        # Skip separator lines
+        if line.startswith('+===') or line.startswith('+---'):
+            continue
+
+        # Parse data lines
+        if line.startswith('|'):
+            # Split by pipe and clean up
+            parts = [p.strip() for p in line.split('|')[1:-1]]  # Remove empty first/last
+
+            if len(parts) != 5:
+                continue
+
+            fos_ansible, ga_date, fos, tested_with, notes = parts
+
+            # New FOS-ansible version entry
+            if fos_ansible and fos_ansible != 'FOS-ansible':
+                # Save previous entry if exists
+                if current_fos_ansible:
+                    if current_fos_version:
+                        current_fos_versions.append({
+                            "version": current_fos_version,
+                            "tested_with": current_tested_with
+                        })
+
+                    result[current_fos_ansible] = {
+                        "ga_date": current_ga_date,
+                        "fos_versions": current_fos_versions,
+                        "notes": current_notes
+                    }
+
+                # Start new entry
+                current_fos_ansible = fos_ansible
+                current_ga_date = ga_date
+                current_fos_versions = []
+                current_fos_version = None
+                current_tested_with = []
+                current_notes = notes
+
+            # Parse FOS version
+            if fos and current_fos_ansible:
+                # Save previous FOS version if exists
+                if current_fos_version:
+                    current_fos_versions.append({
+                        "version": current_fos_version,
+                        "tested_with": current_tested_with
+                    })
+
+                # Start new FOS version
+                current_fos_version = fos
+                current_tested_with = []
+
+                # Add tested_with if present on same line
+                if tested_with:
+                    current_tested_with.append(tested_with)
+
+            # Continue with tested_with on continuation lines
+            elif tested_with and current_fos_ansible:
+                current_tested_with.append(tested_with)
+
+    # Save last entry
+    if current_fos_ansible:
+        if current_fos_version:
+            current_fos_versions.append({
+                "version": current_fos_version,
+                "tested_with": current_tested_with
+            })
+
+        result[current_fos_ansible] = {
+            "ga_date": current_ga_date,
+            "fos_versions": current_fos_versions,
+            "notes": current_notes
+        }
+        return result
 
 
 def _fos_module_defined(content, result):
     is_mod_utils_defined = bool()
     is_lib_defined = bool()
-    filename = "test_version_matrix.rst"
+    filename = "versioning.rst"
 
     for _ in content:
         if not is_mod_utils_defined and re.search(r"module_utils", _):
@@ -1335,8 +1426,7 @@ def moduleCompatibility_helper(module, fos_ip_addr, fos_user_name, fos_password,
     result["failed"] = True
     result["response"] = "Module(s) are not compatible with the given switch"
     fcontent = str()
-    filename = "test_version_matrix.rst"
-
+    filename = "versioning.rst"
     if Path(filename).exists():
         fcontent = _read_file(filename, result)
     elif os.getenv("BROCADE_VERSION_PATH"):  # BROCADE_VERSION_PATH defined
@@ -1381,25 +1471,23 @@ def moduleCompatibility_helper(module, fos_ip_addr, fos_user_name, fos_password,
         result["response"] = f"Define 'BROCADE_VERSION_PATH' environment variable"
         exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
+    # fos_version = fos_version.split("_")[0] if "_" in fos_version else fos_version
     try:
-        flen = len(fcontent)-1
-        while (flen > 0):
-            flen -= 1
-            line = fcontent[flen]
-            string = line.split('|')
-            slen = len(string)
-            if slen <= 1:
-                break
-            sstrip = string[2].strip()
-            sstrip = sstrip.rstrip(',')
-            if sstrip == "":
-                continue
-            result["switchversionansible"] = sstrip
-            result["switchversion"] = fos_version
-            if sstrip in fos_version:
-                result["failed"] = False
-                result["response"] = "Module(s) are compatible with the given switch"
-                break
+        supported_versions = list()
+        for collection_ver, collection_info in fcontent.items():
+            for fos_ver in collection_info["fos_versions"]:
+                supported_versions.append(fos_ver["version"])
+            break
+    
+        result["switchversionansible"] = supported_versions
+        result["switchversion"] = fos_version
+        if fos_version in supported_versions:
+            result["failed"] = False
+            result["response"] = "Module(s) are compatible with the given switch"
+        else:
+            result["failed"] = True
+            result["response"] = "Module(s) are not compatible with the given switch"
+
     except Exception as e:
         logout(fos_ip_addr, https, auth, result, timeout)
         raise
