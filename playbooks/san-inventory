@@ -1,2 +1,1 @@
-san_eng_zone_seed_san_a ansible_connection=local fos_ip_addr=10.155.107.74 fos_user_name=admin fos_password=password fos_https=False
-#san_eng_zone_seed_san_a ansible_connection=local fos_ip_addr=10.155.107.32 fos_user_name=admin fos_password=password fos_https=False
+san_eng_zone_seed_san_a ansible_connection=local fos_ip_addr=1.2.3.4 fos_user_name=admin fos_password=password fos_https=self

@@ -11,17 +11,10 @@ Welcome to FOS-ansible documentation!
    :maxdepth: 1
    :caption: Contents
 
-   _static/README.rst
-   generated_rst/modules/modules.rst
-   _static/documentation.rst
-   _static/test_version_matrix.rst
-   _static/CONTRIBUTING.rst
-   
+   generated_rst/README
+   generated_rst/modules/modules
+   documentation
+   generated_rst/versioning
+   generated_rst/CHANGELOG
+   generated_rst/CONTRIBUTING
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

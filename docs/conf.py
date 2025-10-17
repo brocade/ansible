@@ -23,14 +23,15 @@ base_dir = conf_path.parents[1]
 generated_rsts = docs_dir / 'generated_rst'
 static_rsts = [
                 'README.rst',
-                'test_version_matrix.rst',
+                'versioning.rst',
                 'CONTRIBUTING.rst',
+                "CHANGELOG.rst",
                ]
 
 
 def dynamic_rsts():
     mod_rst = generated_rsts / "modules" / "modules.rst"
-    mod_path = docs_dir.parent / 'library'
+    mod_path = docs_dir.parent / 'plugins' / 'modules'
     fos_template = docs_dir / "fos-ansible.rst.j2"
     ansi_doc_extractor_cmd = "ansible-doc-extractor"
 
@@ -107,7 +108,7 @@ cp_base_dir_rsts()
 # -- Project information -----------------------------------------------------
 
 project = 'FOS-ansible'
-copyright = '2021, Broadcom Inc'
+copyright = '2025, Broadcom Inc'
 author = 'automation.bsn@broadcom.com'
 
 
