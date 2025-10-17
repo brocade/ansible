@@ -13,6 +13,8 @@ Welcome to FOS-ansible documentation!
 
    generated_rst/README
    generated_rst/modules/modules
-   generated_rst/test_version_matrix
    documentation
+   generated_rst/versioning
+   generated_rst/CHANGELOG
    generated_rst/CONTRIBUTING
+
