@@ -25,6 +25,7 @@ VF_ID = "?vf-id="
 HTTP = "http://"
 HTTPS = "https://"
 SELF_SIGNED = "self"
+HTTPS_ENABLED = "true"
 
 
 ERROR_GENERIC = -1
@@ -37,6 +38,8 @@ def full_url_get(is_https, fos_ip_addr, path):
             return HTTPS + fos_ip_addr + str_to_yang(path), True
         else:
             return HTTP + fos_ip_addr + str_to_yang(path), False
+    elif is_https.lower() == HTTPS_ENABLED:
+        return HTTPS + fos_ip_addr + str_to_yang(path), True
     elif is_https.lower() == SELF_SIGNED:
         return HTTPS + fos_ip_addr + str_to_yang(path), False
     else:
@@ -231,7 +234,7 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout, credent
     root_dict["errors"]["error"] = {}
     root_dict["errors"]["error"]["error-message"] = {}
 
-    if credential == None:   
+    if credential == None:
         myheaders={
             "Authorization": auth["auth"],
             'Content-Type': 'application/yang-data+xml'}

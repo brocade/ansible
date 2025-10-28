@@ -140,3 +140,22 @@ def exit_after_login(fos_ip_addr, https, auth, result, module, timeout):
     logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
     return 0
+
+def exit_afterfinish_login(fos_ip_addr, https, auth, result, module, timeout):
+    """
+        module exit but logout first
+        :param fos_ip_addr: fos switch ip address
+        :type fos_ip_addr: str
+        :param is_https: indicate to use HTTPS or HTTP
+        :type fos_password: Bool
+        :param auth: return authorization struct at the time of login
+        :type auth: dict
+        :param result: accumulated result dict
+        :param module: AnsibleModule
+        :type module: AnsibleModule
+        :return: 0
+        :rtype: int
+    """
+    logout(fos_ip_addr, https, auth, result, timeout)
+    module.exit_json(**result)
+    return 0
