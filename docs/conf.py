@@ -23,8 +23,9 @@ base_dir = conf_path.parents[1]
 generated_rsts = docs_dir / 'generated_rst'
 static_rsts = [
                 'README.rst',
-                'test_version_matrix.rst',
+                'versioning.rst',
                 'CONTRIBUTING.rst',
+                "CHANGELOG.rst",
                ]
 
 
@@ -107,7 +108,7 @@ cp_base_dir_rsts()
 # -- Project information -----------------------------------------------------
 
 project = 'FOS-ansible'
-copyright = '2021, Broadcom Inc'
+copyright = '2025, Broadcom Inc'
 author = 'automation.bsn@broadcom.com'
 
 
