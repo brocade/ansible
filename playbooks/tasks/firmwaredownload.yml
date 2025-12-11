@@ -8,8 +8,6 @@
 
 - hosts: san_eng_zone_seed_san_a
   gather_facts: False
-  collections:
-    - brocade.fos
 
   vars:
     credential:
@@ -35,6 +33,10 @@
       firmwaredownload: "{{firmwaredownload}}"
     register: result
 
+  - name: wait for firmware sanity check to complete
+    pause:
+      minutes: 2
+
   - name: print firmwaredownload initial status
     debug:
       var: result.operation_resp
@@ -49,6 +51,7 @@
     until: status_result.operation_resp is not defined or status_result.operation_resp.show_status.status == "done" or status_result.operation_resp.show_status.status == "delivered"
     retries: 100
     delay: 10
+    ignore_errors: yes
 
   - name: print show_status end result
     debug:
