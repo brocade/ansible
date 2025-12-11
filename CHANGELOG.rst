@@ -3,6 +3,10 @@ Changelog
 
 FOS-Ansible Changelog captures the modifications that are done in the specific FOS Ansible release.
 
+FOS-Ansible 2.0.2 release
+-------------------------
+- Modify firmwaredownload.yml to handle potential timing issues seen under certain conditions
+
 FOS-Ansible 2.0.1 release
 -------------------------
 - Issue #149/FOSANS-128: brocade_security_certificate_action import cert fails
