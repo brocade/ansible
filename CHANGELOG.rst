@@ -3,7 +3,7 @@ Changelog
 
 FOS-Ansible Changelog captures the modifications that are done in the specific FOS Ansible release.
 
-FOS-Ansible 2.0.1 release
+FOS-Ansible 2.0.2 release
 -------------------------
 - Modify firmwaredownload.yml to handle potential timing issues seen under certain conditions
 
