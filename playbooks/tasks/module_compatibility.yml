@@ -6,11 +6,11 @@
 # (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 # Note: Please set 'BROCADE_VERSION_PATH' environment variable
-# to the version file 'test_version_matrix.rst'
+# to the version file 'versioning.rst'
 # By default galaxy collection is installed under ~/.ansible/collections,
 # in that case the following example shows how to set the environment variable
 # in the Linux system
-# export BROCADE_VERSION_PATH=~/.ansible/collections/ansible_collections/brocade/fos/test_version_matrix.rst
+# export BROCADE_VERSION_PATH=~/.ansible/collections/ansible_collections/brocade/fos/versioning.rst
 
 - hosts: san_eng_zone_seed_san_a
   gather_facts: False
