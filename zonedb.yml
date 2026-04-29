@@ -1,43 +1,39 @@
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
+
 aliases:
-  - name: Host1
+  - name: alias_host_1
     members:
-      -  11:22:33:44:55:66:77:88
-  - name: Target1
+      - aa:bb:cc:dd:ee:ff:11:15
+  - name: alias_target_1
     members:
-      -  22:22:33:44:55:66:77:99
-  - name: Target2
+      - aa:bb:cc:dd:ee:ff:11:17
+  - name: alias_target_2
     members:
-      -  22:22:33:44:55:66:77:aa
-  - name: Target3
-    members:
-      -  22:22:33:44:55:66:77:bb
+      - aa:bb:cc:dd:ee:ff:11:18
 
 zones:
-  - name: NewZoneName
+  - name: zone_new_1
     members:
-      -  Host1
-      -  Target1
-      -  Target2
-  - name: NewZoneName2
+      - alias_host_1
+      - alias_target_1
+  - name: zone_new_2
     members:
-      -  Host1
-      -  Target2
-  - name: NewZoneNameP
+      - alias_host_1
+      - alias_target_2
+  - name: zone_new_3
     members:
-      -  11:22:33:44:55:66:77:88
+      - aa:bb:cc:dd:ee:ff:11:15
     principal_members:
-      -  22:22:33:44:55:66:77:88
+      - aa:bb:cc:dd:ee:ff:11:16
 
 cfgs:
-  - name: newcfg1
+  - name: cfg_new_1
     members:
-      -  NewZoneName
-      -  NewZoneName2
-  - name: newcfg2
+      - zone_new_1
+  - name: cfg_new_2
     members:
-      -  NewZoneName
-      -  NewZoneName2
-  - name: newcfg3
+      - zone_new_2
+  - name: cfg_new_3
     members:
-      -  NewZoneName
-      -  NewZoneName2
+      - zone_new_3

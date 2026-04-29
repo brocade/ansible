@@ -1,0 +1,125 @@
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
+#
+# Example 1: Export a license certificate (tag: license_export)
+#
+# Set action to "export", provide the license,
+# the remote server details, and remote_file for the destination filename.
+# The password is passed as plain text; the module encodes it automatically.
+#
+# Example 2: Export all licenses (tag: license_export_all)
+#
+# Set action to "export" and provide the remote server details without
+# specifying a license name or remote_file. All license certificates
+# are exported to the remote_directory.
+# The password is passed as plain text; the module encodes it automatically.
+#
+# Example 3: Remove a license (tag: license_remove)
+#
+# Set action to "remove" and provide the license. No remote server details are required.
+#
+# Example 4: Install a license (tag: license_install)
+#
+# Set action to "install" and provide the remote server details including
+# the remote_directory pointing to the license file path on the server.
+# The password is passed as plain text; the module encodes it automatically.
+
+- name: License operations
+  hosts: san_eng_zone_seed_san_a
+  gather_facts: false
+
+  vars:
+    credential:
+      fos_ip_addr: "{{ fos_ip_addr }}"
+      fos_user_name: "{{ fos_user_name }}"
+      fos_password: "{{ fos_password }}"
+      https: "{{ fos_https }}"
+
+    # Variables for installing a license from a remote server
+    license_install:
+      action: "install"
+      host: "198.51.100.1"
+      user_name: "user_name"
+      password: "user_password"
+      remote_directory: "/remote_license_directory/license_file"
+      protocol: "scp"
+
+    # Variables for exporting a specific license certificate to a remote file
+    license_export:
+      name: "license"
+      action: "export"
+      host: "198.51.100.1"
+      user_name: "user_name"
+      password: "user_password"
+      remote_directory: "/remote_license_directory"
+      remote_file: "license_file"
+      protocol: "scp"
+
+    # Variables for exporting all license certificate to a remote directory
+    license_export_all:
+      action: "export"
+      host: "198.51.100.1"
+      user_name: "username"
+      password: "user_password"
+      remote_directory: "/remote_license_directory"
+      protocol: "scp"
+
+    # Variables for removing a specified license XML file
+    license_remove:
+      name: "license"
+      action: "remove"
+
+  tasks:
+
+    - name: Export specific license
+      brocade_operation_license:
+        credential: "{{ credential }}"
+        vfid: -1
+        license: "{{ license_export }}"
+      register: export_result
+      tags: license_export
+
+    - name: Print license export results
+      ansible.builtin.debug:
+        var: export_result.operation_resp
+      tags: license_export
+
+    - name: Export all licenses
+      brocade_operation_license:
+        credential: "{{ credential }}"
+        vfid: -1
+        license: "{{ license_export_all }}"
+      register: export_result_all
+      tags: license_export_all
+
+    - name: Print licenses export results
+      ansible.builtin.debug:
+        var: export_result_all.operation_resp
+      tags: license_export_all
+
+    - name: Remove specified license
+      brocade_operation_license:
+        credential: "{{ credential }}"
+        vfid: -1
+        license: "{{ license_remove }}"
+      register: remove_result
+      tags: license_remove
+
+    - name: Print license removal result
+      ansible.builtin.debug:
+        var: remove_result.operation_resp
+      tags: license_remove
+
+    - name: Install specified license
+      brocade_operation_license:
+        credential: "{{ credential }}"
+        vfid: -1
+        license: "{{ license_install }}"
+      register: install_specified_result
+      tags: license_install
+
+    - name: Print license installation result
+      ansible.builtin.debug:
+        var: install_specified_result.operation_resp
+      tags: license_install
+  
