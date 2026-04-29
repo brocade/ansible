@@ -1,82 +1,51 @@
----
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
-# Copyright 2019-2025 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
-
-- hosts: san_eng_zone_seed_san_a
-  gather_facts: False
-  collections:
-    - brocade.fos
+- name: Configure SNMP
+  hosts: san_eng_zone_seed_san_a
+  gather_facts: false
 
   vars:
     credential:
-      fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: "{{fos_user_name}}"
-      fos_password: "{{fos_password}}"
-      https: "{{fos_https}}"
+      fos_ip_addr: "{{ fos_ip_addr }}"
+      fos_user_name: "{{ fos_user_name }}"
+      fos_password: "{{ fos_password }}"
+      https: "{{ fos_https }}"
     snmp_system:
       audit_interval: 60
       contact: "more Field Support."
       description: "more DemoSwitch"
-      encryption_enabled: True
-      informs_enabled: True
-      location: "more San Jose"
-      security_get_level: 0
-      security_set_level: 3
-      snmpv1_enabled: False
-    v1_accounts:
-      - index: 1
-        community_name: "Secret code new"
-        community_group: "read-write"
-      - index: 2
-        community_name: "OrigEquipMfr new"
-        community_group: "read-write"
-      - index: 3
-        community_name: "private"
-        community_group: "read-write"
-      - index: 4
-        community_name: "public"
-        community_group: "read-only"
-      - index: 5
-        community_name: "common"
-        community_group: "read-only"
-      - index: 6
-        community_name: "FibreChannelNew"
-        community_group: "read-only"
-    v1_traps:
-      - index: 1
-        host: "10.10.10.12"
-        port_number: 1002
-        trap_severity_level: "warning"
+      encryption_enabled: true
+      informs_enabled: true
+      location: "Data Center 2"
+      security_get_level_string: 'authentication-and-privacy'
+      security_set_level_string: 'authentication-and-privacy'
     v3_accounts:
       - index: 1
-        authentication_protocol: "md5"
+        authentication_protocol: "sha512"
         manager_engine_id: "00:00:00:00:00:00:00:00:00"
         privacy_protocol: "aes128"
         user_name: "asc-test"
         user_group: "read-only"
-        authentication_password: "password1"
-        privacy_password: "password1"
+        authentication_password: "user_password"
+        privacy_password: "user_password"
       - index: 2
-        authentication_protocol: "sha"
+        authentication_protocol: "sha512"
         manager_engine_id: "00:00:00:00:00:00:00:00:00"
-        privacy_protocol: "des"
+        privacy_protocol: "aes256"
         user_name: "snmpadmin2"
         user_group: "read-write"
         authentication_password: "password2"
         privacy_password: "password2"
     v3_traps:
       - trap_index: 1
-        host: "10.10.10.11"
+        host: "198.51.100.2"
         informs_enabled: true
         port_number: 1011
         trap_severity_level: "warning"
         usm_index: 1
       - trap_index: 2
-        host: "10.10.10.10"
+        host: "198.51.100.1"
         informs_enabled: false
         port_number: 1010
         trap_severity_level: "critical"
@@ -107,46 +76,40 @@
         usm_index: 6
     v3_accounts_passwords_only:
       - index: 1
-        authentication_password: "password1"
-        privacy_password: "password1"
+        authentication_password: "user_password"
+        privacy_password: "user_password"
       - index: 2
         authentication_password: "password2"
-        privacy_password: "password"
+        privacy_password: "user_password"
 
   tasks:
+    - name: Change all snmp system configuration
+      brocade_snmp_system:
+        credential: "{{ credential }}"
+        vfid: -1
+        snmp_system: "{{ snmp_system }}"
 
-  - name: change all snmp system configuration
-    brocade_snmp_system:
-      credential: "{{credential}}"
-      vfid: -1
-      snmp_system: "{{snmp_system}}"
+    - name: Change all SNMP system configuration
+      brocade_snmp_system:
+        credential: "{{ credential }}"
+        vfid: -1
+        snmp_system: "{{ snmp_system }}"
 
-  - name: v1 accounts
-    brocade_snmp_v1_account:
-      credential: "{{credential}}"
-      vfid: -1
-      v1_accounts: "{{v1_accounts}}"
+    - name: SNMP v3 accounts - setup attributes
+      brocade_snmp_v3_account:
+        credential: "{{ credential }}"
+        vfid: -1
+        v3_accounts: "{{ v3_accounts }}"
 
-  - name: v1 traps
-    brocade_snmp_v1_trap:
-      credential: "{{credential}}"
-      vfid: -1
-      v1_traps: "{{v1_traps}}"
+    - name: SNMP v3 traps
+      brocade_snmp_v3_trap:
+        credential: "{{ credential }}"
+        vfid: -1
+        v3_traps: "{{ v3_traps }}"
 
-  - name: v3 accounts - setup attributes
-    brocade_snmp_v3_account:
-      credential: "{{credential}}"
-      vfid: -1
-      v3_accounts: "{{v3_accounts}}"
-
-  - name: v3 traps
-    brocade_snmp_v3_trap:
-      credential: "{{credential}}"
-      vfid: -1
-      v3_traps: "{{v3_traps}}"
-
-  - name: v3 accounts - set passwords. warning - password cannot be read. this task will always change.
-    brocade_snmp_v3_account:
-      credential: "{{credential}}"
-      vfid: -1
-      v3_accounts: "{{v3_accounts_passwords_only}}"
+    - name: SNMP v3 accounts - set passwords. warning - password cannot be read.
+        this task will always change.
+      brocade_snmp_v3_account:
+        credential: "{{ credential }}"
+        vfid: -1
+        v3_accounts: "{{ v3_accounts_passwords_only }}"

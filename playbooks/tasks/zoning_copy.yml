@@ -1,36 +1,29 @@
----
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
-# Copyright 2019 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
-
-- hosts: san_eng_zone_seed_san_a
-  gather_facts: False
-  collections:
-    - brocade.fos
+- name: Copy zone objects between names
+  hosts: san_eng_zone_seed_san_a
+  gather_facts: false
 
   vars:
     credential:
-      fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: "{{fos_user_name}}"
-      fos_password: "{{fos_password}}"
-      https: "{{fos_https}}"
+      fos_ip_addr: "{{ fos_ip_addr }}"
+      fos_user_name: "{{ fos_user_name }}"
+      fos_password: "{{ fos_password }}"
+      https: "{{ fos_https }}"
     copy_list:
-      - current: Host1
-        new: Host1_new
-      - current: Zone3
-        new: Zone3_new
-      - current: cfg1
-        new: cfg1_new
+      - current: alias_host_1
+        new: alias_host_1_new
+      - current: zone_3
+        new: zone_3_new
+      - current: cfg_1
+        new: cfg_1_new
 
   tasks:
-
-  - name: walk through the copy_list and copy from current to new
-    brocade_zoning_copy:
-      credential: "{{credential}}"
-      vfid: -1
-      object_name: "{{item.current}}"
-      new_name: "{{item.new}}"
-    loop: "{{copy_list}}"
+    - name: Walk through the copy_list and copy from current to new
+      brocade_zoning_copy:
+        credential: "{{ credential }}"
+        vfid: -1
+        object_name: "{{ item.current }}"
+        new_name: "{{ item.new }}"
+      loop: "{{ copy_list }}"

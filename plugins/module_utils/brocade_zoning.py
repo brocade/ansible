@@ -1,16 +1,22 @@
-# Copyright 2019-2025 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
 
-from __future__ import (absolute_import, division, print_function)
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_url import url_post, url_patch, url_get_to_dict, \
-    url_delete, full_url_get, url_patch_single_object
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import exit_after_login
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import yang_to_human, human_to_yang
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import exit_after_login, \
-    exit_afterfinish_login
+from __future__ import absolute_import, division, print_function
+
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import (
+    exit_after_login,
+    exit_afterfinish_login,
+)
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_url import (
+    full_url_get,
+    url_delete,
+    url_get_to_dict,
+    url_patch,
+    url_patch_single_object,
+    url_post,
+)
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import human_to_yang, yang_to_human
 
 __metaclass__ = type
 
@@ -32,19 +38,16 @@ def get_zoneURI(fos_version, typeURI):
     result = ""
     ifos_version = int(fos_version.split(".", 1)[0].replace("v", ""))
     if typeURI == REST_DEFINED:
-        if ifos_version < 9:
-            result = REST_DEFINED_URI
-        else:
-            result = REST_DEFINED_NEW_URI
+        result = REST_DEFINED_URI if ifos_version < 9 else REST_DEFINED_NEW_URI
     elif typeURI == REST_EFFECTIVE:
-        if ifos_version < 9:
-            result = REST_EFFECTIVE_URI
-        else:
-            result = REST_EFFECTIVE_NEW_URI
+        result = REST_EFFECTIVE_URI if ifos_version < 9 else REST_EFFECTIVE_NEW_URI
 
     return result
 
+
 def to_human_zoning(zoning_config):
+    if not zoning_config:
+        return
     for k, v in zoning_config.items():
         if v == "true":
             zoning_config[k] = True
@@ -58,6 +61,7 @@ def to_human_zoning(zoning_config):
             zoning_config["default-zone-access"] = "noaccess"
 
     yang_to_human(zoning_config)
+
 
 def to_fos_zoning(zoning_config, result):
     human_to_yang(zoning_config)
@@ -74,7 +78,7 @@ def to_fos_zoning(zoning_config, result):
 
     for k, v in zoning_config.items():
         if isinstance(v, bool):
-            if v == True:
+            if v is True:
                 zoning_config[k] = "true"
             else:
                 zoning_config[k] = "false"
@@ -84,158 +88,148 @@ def to_fos_zoning(zoning_config, result):
 
 def cfgname_checksum_get(fos_ip_addr, is_https, fos_version, auth, vfid, result, timeout):
     """
-        Gets the current cfgname and checksum of the effective config
+    Gets the current cfgname and checksum of the effective config
 
-        :param fos_ip_addr: fos switch ip address
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTPS or HTTP
-        :type fos_password: Bool
-        :param auth: authorization struct at the time of login
-        :type auth: dict
-        :return: -1 if failed or 0 for success
-        :rtype: int
-        :return: name of the active_cfg or None if failure
-        :rtype: str
-        :return: returns checksum or 0 if failure
-        :rtype: str
+    :param fos_ip_addr: fos switch ip address
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTPS or HTTP
+    :type fos_password: Bool
+    :param auth: authorization struct at the time of login
+    :type auth: dict
+    :return: -1 if failed or 0 for success
+    :rtype: int
+    :return: name of the active_cfg or None if failure
+    :rtype: str
+    :return: returns checksum or 0 if failure
+    :rtype: str
     """
     restURI = get_zoneURI(fos_version, REST_EFFECTIVE)
-    full_effective_url, validate_certs = full_url_get(is_https,
-                                                      fos_ip_addr,
-                                                      restURI)
+    full_effective_url, validate_certs = full_url_get(is_https, fos_ip_addr, restURI)
 
-    ret_code, effective_resp = url_get_to_dict(fos_ip_addr, is_https,
-                                               auth, vfid, result,
-                                               full_effective_url, timeout)
+    ret_code, effective_resp = url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, full_effective_url, timeout)
     if ret_code == -1:
         result["failed"] = True
         result["msg"] = "url_get_to_dict failed"
         return -1, None, 0
 
-#    result["cfgname_checksum_resp"] = effective_resp
+    #    result["cfgname_checksum_resp"] = effective_resp
 
     effective_config = effective_resp["Response"]["effective-configuration"]
 
-    cfgname = effective_config["cfg-name"]\
-        if "cfg-name" in effective_config else None
+    cfgname = effective_config.get("cfg-name", None)
 
     return 0, cfgname, effective_config["checksum"]
 
 
 def cfg_save(fos_ip_addr, is_https, fos_version, auth, vfid, result, checksum, timeout):
     """
-        save current transaction buffer
+    save current transaction buffer
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :param checksum: current checksum of the database
-        :type checksum: str
-        :return: code to indicate failure or success
-        :rtype: int
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :param checksum: current checksum of the database
+    :type checksum: str
+    :return: code to indicate failure or success
+    :rtype: int
     """
     restURI = get_zoneURI(fos_version, REST_EFFECTIVE)
-    full_effective_url, validate_certs = full_url_get(is_https,
-                                                      fos_ip_addr,
-                                                      restURI)
+    full_effective_url, validate_certs = full_url_get(is_https, fos_ip_addr, restURI)
 
-    save_str = "<effective-configuration><checksum>" + checksum +\
-        "</checksum><cfg-action>1</cfg-action></effective-configuration>"
-    return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                     full_effective_url, save_str, timeout)
+    save_str = (
+        "<effective-configuration><checksum>"
+        + checksum
+        + "</checksum><cfg-action>1</cfg-action></effective-configuration>"
+    )
+    return url_patch(fos_ip_addr, is_https, auth, vfid, result, full_effective_url, save_str, timeout)
 
 
-def cfg_enable(fos_ip_addr, is_https, fos_version, auth, vfid,
-               result, checksum, active_cfg, timeout):
+def cfg_enable(fos_ip_addr, is_https, fos_version, auth, vfid, result, checksum, active_cfg, timeout):
     """
-        enable a particular cfg
+    enable a particular cfg
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :param checksum: current checksum of the database
-        :type checksum: str
-        :param active_cfg: cfg to be enabled
-        :type active_cfg: str
-        :return: code to indicate failure or success
-        :rtype: int
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :param checksum: current checksum of the database
+    :type checksum: str
+    :param active_cfg: cfg to be enabled
+    :type active_cfg: str
+    :return: code to indicate failure or success
+    :rtype: int
     """
     restURI = get_zoneURI(fos_version, REST_EFFECTIVE)
-    full_effective_url, validate_certs = full_url_get(is_https,
-                                                      fos_ip_addr,
-                                                      restURI)
+    full_effective_url, validate_certs = full_url_get(is_https, fos_ip_addr, restURI)
 
-    save_str = "<effective-configuration><checksum>" + checksum +\
-        "</checksum><cfg-name>" + active_cfg +\
-        "</cfg-name></effective-configuration>"
-    return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                     full_effective_url, save_str, timeout)
+    save_str = (
+        "<effective-configuration><checksum>"
+        + checksum
+        + "</checksum><cfg-name>"
+        + active_cfg
+        + "</cfg-name></effective-configuration>"
+    )
+    return url_patch(fos_ip_addr, is_https, auth, vfid, result, full_effective_url, save_str, timeout)
 
 
 def cfg_abort(fos_ip_addr, is_https, fos_version, auth, vfid, result, timeout):
     """
-        abort zoning transaction
+    abort zoning transaction
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :return: code to indicate failure or success
-        :rtype: int
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :return: code to indicate failure or success
+    :rtype: int
     """
     restURI = get_zoneURI(fos_version, REST_EFFECTIVE)
-    full_effective_url, validate_certs = full_url_get(is_https,
-                                                      fos_ip_addr,
-                                                      restURI)
+    full_effective_url, validate_certs = full_url_get(is_https, fos_ip_addr, restURI)
 
-    abort_str = "<effective-configuration><cfg-action>"\
-        "4</cfg-action></effective-configuration>"
-    return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                     full_effective_url, abort_str, timeout)
+    abort_str = "<effective-configuration><cfg-action>4</cfg-action></effective-configuration>"
+    return url_patch(fos_ip_addr, is_https, auth, vfid, result, full_effective_url, abort_str, timeout)
+
 
 def cfg_disable(fos_ip_addr, is_https, fos_version, auth, vfid, result, checksum, timeout):
     """
-        disable zoning transaction
+    disable zoning transaction
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param vfid: vfid of the switch to be executed
-        :type vfid: int
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :param checksum: current checksum of the database
-        :type checksum: str
-        :return: code to indicate failure or success
-        :rtype: int
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param vfid: vfid of the switch to be executed
+    :type vfid: int
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :param checksum: current checksum of the database
+    :type checksum: str
+    :return: code to indicate failure or success
+    :rtype: int
     """
     restURI = get_zoneURI(fos_version, REST_EFFECTIVE)
-    full_effective_url, validate_certs = full_url_get(is_https,
-                                                      fos_ip_addr,
-                                                      restURI)
+    full_effective_url, validate_certs = full_url_get(is_https, fos_ip_addr, restURI)
 
-    disable_str = "<effective-configuration><cfg-action>"\
-        "2</cfg-action><checksum>" + checksum +\
-        "</checksum></effective-configuration>"
-    return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                     full_effective_url, disable_str, timeout)
+    disable_str = (
+        "<effective-configuration><cfg-action>"
+        "2</cfg-action><checksum>" + checksum + "</checksum></effective-configuration>"
+    )
+    return url_patch(fos_ip_addr, is_https, auth, vfid, result, full_effective_url, disable_str, timeout)
 
 
 def zone_post(fos_ip_addr, is_https, fos_version, auth, vfid, result, zones, timeout):
@@ -252,33 +246,30 @@ def zone_delete(fos_ip_addr, is_https, fos_version, auth, vfid, result, zones, t
 
 def zone_set(fos_ip_addr, is_https, fos_version, auth, vfid, result, zones, method, timeout):
     """
-        set zones in Zone Database
+    set zones in Zone Database
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :param zones: list of zones to set
-        :type zones: list
-        :param method: "POST", "PATCH", or "DELETE"
-        :type method: str
-        :return: code to indicate failure or success
-        :rtype: int
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :param zones: list of zones to set
+    :type zones: list
+    :param method: "POST", "PATCH", or "DELETE"
+    :type method: str
+    :return: code to indicate failure or success
+    :rtype: int
     """
     restURI = get_zoneURI(fos_version, REST_DEFINED)
-    full_defined_url, validate_certs = full_url_get(is_https,
-                                                    fos_ip_addr,
-                                                    restURI)
+    full_defined_url, validate_certs = full_url_get(is_https, fos_ip_addr, restURI)
 
     zone_str = "<defined-configuration>"
 
     for zone in zones:
-        zone_str = zone_str + "<zone><zone-name>" +\
-            zone["name"] + "</zone-name>"
+        zone_str = zone_str + "<zone><zone-name>" + zone["name"] + "</zone-name>"
         # if zone_type is passed, we are talking about an existing
         # zone. keep type type. Otherwise, add the zone type of
         # 1 as peer if pmembers are present
@@ -292,8 +283,7 @@ def zone_set(fos_ip_addr, is_https, fos_version, auth, vfid, result, zones, meth
             zone_str = zone_str + "<member-entry>"
         if "principal_members" in zone:
             for member in zone["principal_members"]:
-                zone_str = zone_str + "<principal-entry-name>" +\
-                    member + "</principal-entry-name>"
+                zone_str = zone_str + "<principal-entry-name>" + member + "</principal-entry-name>"
         if "members" in zone:
             for member in zone["members"]:
                 zone_str = zone_str + "<entry-name>" + member + "</entry-name>"
@@ -307,14 +297,11 @@ def zone_set(fos_ip_addr, is_https, fos_version, auth, vfid, result, zones, meth
     result["zone_str"] = zone_str
 
     if method == "POST":
-        return url_post(fos_ip_addr, is_https, auth, vfid, result,
-                        full_defined_url, zone_str, timeout)
+        return url_post(fos_ip_addr, is_https, auth, vfid, result, full_defined_url, zone_str, timeout)
     elif method == "PATCH":
-        return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                         full_defined_url, zone_str, timeout)
+        return url_patch(fos_ip_addr, is_https, auth, vfid, result, full_defined_url, zone_str, timeout)
     elif method == "DELETE":
-        return url_delete(fos_ip_addr, is_https, auth, vfid, result,
-                          full_defined_url, zone_str, timeout)
+        return url_delete(fos_ip_addr, is_https, auth, vfid, result, full_defined_url, zone_str, timeout)
     else:
         result["invalid method"] = method
         result["failed"] = True
@@ -324,79 +311,69 @@ def zone_set(fos_ip_addr, is_https, fos_version, auth, vfid, result, zones, meth
 
 def zone_get(fos_ip_addr, is_https, fos_version, auth, vfid, result, timeout):
     """
-        retrieve existing zones
+    retrieve existing zones
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :return: code to indicate failure or success
-        :rtype: int
-        :return: dict of zone content
-        :rtype: dict
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :return: code to indicate failure or success
+    :rtype: int
+    :return: dict of zone content
+    :rtype: dict
     """
     restURI = get_zoneURI(fos_version, REST_DEFINED)
-    full_defined_url, validate_certs = full_url_get(is_https,
-                                                    fos_ip_addr,
-                                                    restURI + "/zone")
+    full_defined_url, validate_certs = full_url_get(is_https, fos_ip_addr, restURI + "/zone")
 
-    return url_get_to_dict(fos_ip_addr, is_https, auth,
-                           vfid, result, full_defined_url, timeout)
+    return url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, full_defined_url, timeout)
 
 
 def alias_post(fos_ip_addr, is_https, fos_version, auth, vfid, result, aliases, timeout):
-    return alias_set(fos_ip_addr, is_https, fos_version, auth,
-                     vfid, result, aliases, "POST", timeout)
+    return alias_set(fos_ip_addr, is_https, fos_version, auth, vfid, result, aliases, "POST", timeout)
 
 
 def alias_patch(fos_ip_addr, is_https, fos_version, auth, vfid, result, aliases, timeout):
-    return alias_set(fos_ip_addr, is_https, fos_version, auth,
-                     vfid, result, aliases, "PATCH", timeout)
+    return alias_set(fos_ip_addr, is_https, fos_version, auth, vfid, result, aliases, "PATCH", timeout)
 
 
 def alias_delete(fos_ip_addr, is_https, fos_version, auth, vfid, result, aliases, timeout):
-    return alias_set(fos_ip_addr, is_https, fos_version, auth,
-                     vfid, result, aliases, "DELETE", timeout)
+    return alias_set(fos_ip_addr, is_https, fos_version, auth, vfid, result, aliases, "DELETE", timeout)
 
 
 def alias_set(fos_ip_addr, is_https, fos_version, auth, vfid, result, aliases, method, timeout):
     """
-        set aliases in Zone Database
+    set aliases in Zone Database
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :param aliases: list of aliases to set
-        :type aliases: list
-        :param method: "POST", "PATCH", or "DELETE"
-        :type method: str
-        :return: code to indicate failure or success
-        :rtype: int
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :param aliases: list of aliases to set
+    :type aliases: list
+    :param method: "POST", "PATCH", or "DELETE"
+    :type method: str
+    :return: code to indicate failure or success
+    :rtype: int
     """
     restURI = get_zoneURI(fos_version, REST_DEFINED)
-    full_defined_url, validate_certs = full_url_get(is_https,
-                                                    fos_ip_addr,
-                                                    restURI)
+    full_defined_url, validate_certs = full_url_get(is_https, fos_ip_addr, restURI)
 
     alias_str = "<defined-configuration>"
 
     for alias in aliases:
-        alias_str = alias_str + "<alias><alias-name>" +\
-            alias["name"] + "</alias-name>"
+        alias_str = alias_str + "<alias><alias-name>" + alias["name"] + "</alias-name>"
         if "members" in alias:
             alias_str = alias_str + "<member-entry>"
             for member in alias["members"]:
-                alias_str = alias_str + "<alias-entry-name>" +\
-                    member + "</alias-entry-name>"
+                alias_str = alias_str + "<alias-entry-name>" + member + "</alias-entry-name>"
             alias_str = alias_str + "</member-entry>"
         alias_str = alias_str + "</alias>"
 
@@ -406,14 +383,11 @@ def alias_set(fos_ip_addr, is_https, fos_version, auth, vfid, result, aliases, m
     result["method"] = method
 
     if method == "POST":
-        return url_post(fos_ip_addr, is_https, auth, vfid, result,
-                        full_defined_url, alias_str, timeout)
+        return url_post(fos_ip_addr, is_https, auth, vfid, result, full_defined_url, alias_str, timeout)
     elif method == "PATCH":
-        return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                         full_defined_url, alias_str, timeout)
+        return url_patch(fos_ip_addr, is_https, auth, vfid, result, full_defined_url, alias_str, timeout)
     elif method == "DELETE":
-        return url_delete(fos_ip_addr, is_https, auth, vfid, result,
-                          full_defined_url, alias_str, timeout)
+        return url_delete(fos_ip_addr, is_https, auth, vfid, result, full_defined_url, alias_str, timeout)
     else:
         result["invalid method"] = method
         result["failed"] = True
@@ -423,28 +397,25 @@ def alias_set(fos_ip_addr, is_https, fos_version, auth, vfid, result, aliases, m
 
 def alias_get(fos_ip_addr, is_https, fos_version, auth, vfid, result, timeout):
     """
-        retrieve existing aliases
+    retrieve existing aliases
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :return: code to indicate failure or success
-        :rtype: int
-        :return: dict of alias content
-        :rtype: dict
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :return: code to indicate failure or success
+    :rtype: int
+    :return: dict of alias content
+    :rtype: dict
     """
     restURI = get_zoneURI(fos_version, REST_DEFINED)
-    full_defined_url, validate_certs = full_url_get(is_https,
-                                                    fos_ip_addr,
-                                                    restURI + "/alias")
+    full_defined_url, validate_certs = full_url_get(is_https, fos_ip_addr, restURI + "/alias")
 
-    return url_get_to_dict(fos_ip_addr, is_https, auth,
-                           vfid, result, full_defined_url, timeout)
+    return url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, full_defined_url, timeout)
 
 
 def cfg_post(fos_ip_addr, is_https, fos_version, auth, vfid, result, cfgs, timeout):
@@ -461,27 +432,25 @@ def cfg_delete(fos_ip_addr, is_https, fos_version, auth, vfid, result, cfgs, tim
 
 def cfg_set(fos_ip_addr, is_https, fos_version, auth, vfid, result, cfgs, method, timeout):
     """
-        set cfgs in Zone Database
+    set cfgs in Zone Database
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :param cfgs: list of cfgs to set
-        :type cfgs: list
-        :param method: "POST", "PATCH", or "DELETE"
-        :type method: str
-        :return: code to indicate failure or success
-        :rtype: int
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :param cfgs: list of cfgs to set
+    :type cfgs: list
+    :param method: "POST", "PATCH", or "DELETE"
+    :type method: str
+    :return: code to indicate failure or success
+    :rtype: int
     """
     restURI = get_zoneURI(fos_version, REST_DEFINED)
-    full_defined_url, validate_certs = full_url_get(is_https,
-                                                    fos_ip_addr,
-                                                    restURI)
+    full_defined_url, validate_certs = full_url_get(is_https, fos_ip_addr, restURI)
 
     cfg_str = "<defined-configuration>"
 
@@ -497,17 +466,14 @@ def cfg_set(fos_ip_addr, is_https, fos_version, auth, vfid, result, cfgs, method
 
     cfg_str = cfg_str + "</defined-configuration>"
 
-#    result["cfg_str"] = cfg_str
+    #    result["cfg_str"] = cfg_str
 
     if method == "POST":
-        return url_post(fos_ip_addr, is_https, auth, vfid, result,
-                        full_defined_url, cfg_str, timeout)
+        return url_post(fos_ip_addr, is_https, auth, vfid, result, full_defined_url, cfg_str, timeout)
     elif method == "PATCH":
-        return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                         full_defined_url, cfg_str, timeout)
+        return url_patch(fos_ip_addr, is_https, auth, vfid, result, full_defined_url, cfg_str, timeout)
     elif method == "DELETE":
-        return url_delete(fos_ip_addr, is_https, auth, vfid, result,
-                          full_defined_url, cfg_str, timeout)
+        return url_delete(fos_ip_addr, is_https, auth, vfid, result, full_defined_url, cfg_str, timeout)
     else:
         result["invalid method"] = method
         result["failed"] = True
@@ -517,46 +483,38 @@ def cfg_set(fos_ip_addr, is_https, fos_version, auth, vfid, result, cfgs, method
 
 def cfg_get(fos_ip_addr, is_https, fos_version, auth, vfid, result, timeout):
     """
-        retrieve existing cfgs
+    retrieve existing cfgs
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :return: code to indicate failure or success
-        :rtype: int
-        :return: dict of cfg content
-        :rtype: dict
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :return: code to indicate failure or success
+    :rtype: int
+    :return: dict of cfg content
+    :rtype: dict
     """
     restURI = get_zoneURI(fos_version, REST_DEFINED)
-    full_defined_url, validate_certs = full_url_get(is_https,
-                                                    fos_ip_addr,
-                                                    restURI + "/cfg")
+    full_defined_url, validate_certs = full_url_get(is_https, fos_ip_addr, restURI + "/cfg")
 
-    return url_get_to_dict(fos_ip_addr, is_https, auth,
-                           vfid, result, full_defined_url, timeout)
+    return url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, full_defined_url, timeout)
 
 
 def is_wwn(member):
     octets = member.split(":")
-    if len(octets) == 8:
-        return True
-    else:
-        return False
+    return len(octets) == 8
+
 
 def process_member_diff(result, members, current_members):
     a_members = []
     r_members = []
     o_members = []
 
-    if isinstance(current_members, list):
-        c_members = current_members
-    else:
-        c_members = [current_members]
+    c_members = current_members if isinstance(current_members, list) else [current_members]
 
     # find requested members that are not in the current
     # members to see if any needs to be added
@@ -611,78 +569,87 @@ def resp_to_list(resp, type_str):
         if isinstance(resp["Response"][type_str], list):
             c_list = resp["Response"][type_str]
         else:
-            if resp["Response"][type_str] is None:
-                c_list = []
-            else:
-                c_list = [resp["Response"][type_str]]
+            c_list = [] if resp["Response"][type_str] is None else [resp["Response"][type_str]]
 
     return c_list
 
 
-def zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, input_list,
-                  members_add_only, members_remove_only,
-                  to_delete_list, type_str, type_diff_processing,
-                  type_diff_processing_to_delete, type_get,
-                  type_post, type_delete, active_cfg, disable_cfg, timeout):
+def zoning_common(
+    fos_ip_addr,
+    https,
+    fos_version,
+    auth,
+    vfid,
+    result,
+    module,
+    input_list,
+    members_add_only,
+    members_remove_only,
+    to_delete_list,
+    type_str,
+    type_diff_processing,
+    type_diff_processing_to_delete,
+    type_get,
+    type_post,
+    type_delete,
+    active_cfg,
+    disable_cfg,
+    timeout,
+):
     """
-        common flow of zone database updates.
+    common flow of zone database updates.
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :param module: AnsibleModule
-        :type module: AnsibleModule
-        :param input_list: list of zones, aliases or cfgs
-        :type input_list: list
-        :param to_delete_list: list of zones, aliases or cfgs to delete
-        :type to_delete_list: list
-        :param type_str: "zone", "alias", or "cfg"
-        :type type_str: str
-        :param type_diff_processing: function to compare expected & current
-        :type type_diff_processing: func
-        :param type_diff_processing_to_delete: function to compare to delete & current
-        :type type_diff_processing_to_delete: func
-        :param type_get: function to get the current db
-        :type type_get: func
-        :param type_post: function to post to FOS
-        :type type_post: func
-        :param type_delete: function to delete from FOS
-        :type type_delete: func
-        :param active_cfg: cfg to be enabled at the end. if None, only saved.
-        :type active_cfg: str
-        :return: code to indicate failure or success
-        :rtype: int
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :param module: AnsibleModule
+    :type module: AnsibleModule
+    :param input_list: list of zones, aliases or cfgs
+    :type input_list: list
+    :param to_delete_list: list of zones, aliases or cfgs to delete
+    :type to_delete_list: list
+    :param type_str: "zone", "alias", or "cfg"
+    :type type_str: str
+    :param type_diff_processing: function to compare expected & current
+    :type type_diff_processing: func
+    :param type_diff_processing_to_delete: function to compare to delete & current
+    :type type_diff_processing_to_delete: func
+    :param type_get: function to get the current db
+    :type type_get: func
+    :param type_post: function to post to FOS
+    :type type_post: func
+    :param type_delete: function to delete from FOS
+    :type type_delete: func
+    :param active_cfg: cfg to be enabled at the end. if None, only saved.
+    :type active_cfg: str
+    :return: code to indicate failure or success
+    :rtype: int
     """
 
-    ret_code, cfgname, checksum = cfgname_checksum_get(fos_ip_addr,
-                                                       https, fos_version, auth,
-                                                       vfid, result, timeout)
+    ret_code, cfgname, checksum = cfgname_checksum_get(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
     if ret_code != 0:
         result["failed"] = True
-        result['msg'] = "failed to checksum"
+        result["msg"] = "failed to checksum"
         exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-    ret_code, get_resp = type_get(fos_ip_addr,
-                                  https, fos_version, auth,  vfid, result, timeout)
+    ret_code, get_resp = type_get(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
     if ret_code != 0:
         result["failed"] = True
-        result['msg'] = "failed to read from database"
+        result["msg"] = "failed to read from database"
         exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     c_list = resp_to_list(get_resp, type_str)
 
-#    result["input_list"] = input_list
-#    result["c_list"] = c_list
+    #    result["input_list"] = input_list
+    #    result["c_list"] = c_list
 
     if input_list:
-        ret_code, post_list, remove_list, common_list = type_diff_processing(result,
-                                                                input_list,
-                                                                c_list)
+        ret_code, post_list, remove_list, common_list = type_diff_processing(result, input_list, c_list)
 
         result["post_list"] = post_list
         result["remove_list"] = remove_list
@@ -698,45 +665,50 @@ def zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, i
         # and
         # common_list has nothing and member_remove_only is True
         # and cfg is not enabled
-        if (len(post_list) == 0 or (len(post_list) > 0 and members_remove_only == True)) and (len(remove_list) == 0 or (len(remove_list) > 0 and members_add_only == True) or (len(remove_list) > 0 and members_remove_only == True)) and (members_remove_only == None or (len(common_list) == 0 and members_remove_only == True)) and active_cfg is None:
+        cond_post = len(post_list) == 0 or (len(post_list) > 0 and members_remove_only is True)
+        cond_remove = (
+            len(remove_list) == 0
+            or (len(remove_list) > 0 and members_add_only is True)
+            or (len(remove_list) > 0 and members_remove_only is True)
+        )
+        cond_common = members_remove_only is None or (len(common_list) == 0 and members_remove_only is True)
+        if cond_post and cond_remove and cond_common and active_cfg is None:
             exit_afterfinish_login(fos_ip_addr, https, auth, result, module, timeout)
 
         need_to_save = False
-        if len(post_list) > 0 and (members_remove_only == None or members_remove_only == False):
+        if len(post_list) > 0 and (members_remove_only is None or members_remove_only is False):
             if not module.check_mode:
-                ret_code = type_post(fos_ip_addr, https, fos_version, auth, vfid,
-                                     result, post_list, timeout)
+                ret_code = type_post(fos_ip_addr, https, fos_version, auth, vfid, result, post_list, timeout)
                 if ret_code != 0:
-                    ret_code = cfg_abort(fos_ip_addr, https, fos_version,
-                                         auth, vfid, result, timeout)
+                    ret_code = cfg_abort(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
                     result["failed"] = True
-                    result['msg'] = "HTTP POST failed"
+                    result["msg"] = "HTTP POST failed"
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
             need_to_save = True
 
-        if len(remove_list) > 0 and (members_add_only == False or members_add_only == None) and (members_remove_only == None or members_remove_only == False):
+        if (
+            len(remove_list) > 0
+            and (members_add_only is False or members_add_only is None)
+            and (members_remove_only is None or members_remove_only is False)
+        ):
             if not module.check_mode:
-                ret_code = type_delete(fos_ip_addr, https, fos_version, auth, vfid,
-                                       result, remove_list, timeout)
+                ret_code = type_delete(fos_ip_addr, https, fos_version, auth, vfid, result, remove_list, timeout)
                 if ret_code != 0:
-                    ret_code = cfg_abort(fos_ip_addr, https, fos_version,
-                                         auth, vfid, result, timeout)
+                    ret_code = cfg_abort(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
                     result["failed"] = True
-                    result['msg'] = "HTTP DELETE failed"
+                    result["msg"] = "HTTP DELETE failed"
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
             need_to_save = True
 
-        if len(common_list) > 0 and (members_remove_only == True):
+        if len(common_list) > 0 and (members_remove_only is True):
             if not module.check_mode:
-                ret_code = type_delete(fos_ip_addr, https, fos_version, auth, vfid,
-                                       result, common_list, timeout)
+                ret_code = type_delete(fos_ip_addr, https, fos_version, auth, vfid, result, common_list, timeout)
                 if ret_code != 0:
-                    ret_code = cfg_abort(fos_ip_addr, https, fos_version,
-                                         auth, vfid, result, timeout)
+                    ret_code = cfg_abort(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
                     result["failed"] = True
-                    result['msg'] = "HTTP DELETE common failed"
+                    result["msg"] = "HTTP DELETE common failed"
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
             need_to_save = True
@@ -750,30 +722,28 @@ def zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, i
                     failed_msg = ""
                     if cfgname is not None:
                         failed_msg = "CFG ENABLE failed"
-                        ret_code = cfg_enable(fos_ip_addr, https, fos_version, auth, vfid,
-                                            result, checksum, cfgname, timeout)
+                        ret_code = cfg_enable(
+                            fos_ip_addr, https, fos_version, auth, vfid, result, checksum, cfgname, timeout
+                        )
                     else:
                         failed_msg = "CFG SAVE failed"
-                        ret_code = cfg_save(fos_ip_addr, https, fos_version, auth, vfid,
-                                        result, checksum, timeout)
+                        ret_code = cfg_save(fos_ip_addr, https, fos_version, auth, vfid, result, checksum, timeout)
                     if ret_code != 0:
-                        ret_code = cfg_abort(fos_ip_addr, https, fos_version,
-                                             auth, vfid, result, timeout)
-                        result['msg'] = failed_msg
+                        ret_code = cfg_abort(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
+                        result["msg"] = failed_msg
                         result["failed"] = True
-                        exit_after_login(fos_ip_addr, https, auth,
-                                         result, module, timeout)
+                        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
                 result["changed"] = True
         else:
             if need_to_save or cfgname != active_cfg:
                 if not module.check_mode:
-                    ret_code = cfg_enable(fos_ip_addr, https, fos_version, auth, vfid,
-                                        result, checksum, active_cfg, timeout)
+                    ret_code = cfg_enable(
+                        fos_ip_addr, https, fos_version, auth, vfid, result, checksum, active_cfg, timeout
+                    )
                     if ret_code != 0:
-                        ret_code = cfg_abort(fos_ip_addr, https, fos_version,
-                                            auth, vfid, result, timeout)
-                        result['msg'] = "CFG ENABLE failed"
+                        ret_code = cfg_abort(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
+                        result["msg"] = "CFG ENABLE failed"
                         result["failed"] = True
                         exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
@@ -782,9 +752,7 @@ def zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, i
     if to_delete_list:
         need_to_save = False
 
-        ret_code, delete_list = type_diff_processing_to_delete(result,
-                                                               to_delete_list,
-                                                               c_list)
+        ret_code, delete_list = type_diff_processing_to_delete(result, to_delete_list, c_list)
 
         result["delete_list"] = delete_list
 
@@ -792,12 +760,11 @@ def zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, i
             return 0
 
         if not module.check_mode:
-            ret_code = type_delete(fos_ip_addr, https, fos_version, auth, vfid,
-                                   result, delete_list, timeout)
+            ret_code = type_delete(fos_ip_addr, https, fos_version, auth, vfid, result, delete_list, timeout)
             if ret_code != 0:
                 ret_code = cfg_abort(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
                 result["failed"] = True
-                result['msg'] = "HTTP DELETE failed"
+                result["msg"] = "HTTP DELETE failed"
                 exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
             need_to_save = True
@@ -809,52 +776,48 @@ def zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, i
                     failed_msg = ""
                     if cfgname is not None:
                         failed_msg = "CFG ENABLE failed"
-                        ret_code = cfg_enable(fos_ip_addr, https, fos_version, auth, vfid,
-                                            result, checksum, cfgname, timeout)
+                        ret_code = cfg_enable(
+                            fos_ip_addr, https, fos_version, auth, vfid, result, checksum, cfgname, timeout
+                        )
                     else:
                         failed_msg = "CFG SAVE failed"
-                        ret_code = cfg_save(fos_ip_addr, https, fos_version, auth, vfid,
-                                        result, checksum, timeout)
+                        ret_code = cfg_save(fos_ip_addr, https, fos_version, auth, vfid, result, checksum, timeout)
                     if ret_code != 0:
-                        ret_code = cfg_abort(fos_ip_addr, https, fos_version, auth,
-                                             vfid, result, timeout)
+                        ret_code = cfg_abort(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
                         result["failed"] = True
-                        result['msg'] = failed_msg
-                        exit_after_login(fos_ip_addr, https, auth,
-                                         result, module, timeout)
+                        result["msg"] = failed_msg
+                        exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
                 result["changed"] = True
         else:
             if not module.check_mode:
-                ret_code = cfg_enable(fos_ip_addr, https, fos_version, auth, vfid,
-                                      result, checksum, active_cfg, timeout)
+                ret_code = cfg_enable(
+                    fos_ip_addr, https, fos_version, auth, vfid, result, checksum, active_cfg, timeout
+                )
                 if ret_code != 0:
-                    ret_code = cfg_abort(fos_ip_addr, https, fos_version,
-                                         auth, result, timeout)
+                    ret_code = cfg_abort(fos_ip_addr, https, fos_version, auth, result, timeout)
                     result["failed"] = True
-                    result['msg'] = "CFG ENABLE failed"
+                    result["msg"] = "CFG ENABLE failed"
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
             result["changed"] = True
 
-    if input_list is None and to_delete_list is None:
-        if not module.check_mode:
-            if active_cfg is not None and cfgname is None:
-                ret_code = cfg_enable(fos_ip_addr, https, fos_version, auth, vfid,
-                                      result, checksum, active_cfg, timeout)
-                result["changed"] = True
-            elif active_cfg is None and cfgname is not None and disable_cfg is True:
-                ret_code = cfg_disable(fos_ip_addr, https, fos_version, auth, vfid, result,
-                                                         checksum, timeout)
-                result["changed"] = True
+    if input_list is None and to_delete_list is None and not module.check_mode:
+        if active_cfg is not None and cfgname is None:
+            ret_code = cfg_enable(fos_ip_addr, https, fos_version, auth, vfid, result, checksum, active_cfg, timeout)
+            result["changed"] = True
+        elif active_cfg is None and cfgname is not None and disable_cfg is True:
+            ret_code = cfg_disable(fos_ip_addr, https, fos_version, auth, vfid, result, checksum, timeout)
+            result["changed"] = True
 
-            if ret_code != 0:
-                ret_code = cfg_abort(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
-                result["failed"] = True
-                result['msg'] = "CFG ENABLE failed"
-                exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
+        if ret_code != 0:
+            ret_code = cfg_abort(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
+            result["failed"] = True
+            result["msg"] = "CFG ENABLE failed"
+            exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     return 0
+
 
 def obj_to_yml(obj):
     new_obj = {}
@@ -896,7 +859,10 @@ def obj_to_yml(obj):
 
     return new_obj
 
-def zoning_find_pair_common(module, fos_ip_addr, https, fos_version, auth, vfid, type_str, obj_name, new_name, result, timeout):
+
+def zoning_find_pair_common(
+    module, fos_ip_addr, https, fos_version, auth, vfid, type_str, obj_name, new_name, result, timeout
+):
     type_get = None
     name = None
     if type_str == "alias":
@@ -910,13 +876,13 @@ def zoning_find_pair_common(module, fos_ip_addr, https, fos_version, auth, vfid,
         name = "cfg-name"
     else:
         result["failed"] = True
-        result['msg'] = "invalid type string" + type_str
+        result["msg"] = "invalid type string" + type_str
         exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     ret_code, get_resp = type_get(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
     if ret_code != 0:
         result["failed"] = True
-        result['msg'] = "failed to read from database"
+        result["msg"] = "failed to read from database"
         exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
     r_list = resp_to_list(get_resp, type_str)
@@ -934,84 +900,83 @@ def zoning_find_pair_common(module, fos_ip_addr, https, fos_version, auth, vfid,
 
 def defined_get(fos_ip_addr, is_https, fos_version, auth, vfid, result, timeout):
     """
-        retrieve all of defined Zone Database
+    retrieve all of defined Zone Database
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :return: code to indicate failure or success
-        :rtype: int
-        :return: dict of full defined Zone DB content
-        :rtype: dict
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :return: code to indicate failure or success
+    :rtype: int
+    :return: dict of full defined Zone DB content
+    :rtype: dict
     """
     restURI = get_zoneURI(fos_version, REST_DEFINED)
-    full_defined_url, validate_certs = full_url_get(is_https,
-                                                    fos_ip_addr,
-                                                    restURI)
+    full_defined_url, validate_certs = full_url_get(is_https, fos_ip_addr, restURI)
 
-    return url_get_to_dict(fos_ip_addr, is_https, auth,
-                           vfid, result, full_defined_url, timeout)
+    return url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, full_defined_url, timeout)
 
 
 def effective_get(fos_ip_addr, is_https, fos_version, auth, vfid, result, timeout):
     """
-        retrieve all of effective Zone Database
+    retrieve all of effective Zone Database
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :return: code to indicate failure or success
-        :rtype: int
-        :return: dict of full effective Zone DB content
-        :rtype: dict
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :return: code to indicate failure or success
+    :rtype: int
+    :return: dict of full effective Zone DB content
+    :rtype: dict
     """
     restURI = get_zoneURI(fos_version, REST_EFFECTIVE)
-    full_effective_url, validate_certs = full_url_get(is_https,
-                                                      fos_ip_addr,
-                                                      restURI)
+    full_effective_url, validate_certs = full_url_get(is_https, fos_ip_addr, restURI)
 
-    return url_get_to_dict(fos_ip_addr, is_https, auth,
-                           vfid, result, full_effective_url, timeout)
+    return url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, full_effective_url, timeout)
 
 
-def effective_patch(fos_ip_addr, is_https, fos_version, auth,
-                    vfid, result, diff_attributes, timeout):
+def effective_patch(fos_ip_addr, is_https, fos_version, auth, vfid, result, diff_attributes, timeout):
     """
-        update existing switch configurations
+    update existing switch configurations
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :param diff_attributes: list of attributes for update
-        :type ports: dict
-        :return: code to indicate failure or success
-        :rtype: int
-        :return: dict of effective configurations
-        :rtype: dict
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :param diff_attributes: list of attributes for update
+    :type ports: dict
+    :return: code to indicate failure or success
+    :rtype: int
+    :return: dict of effective configurations
+    :rtype: dict
     """
     restURI = get_zoneURI(fos_version, REST_EFFECTIVE)
-    full_effective_url, validate_certs = full_url_get(is_https,
-                                                      fos_ip_addr,
-                                                      restURI)
+    full_effective_url, validate_certs = full_url_get(is_https, fos_ip_addr, restURI)
 
-    return (url_patch_single_object(fos_ip_addr, is_https, auth,
-            vfid, result, full_effective_url,
-            "effective-configuration", diff_attributes, timeout))
+    return url_patch_single_object(
+        fos_ip_addr,
+        is_https,
+        auth,
+        vfid,
+        result,
+        full_effective_url,
+        "effective-configuration",
+        diff_attributes,
+        timeout,
+    )
 
 
 def alias_process_diff(result, aliases, c_aliases):
@@ -1038,8 +1003,8 @@ def alias_process_diff(result, aliases, c_aliases):
             if alias["name"] == c_alias["alias-name"]:
                 found_in_c = True
                 added_members, removed_members, common_members = process_member_diff(
-                    result, alias["members"],
-                    c_alias["member-entry"]["alias-entry-name"])
+                    result, alias["members"], c_alias["member-entry"]["alias-entry-name"]
+                )
 
                 if len(added_members) > 0:
                     post_alias = {}
@@ -1114,23 +1079,33 @@ def zone_process_diff(result, zones, c_zones):
         for c_zone in c_zones:
             if zone["name"] == c_zone["zone-name"]:
                 found_in_c = True
-                if ("members" in zone and "entry-name" in c_zone["member-entry"]):
-                    added_members, removed_members, common_members = process_member_diff(result, zone["members"], c_zone["member-entry"]["entry-name"])
-                elif ("members" in zone and "entry-name" not in c_zone["member-entry"]):
+                if "members" in zone and "entry-name" in c_zone["member-entry"]:
+                    added_members, removed_members, common_members = process_member_diff(
+                        result, zone["members"], c_zone["member-entry"]["entry-name"]
+                    )
+                elif "members" in zone and "entry-name" not in c_zone["member-entry"]:
                     added_members, removed_members, common_members = process_member_diff(result, zone["members"], [])
-                elif ("members" not in zone and "entry-name" in c_zone["member-entry"]):
-                    added_members, removed_members, common_members = process_member_diff(result, [], c_zone["member-entry"]["entry-name"])
+                elif "members" not in zone and "entry-name" in c_zone["member-entry"]:
+                    added_members, removed_members, common_members = process_member_diff(
+                        result, [], c_zone["member-entry"]["entry-name"]
+                    )
                 else:
                     added_members = []
                     removed_members = []
                     common_members = []
 
-                if ("principal_members" in zone and "principal-entry-name" in c_zone["member-entry"]):
-                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff( result, zone["principal_members"], c_zone["member-entry"] ["principal-entry-name"])
-                elif ("principal_members" in zone and "principal-entry-name" not in c_zone["member-entry"]):
-                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff( result, zone["principal_members"], [])
-                elif ("principal_members" not in zone and "principal-entry-name" in c_zone["member-entry"]):
-                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff( result, [], c_zone["member-entry"] ["principal-entry-name"])
+                if "principal_members" in zone and "principal-entry-name" in c_zone["member-entry"]:
+                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff(
+                        result, zone["principal_members"], c_zone["member-entry"]["principal-entry-name"]
+                    )
+                elif "principal_members" in zone and "principal-entry-name" not in c_zone["member-entry"]:
+                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff(
+                        result, zone["principal_members"], []
+                    )
+                elif "principal_members" not in zone and "principal-entry-name" in c_zone["member-entry"]:
+                    added_pmembers, removed_pmembers, common_pmembers = process_member_diff(
+                        result, [], c_zone["member-entry"]["principal-entry-name"]
+                    )
                 else:
                     added_pmembers = []
                     removed_pmembers = []
@@ -1222,7 +1197,8 @@ def cfg_process_diff(result, cfgs, c_cfgs):
             if cfg["name"] == c_cfg["cfg-name"]:
                 found_in_c = True
                 added_members, removed_members, common_members = process_member_diff(
-                    result, cfg["members"], c_cfg["member-zone"]["zone-name"])
+                    result, cfg["members"], c_cfg["member-zone"]["zone-name"]
+                )
 
                 if len(added_members) > 0:
                     post_cfg = {}
@@ -1272,4 +1248,3 @@ def cfg_process_diff_to_delete(result, cfgs, c_cfgs):
             delete_cfgs.append(cfg)
 
     return 0, delete_cfgs
-

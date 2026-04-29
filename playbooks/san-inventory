@@ -1,1 +1,4 @@
-san_eng_zone_seed_san_a ansible_connection=local fos_ip_addr=1.2.3.4 fos_user_name=admin fos_password=password fos_https=self
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
+
+san_eng_zone_seed_san_a ansible_connection=local fos_ip_addr=198.51.100.1 fos_user_name=user_name fos_password=user_password fos_https=true

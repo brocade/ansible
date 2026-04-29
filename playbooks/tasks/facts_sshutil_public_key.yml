@@ -1,32 +1,25 @@
----
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
-# Copyright 2019 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
-
-- hosts: san_eng_zone_seed_san_a
-  gather_facts: False
-  collections:
-    - brocade.fos
+- name: Gather SSH public key facts
+  hosts: san_eng_zone_seed_san_a
+  gather_facts: false
 
   vars:
     credential:
-      fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: "{{fos_user_name}}"
-      fos_password: "{{fos_password}}"
-      https: "{{fos_https}}"
+      fos_ip_addr: "{{ fos_ip_addr }}"
+      fos_user_name: "{{ fos_user_name }}"
+      fos_password: "{{ fos_password }}"
+      https: "{{ fos_https }}"
 
   tasks:
+    - name: Gather facts
+      brocade_facts:
+        credential: "{{ credential }}"
+        vfid: -1
+        gather_subset:
+          - brocade_security_sshutil_public_key
 
-  - name: gather facts
-    brocade_facts:
-      credential: "{{credential}}"
-      vfid: -1
-      gather_subset:
-        - brocade_security_sshutil_public_key
-
-  - name: print ansible_facts gathered
-    debug:
-      var: ansible_facts
+    - name: Print ansible_facts gathered
+      ansible.builtin.debug:
+        var: ansible_facts

@@ -1,16 +1,14 @@
 #!/usr/bin/python
-
-# Copyright 2025 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 
 module: brocade_list_operation
 short_description: Brocade Fibre Channel operation with the container input
@@ -79,7 +77,7 @@ options:
         type: dict
         required: true
 
-'''
+"""
 
 
 EXAMPLES = """
@@ -89,8 +87,8 @@ EXAMPLES = """
   vars:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: admin
-      fos_password: xxxx
+      fos_user_name: user_name
+      fos_password: user_password
       https: False
 
   tasks:
@@ -121,8 +119,8 @@ msg:
 Brocade Fibre Channel operation
 """
 
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import operation_helper
 from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import operation_helper
 
 
 def main():
@@ -131,65 +129,82 @@ def main():
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict', options=dict(
-            fos_ip_addr=dict(required=True, type='str'),
-            fos_user_name=dict(required=True, type='str'),
-            fos_password=dict(required=True, type='str', no_log=True),
-            https=dict(required=True, type='str'),
-            ssh_hostkeymust=dict(required=False, type='bool'))),
-        vfid=dict(required=False, type='int'),
-        throttle=dict(required=False, type='int'),
-        timeout=dict(required=False, type='int'),
-        module_name=dict(required=True, type='str'),
-        entries=dict(required=True, type='list'))
-
-    module = AnsibleModule(
-        argument_spec=argument_spec,
-        supports_check_mode=True
+        credential=dict(
+            required=True,
+            type="dict",
+            options=dict(
+                fos_ip_addr=dict(required=True, type="str"),
+                fos_user_name=dict(required=True, type="str"),
+                fos_password=dict(required=True, type="str", no_log=True),
+                https=dict(required=True, type="str"),
+                ssh_hostkeymust=dict(required=False, type="bool"),
+            ),
+        ),
+        vfid=dict(required=False, type="int"),
+        throttle=dict(required=False, type="int"),
+        timeout=dict(required=False, type="int"),
+        module_name=dict(required=True, type="str"),
+        entries=dict(required=True, type="list"),
     )
+
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
 
     input_params = module.params
 
     # Set up state variables
-    fos_ip_addr = input_params['credential']['fos_ip_addr']
-    fos_user_name = input_params['credential']['fos_user_name']
-    fos_password = input_params['credential']['fos_password']
-    https = input_params['credential']['https']
+    fos_ip_addr = input_params["credential"]["fos_ip_addr"]
+    fos_user_name = input_params["credential"]["fos_user_name"]
+    fos_password = input_params["credential"]["fos_password"]
+    https = input_params["credential"]["https"]
     ssh_hostkeymust = True
-    if 'ssh_hostkeymust' in input_params['credential']:
-        ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
-    throttle = input_params['throttle']
-    timeout = input_params['timeout']
-    vfid = input_params['vfid']
-    entries = input_params['entries']
+    if "ssh_hostkeymust" in input_params["credential"]:
+        ssh_hostkeymust = input_params["credential"]["ssh_hostkeymust"]
+    throttle = input_params["throttle"]
+    timeout = input_params["timeout"]
+    vfid = input_params["vfid"]
+    entries = input_params["entries"]
     result = {"changed": False}
-    module_name = input_params['module_name']
+    module_name = input_params["module_name"]
 
     list_name = ""
     if module_name == "vrf":
         module_name = "ipStorageVrf"
-        list_name =  "ipStorageVrfParameters"
+        list_name = "ipStorageVrfParameters"
     elif module_name == "vlan":
         module_name = "ipStorageVlan"
-        list_name =  "ipStorageVlanParameters"
+        list_name = "ipStorageVlanParameters"
     elif module_name == "interface":
         module_name = "ipStorageInterface"
-        list_name =  "ipStorageInterfaceParameters"
+        list_name = "ipStorageInterfaceParameters"
     elif module_name == "staticArp":
         module_name = "ipStorageArp"
-        list_name =  "ipStorageArpParameters"
+        list_name = "ipStorageArpParameters"
     elif module_name == "staticRoute":
         module_name = "ipStorageRoute"
-        list_name =  "ipStorageRouteParameters"
+        list_name = "ipStorageRouteParameters"
     elif module_name == "lag":
         module_name = "ipStorageLag"
-        list_name =  "ipStorageLagParameters"
+        list_name = "ipStorageLagParameters"
     elif module_name == "configuration":
         module_name = "trafficClass"
-        list_name =  "trafficClassParameters"
+        list_name = "trafficClassParameters"
 
-    operation_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, module_name, list_name, entries, result, timeout)
+    operation_helper(
+        module,
+        fos_ip_addr,
+        fos_user_name,
+        fos_password,
+        https,
+        ssh_hostkeymust,
+        throttle,
+        vfid,
+        module_name,
+        list_name,
+        entries,
+        result,
+        timeout,
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

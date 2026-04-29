@@ -1,13 +1,16 @@
-# Copyright 2019 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
 
-from __future__ import (absolute_import, division, print_function)
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get, url_patch_single_object
+from __future__ import absolute_import, division, print_function
+
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_ssh import ssh_and_configure
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import yang_to_human, human_to_yang
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_url import (
+    full_url_get,
+    url_get_to_dict,
+    url_patch_single_object,
+)
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import human_to_yang, yang_to_human
 
 __metaclass__ = type
 
@@ -37,8 +40,8 @@ def fabric_principal(login, password, fos_ip_addr, ssh_hostkeymust):
             enabled_err = "fabric-principal-enabed returned unknown string"
 
         if "Principal Switch Selection Priority: " in sshstr:
-            line = sshstr[sshstr.find("Principal Switch Selection Priority: "):]
-            priority_str = line[len("Principal Switch Selection Priority: "):]
+            line = sshstr[sshstr.find("Principal Switch Selection Priority: ") :]
+            priority_str = line[len("Principal Switch Selection Priority: ") :]
             priority = priority_str.rstrip()
         else:
             priority_err = "fabric-principal-priority returned unknown string"
@@ -48,27 +51,24 @@ def fabric_principal(login, password, fos_ip_addr, ssh_hostkeymust):
 
 def fabric_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout):
     """
-        retrieve existing switch configurations
+    retrieve existing switch configurations
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :return: code to indicate failure or success
-        :rtype: int
-        :return: dict of fabric configurations
-        :rtype: dict
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :return: code to indicate failure or success
+    :rtype: int
+    :return: dict of fabric configurations
+    :rtype: dict
     """
-    full_fabric_url, validate_certs = full_url_get(is_https,
-                                                   fos_ip_addr,
-                                                   REST_FABRIC)
+    full_fabric_url, validate_certs = full_url_get(is_https, fos_ip_addr, REST_FABRIC)
 
-    rtype, rdict = url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
-                                   result, full_fabric_url, timeout)
+    rtype, rdict = url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, full_fabric_url, timeout)
     if rtype != 0:
         result["failed"] = True
         result["msg"] = "API failed to return data"
@@ -86,7 +86,7 @@ def fabric_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, 
             return -1, None
 
     enabled_err, enabled, priority_err, priority = fabric_principal(login, password, fos_ip_addr, ssh_hostkeymust)
-    if enabled_err == None:
+    if enabled_err is None:
         if enabled:
             rdict["Response"]["fabric"]["fabric-principal-enabled"] = "true"
         else:
@@ -96,7 +96,7 @@ def fabric_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, 
         result["msg"] = enabled_err
         return -1, None
 
-    if priority_err == None:
+    if priority_err is None:
         rdict["Response"]["fabric"]["fabric-principal-priority"] = priority
     else:
         result["failed"] = True
@@ -106,22 +106,24 @@ def fabric_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, 
     return 0, rdict
 
 
-def fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, diff_attributes, ssh_hostkeymust, timeout):
+def fabric_patch(
+    login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, diff_attributes, ssh_hostkeymust, timeout
+):
     """
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :param diff_attributes: list of attributes for update
-        :type ports: dict
-        :return: code to indicate failure or success
-        :rtype: int
-        :return: dict of fabric configurations
-        :rtype: dict
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :param diff_attributes: list of attributes for update
+    :type ports: dict
+    :return: code to indicate failure or success
+    :rtype: int
+    :return: dict of fabric configurations
+    :rtype: dict
     """
     l_diffs = diff_attributes.copy()
 
@@ -135,7 +137,9 @@ def fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid
                 result["changed"] = True
                 result["messages"] = "in-order-delivery-enabled set"
         elif l_diffs["in-order-delivery-enabled"] == "false":
-            rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "iodreset", "IOD is not set")
+            rssh, sshstr = ssh_and_configure(
+                login, password, fos_ip_addr, ssh_hostkeymust, "iodreset", "IOD is not set"
+            )
             if rssh != 0:
                 result["failed"] = True
                 result["msg"] = "Failed to reset IOD. " + sshstr
@@ -150,7 +154,10 @@ def fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid
     if "fabric-principal-priority" in l_diffs and "fabric-principal-enabled" in l_diffs:
         # if both are given, execute the CLI
         if l_diffs["fabric-principal-enabled"] == "true":
-            rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "fabricprincipal --enable -p " + l_diffs["fabric-principal-priority"] + " -f", "Principal Selection Mode enabled")
+            cmd = "fabricprincipal --enable -p " + l_diffs["fabric-principal-priority"] + " -f"
+            rssh, sshstr = ssh_and_configure(
+                login, password, fos_ip_addr, ssh_hostkeymust, cmd, "Principal Selection Mode enabled"
+            )
             if rssh != 0:
                 result["failed"] = True
                 result["msg"] = "Failed to set fabric-principal. " + sshstr
@@ -158,12 +165,19 @@ def fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid
                 result["changed"] = True
                 result["messages"] = "fabric-principal-enabled set"
         elif l_diffs["fabric-principal-enabled"] == "false":
-            #if disabling, must set the priority to 0
+            # if disabling, must set the priority to 0
             if l_diffs["fabric-principal-priority"] != "0":
                 result["failed"] = True
                 result["msg"] = "Priority must be 0 when disabling"
             else:
-                rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "fabricprincipal --disable", "Principal Selection Mode disabled")
+                rssh, sshstr = ssh_and_configure(
+                    login,
+                    password,
+                    fos_ip_addr,
+                    ssh_hostkeymust,
+                    "fabricprincipal --disable",
+                    "Principal Selection Mode disabled",
+                )
                 if rssh != 0:
                     result["failed"] = True
                     result["msg"] = "Failed to set fabric-principal. " + sshstr
@@ -177,9 +191,14 @@ def fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid
         l_diffs.pop("fabric-principal-priority")
     else:
         if "fabric-principal-priority" in l_diffs:
-            enabled_err, enabled, priority_err, priority = fabric_principal(login, password, fos_ip_addr, ssh_hostkeymust)
+            enabled_err, enabled, priority_err, priority = fabric_principal(
+                login, password, fos_ip_addr, ssh_hostkeymust
+            )
             if enabled_err is None and enabled:
-                rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "fabricprincipal --enable -p " + l_diffs["fabric-principal-priority"] + " -f", "Principal Selection Mode enabled")
+                cmd = "fabricprincipal --enable -p " + l_diffs["fabric-principal-priority"] + " -f"
+                rssh, sshstr = ssh_and_configure(
+                    login, password, fos_ip_addr, ssh_hostkeymust, cmd, "Principal Selection Mode enabled"
+                )
                 if rssh != 0:
                     result["failed"] = True
                     result["msg"] = "Failed to set fabric-principal-priority. " + sshstr
@@ -199,13 +218,11 @@ def fabric_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid
     if len(l_diffs) == 0:
         return 0
 
-    full_fabric_url, validate_certs = full_url_get(is_https,
-                                                   fos_ip_addr,
-                                                   REST_FABRIC)
+    full_fabric_url, validate_certs = full_url_get(is_https, fos_ip_addr, REST_FABRIC)
 
-    return (url_patch_single_object(fos_ip_addr, is_https, auth,
-                                    vfid, result, full_fabric_url,
-                                    "fabric", l_diffs, timeout))
+    return url_patch_single_object(
+        fos_ip_addr, is_https, auth, vfid, result, full_fabric_url, "fabric", l_diffs, timeout
+    )
 
 
 def to_human_port_configuration(attributes):
@@ -223,7 +240,7 @@ def to_fos_port_configuration(attributes, result):
 
     for k, v in attributes.items():
         if isinstance(v, bool):
-            if v == True:
+            if v is True:
                 attributes[k] = "true"
             else:
                 attributes[k] = "false"
@@ -231,35 +248,36 @@ def to_fos_port_configuration(attributes, result):
     return 0
 
 
-def port_configuration_get(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout):
+def port_configuration_get(
+    login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, ssh_hostkeymust, timeout
+):
     """
-        retrieve existing port configurations
+    retrieve existing port configurations
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :return: code to indicate failure or success
-        :rtype: int
-        :return: dict of fabric configurations
-        :rtype: dict
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :return: code to indicate failure or success
+    :rtype: int
+    :return: dict of fabric configurations
+    :rtype: dict
     """
-    full_port_config_url, validate_certs = full_url_get(is_https,
-                                                        fos_ip_addr,
-                                                        REST_PORT_CONFIGURATION)
+    full_port_config_url, validate_certs = full_url_get(is_https, fos_ip_addr, REST_PORT_CONFIGURATION)
 
-    rtype, rdict = url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
-                                   result, full_port_config_url, timeout)
+    rtype, rdict = url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, full_port_config_url, timeout)
     if rtype != 0:
         result["failed"] = True
         result["msg"] = "API failed to return data"
         return -1, None
 
-    rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "creditrecovmode --show", "showcommand")
+    rssh, sshstr = ssh_and_configure(
+        login, password, fos_ip_addr, ssh_hostkeymust, "creditrecovmode --show", "showcommand"
+    )
     if rssh == 0:
         if "Internal port credit recovery is Disabled" in sshstr:
             rdict["Response"]["port-configuration"]["credit-recovery-mode"] = "off"
@@ -277,28 +295,32 @@ def port_configuration_get(login, password, fos_ip_addr, fos_version, is_https, 
     return 0, rdict
 
 
-def port_configuration_patch(login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, diff_attributes, ssh_hostkeymust, timeout):
+def port_configuration_patch(
+    login, password, fos_ip_addr, fos_version, is_https, auth, vfid, result, diff_attributes, ssh_hostkeymust, timeout
+):
     """
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :param diff_attributes: list of attributes for update
-        :type ports: dict
-        :return: code to indicate failure or success
-        :rtype: int
-        :return: dict of port-configuration configurations
-        :rtype: dict
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :param diff_attributes: list of attributes for update
+    :type ports: dict
+    :return: code to indicate failure or success
+    :rtype: int
+    :return: dict of port-configuration configurations
+    :rtype: dict
     """
     l_diffs = diff_attributes.copy()
 
     if "credit-recovery-mode" in l_diffs:
         if l_diffs["credit-recovery-mode"] == "off":
-            rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "creditrecovmode --cfg off", "")
+            rssh, sshstr = ssh_and_configure(
+                login, password, fos_ip_addr, ssh_hostkeymust, "creditrecovmode --cfg off", ""
+            )
             if rssh != 0:
                 result["failed"] = True
                 result["msg"] = "Failed to set credit-recovery-mode to off. " + sshstr
@@ -306,7 +328,9 @@ def port_configuration_patch(login, password, fos_ip_addr, fos_version, is_https
                 result["changed"] = True
                 result["messages"] = "credit-recovery-mode set to off"
         elif l_diffs["credit-recovery-mode"] == "onLrOnly":
-            rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "creditrecovmode --cfg onLrOnly", "")
+            rssh, sshstr = ssh_and_configure(
+                login, password, fos_ip_addr, ssh_hostkeymust, "creditrecovmode --cfg onLrOnly", ""
+            )
             if rssh != 0:
                 result["failed"] = True
                 result["msg"] = "Failed to credit-recovery-mode to onLrOnly. " + sshstr
@@ -314,10 +338,12 @@ def port_configuration_patch(login, password, fos_ip_addr, fos_version, is_https
                 result["changed"] = True
                 result["messages"] = "credit-recovery-mode set to onLrOnly"
         elif l_diffs["credit-recovery-mode"] == "onLrThresh":
-            rssh, sshstr = ssh_and_configure(login, password, fos_ip_addr, ssh_hostkeymust, "creditrecovmode --cfg onLrThresh", "")
+            rssh, sshstr = ssh_and_configure(
+                login, password, fos_ip_addr, ssh_hostkeymust, "creditrecovmode --cfg onLrThresh", ""
+            )
             if rssh != 0:
                 result["failed"] = True
-                result["msg"] = "Failed to credit-recovery-mode to onLrThresh. "+ sshstr
+                result["msg"] = "Failed to credit-recovery-mode to onLrThresh. " + sshstr
             else:
                 result["changed"] = True
                 result["messages"] = "credit-recovery-mode set to onLrThresh"
@@ -329,10 +355,8 @@ def port_configuration_patch(login, password, fos_ip_addr, fos_version, is_https
     if len(l_diffs) == 0:
         return 0
 
-    full_port_config_url, validate_certs = full_url_get(is_https,
-                                                        fos_ip_addr,
-                                                        REST_PORT_CONFIGURATION)
+    full_port_config_url, validate_certs = full_url_get(is_https, fos_ip_addr, REST_PORT_CONFIGURATION)
 
-    return (url_patch_single_object(fos_ip_addr, is_https, auth,
-                                    vfid, result, full_port_config_url,
-                                    "port-configuration", l_diffs, timeout))
+    return url_patch_single_object(
+        fos_ip_addr, is_https, auth, vfid, result, full_port_config_url, "port-configuration", l_diffs, timeout
+    )

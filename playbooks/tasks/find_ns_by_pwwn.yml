@@ -1,10 +1,5 @@
----
-
-# Copyright 2019 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
 # This playbook is a reference example complete two operations
 #
@@ -21,61 +16,61 @@
 # word, display task will only show something if a match is found.
 #
 
-- hosts: san_eng_zone_seed_san_a
-  gather_facts: False
-  collections:
-    - brocade.fos
+- name: Find device by port WWN and show zoning
+  hosts: san_eng_zone_seed_san_a
+  gather_facts: false
 
   vars:
     credential:
-      fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: "{{fos_user_name}}"
-      fos_password: "{{fos_password}}"
-      https: "{{fos_https}}"
-    wwn_to_search: "11:11:11:11:11:11:11:11"
+      fos_ip_addr: "{{ fos_ip_addr }}"
+      fos_user_name: "{{ fos_user_name }}"
+      fos_password: "{{ fos_password }}"
+      https: "{{ fos_https }}"
+    wwn_to_search: "aa:bb:cc:dd:ee:ff:11:11"
 
   tasks:
+    - name: Gather device info
+      brocade_list_obj_facts:
+        credential: "{{ credential }}"
+        vfid: -1
+        module_name: "brocade-name-server"
+        list_name: "fibrechannel-name-server"
+        attributes:
+          port_name: "{{ wwn_to_search }}"
 
-  - name: gather device info
-    brocade_list_obj_facts:
-      credential: "{{credential}}"
-      vfid: -1
-      module_name: "brocade-name-server"
-      list_name: "fibrechannel-name-server"
-      attributes:
-        port_name: "{{wwn_to_search}}"
+    - name: Print device information matching port_name
+      vars:
+        port_index: "{{ ansible_facts['fibrechannel_name_server'][0]['port_index'] }}"
+        port_wwn: "{{ ansible_facts['fibrechannel_name_server'][0]['port_name'] }}"
+        port_speed: "{{ ansible_facts['fibrechannel_name_server'][0]['link_speed'] }}"
+      ansible.builtin.debug:
+        msg: >
+          device with Port WWN of "{{ port_wwn }}" is found at Port Indext of
+          "{{ port_index }}". The device's speed is "{{ port_speed }}"
+      when: ansible_facts['fibrechannel_name_server'][0]['port_name'] is defined
 
-  - name: print device information matching port_name
-    vars:
-      port_index: "{{ ansible_facts['fibrechannel_name_server'][0]['port_index'] }}"
-      port_wwn: "{{ ansible_facts['fibrechannel_name_server'][0]['port_name'] }}"
-      port_speed: "{{ ansible_facts['fibrechannel_name_server'][0]['link_speed'] }}"
-    debug:
-      msg: device with Port WWN of "{{port_wwn}}" is found at Port Indext of "{{ port_index }}". The device's speed is "{{port_speed}}"
-    when: ansible_facts['fibrechannel_name_server'][0]['port_name'] is defined
+    - name: Gather device alias info
+      brocade_zoning_alias_facts_by_wwn:
+        credential: "{{ credential }}"
+        vfid: -1
+        wwn: "{{ wwn_to_search }}"
 
-  - name: gather device alias info
-    brocade_zoning_alias_facts_by_wwn:
-      credential: "{{credential}}"
-      vfid: -1
-      wwn: "{{wwn_to_search}}"
+    - name: Print device alias information matching port_name
+      ansible.builtin.debug:
+        var: ansible_facts['alias']
+      when: ansible_facts['alias'] is defined
 
-  - name: print device alias information matching port_name
-    debug:
-      var: ansible_facts['alias']
-    when: ansible_facts['alias'] is defined
+    - name: Find switch with the matching domain id
+      brocade_fabric_switch_facts_by_pid:
+        credential: "{{ credential }}"
+        vfid: -1
+        pid: "{{ ansible_facts['fibrechannel_name_server'][0]['port_id'] }}"
+      when: ansible_facts['fibrechannel_name_server'][0]['port_name'] is defined
 
-  - name: find switch with the matching domain id
-    brocade_fabric_switch_facts_by_pid:
-      credential: "{{credential}}"
-      vfid: -1
-      pid: "{{ ansible_facts['fibrechannel_name_server'][0]['port_id'] }}"
-    when: ansible_facts['fibrechannel_name_server'][0]['port_name'] is defined
-
-  - name: print switch WWN where the device is connected
-    vars:
-      name: "{{ ansible_facts['fabric_switch']['name'] }}"
-      switch_user_friendly_name: "{{ ansible_facts['fabric_switch']['switch_user_friendly_name'] }}"
-    debug:
-      msg: The device's is connected at "{{name}}" "{{switch_user_friendly_name}}"
-    when: ansible_facts['fibrechannel_name_server'][0]['port_name'] is defined
+    - name: Print switch WWN where the device is connected
+      vars:
+        switch_name: "{{ ansible_facts['fabric_switch']['name'] }}"
+        switch_user_friendly_name: "{{ ansible_facts['fabric_switch']['switch_user_friendly_name'] }}"
+      ansible.builtin.debug:
+        msg: The device's is connected at "{{ switch_name }}" "{{ switch_user_friendly_name }}"
+      when: ansible_facts['fibrechannel_name_server'][0]['port_name'] is defined

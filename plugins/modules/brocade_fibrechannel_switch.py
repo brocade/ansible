@@ -1,16 +1,14 @@
 #!/usr/bin/python
-
-# Copyright 2019-2025 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 
 module: brocade_fibrechannel_switch
 short_description: Brocade Fibre Channel switch configuration
@@ -41,7 +39,7 @@ options:
                 type: str
             https:
                 description:
-                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS,
                   or False for HTTP
                 choices:
                     - True
@@ -54,7 +52,7 @@ options:
         required: true
     vfid:
         description:
-        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG.
         type: int
         required: false
     throttle:
@@ -77,9 +75,9 @@ options:
           - banner - login banner in string
           - domain_id - set the domain id of the switch
         required: true
-        type: dict  
+        type: dict
 
-'''
+"""
 
 
 EXAMPLES = """
@@ -89,8 +87,8 @@ EXAMPLES = """
   vars:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: admin
-      fos_password: xxxx
+      fos_user_name: user_name
+      fos_password: user_password
       https: False
       ssh_hostkeymust - hostkeymust arguement for ssh attributes only. Default True.
 
@@ -113,11 +111,11 @@ EXAMPLES = """
         domain_id: 1
         banner: "AUTHORIZED USERS ONLY!"
         dynamic_load_sharing: "lossless-dls"
-        domain_name: "yahoo.com"
+        domain_name: "example.com"
         dns_servers:
           dns_server:
-            - "8.8.8.8"
-            - "8.8.4.4"
+            - "203.0.113.30"
+            - "203.0.113.31"
 
   - name: enable switch after setting insistent domain id mode
     brocade_fibrechannel_switch:
@@ -144,8 +142,8 @@ Brocade Fibre Channel switch configuration
 """
 
 
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import list_helper
 from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import list_helper
 
 
 def main():
@@ -154,40 +152,58 @@ def main():
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict', options=dict(
-            fos_ip_addr=dict(required=True, type='str'),
-            fos_user_name=dict(required=True, type='str'),
-            fos_password=dict(required=True, type='str', no_log=True),
-            https=dict(required=True, type='str'),
-            ssh_hostkeymust=dict(required=False, type='bool'))),
-        vfid=dict(required=False, type='int'),
-        throttle=dict(required=False, type='int'),
-        timeout=dict(required=False, type='int'),
-        switch=dict(required=True, type='dict'))
-
-    module = AnsibleModule(
-        argument_spec=argument_spec,
-        supports_check_mode=True
+        credential=dict(
+            required=True,
+            type="dict",
+            options=dict(
+                fos_ip_addr=dict(required=True, type="str"),
+                fos_user_name=dict(required=True, type="str"),
+                fos_password=dict(required=True, type="str", no_log=True),
+                https=dict(required=True, type="str"),
+                ssh_hostkeymust=dict(required=False, type="bool"),
+            ),
+        ),
+        vfid=dict(required=False, type="int"),
+        throttle=dict(required=False, type="int"),
+        timeout=dict(required=False, type="int"),
+        switch=dict(required=True, type="dict"),
     )
+
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
 
     input_params = module.params
 
     # Set up state variables
-    fos_ip_addr = input_params['credential']['fos_ip_addr']
-    fos_user_name = input_params['credential']['fos_user_name']
-    fos_password = input_params['credential']['fos_password']
-    https = input_params['credential']['https']
+    fos_ip_addr = input_params["credential"]["fos_ip_addr"]
+    fos_user_name = input_params["credential"]["fos_user_name"]
+    fos_password = input_params["credential"]["fos_password"]
+    https = input_params["credential"]["https"]
     ssh_hostkeymust = True
-    if 'ssh_hostkeymust' in input_params['credential']:
-        ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
-    throttle = input_params['throttle']
-    timeout = input_params['timeout']
-    vfid = input_params['vfid']
-    switch = input_params['switch']
+    if "ssh_hostkeymust" in input_params["credential"]:
+        ssh_hostkeymust = input_params["credential"]["ssh_hostkeymust"]
+    throttle = input_params["throttle"]
+    timeout = input_params["timeout"]
+    vfid = input_params["vfid"]
+    switch = input_params["switch"]
     result = {"changed": False}
 
-    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, ssh_hostkeymust, throttle, vfid, "brocade_fibrechannel_switch", "fibrechannel_switch", [switch], False, result, timeout)
+    list_helper(
+        module,
+        fos_ip_addr,
+        fos_user_name,
+        fos_password,
+        https,
+        ssh_hostkeymust,
+        throttle,
+        vfid,
+        "brocade_fibrechannel_switch",
+        "fibrechannel_switch",
+        [switch],
+        False,
+        result,
+        timeout,
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

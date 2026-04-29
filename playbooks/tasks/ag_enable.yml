@@ -1,42 +1,35 @@
----
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
-# Copyright 2019 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
-
-- hosts: san_eng_zone_seed_san_a
-  gather_facts: False
-  collections:
-    - brocade.fos
+- name: Enable access gateway mode
+  hosts: san_eng_zone_seed_san_a
+  gather_facts: false
 
   vars:
     credential:
-      fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: "{{fos_user_name}}"
-      fos_password: "{{fos_password}}"
-      https: "{{fos_https}}"
+      fos_ip_addr: "{{ fos_ip_addr }}"
+      fos_user_name: "{{ fos_user_name }}"
+      fos_password: "{{ fos_password }}"
+      https: "{{ fos_https }}"
 
   tasks:
+    - name: Switch disabled
+      brocade_fibrechannel_switch:
+        credential: "{{ credential }}"
+        vfid: -1
+        switch:
+          enabled_state: false
 
-  - name: switch disabled
-    brocade_fibrechannel_switch:
-      credential: "{{credential}}"
-      vfid: -1
-      switch:
-        enabled_state: False
+    - name: Ag mode enabled. if changing, switch will reboot afterward.
+      brocade_fibrechannel_switch:
+        credential: "{{ credential }}"
+        vfid: -1
+        switch:
+          ag_mode: 3
 
-  - name: ag mode enabled. if changing, switch will reboot afterward.
-    brocade_fibrechannel_switch:
-      credential: "{{credential}}"
-      vfid: -1
-      switch:
-        ag_mode: 3
-
-  - name: switch enabled
-    brocade_fibrechannel_switch:
-      credential: "{{credential}}"
-      vfid: -1
-      switch:
-        enabled_state: True
+    - name: Switch enabled
+      brocade_fibrechannel_switch:
+        credential: "{{ credential }}"
+        vfid: -1
+        switch:
+          enabled_state: true
