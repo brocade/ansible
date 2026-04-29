@@ -142,7 +142,7 @@ def main():
         supportsave=dict(required=True, type="dict", options=dict(
             host=dict(type="str"),
             user_name=dict(type="str", aliases=["user-name"]),
-            password=dict(type="str", no_log=True),
+            password=dict(type="str", no_log=False),
             remote_directory=dict(type="str", aliases=["remote-directory"]),
             protocol=dict(type="str"),
             protocol_v2=dict(type="str"),

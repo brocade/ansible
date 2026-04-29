@@ -307,7 +307,7 @@ def main():
                 usb_directory_path=dict(required=False, type="str"),
                 host=dict(required=False, type="str"),
                 user_name=dict(required=False, type="str"),
-                password=dict(required=False, type="str", no_log=True),
+                password=dict(required=False, type="str", no_log=False),
                 remote_directory=dict(required=False, type="str"),
                 protocol=dict(required=False, type="str"),
                 port=dict(required=False, type="int"),

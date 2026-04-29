@@ -147,7 +147,7 @@ def main():
             options=dict(
                 host=dict(type="str"),
                 user_name=dict(type="str", aliases=["user-name"]),
-                password=dict(type="str", no_log=True),
+                password=dict(type="str", no_log=False),
                 remote_directory=dict(type="str", aliases=["remote-directory"]),
                 protocol=dict(type="str"),
                 port=dict(type="int"),
