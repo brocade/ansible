@@ -1,16 +1,14 @@
 #!/usr/bin/python
-
-# Copyright 2019-2025 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 
 module: brocade_zoning_alias_facts_by_wwn
 short_description: Brocade Fibre Channel facts gathering of zoning by WWN
@@ -41,7 +39,7 @@ options:
                 type: str
             https:
                 description:
-                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS,
                   or False for HTTP
                 choices:
                     - True
@@ -54,7 +52,7 @@ options:
         required: true
     vfid:
         description:
-        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG.
         type: int
         required: false
     throttle:
@@ -72,8 +70,8 @@ options:
         - WWN to search in the aliases within Zone DB.
         required: true
         type: str
- 
-'''
+
+"""
 
 
 EXAMPLES = """
@@ -81,10 +79,10 @@ EXAMPLES = """
   vars:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: admin
-      fos_password: password
+      fos_user_name: user_name
+      fos_password: user_password
       https: False
-    wwn_to_search: "11:22:33:44:55:66:77:88"
+    wwn_to_search: "aa:bb:cc:dd:ee:ff:11:15"
 
   tasks:
 
@@ -117,9 +115,9 @@ Brocade Fibre Channel facts gathering of zoning by WWN
 """
 
 
-from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_zoning import defined_get
 from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.brocade_connection import exit_after_login, login, logout
+from ansible.module_utils.brocade_zoning import defined_get
 
 
 def main():
@@ -128,50 +126,51 @@ def main():
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict', options=dict(
-            fos_ip_addr=dict(required=True, type='str'),
-            fos_user_name=dict(required=True, type='str'),
-            fos_password=dict(required=True, type='str', no_log=True),
-            https=dict(required=True, type='str'),
-            ssh_hostkeymust=dict(required=False, type='bool'))),
-        vfid=dict(required=False, type='int'),
-        throttle=dict(required=False, type='int'),
-        timeout=dict(required=False, type='int'),
-        wwn=dict(required=True, type='str'))
-
-    module = AnsibleModule(
-        argument_spec=argument_spec,
-        supports_check_mode=False
+        credential=dict(
+            required=True,
+            type="dict",
+            options=dict(
+                fos_ip_addr=dict(required=True, type="str"),
+                fos_user_name=dict(required=True, type="str"),
+                fos_password=dict(required=True, type="str", no_log=True),
+                https=dict(required=True, type="str"),
+                ssh_hostkeymust=dict(required=False, type="bool"),
+            ),
+        ),
+        vfid=dict(required=False, type="int"),
+        throttle=dict(required=False, type="int"),
+        timeout=dict(required=False, type="int"),
+        wwn=dict(required=True, type="str"),
     )
+
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
     input_params = module.params
 
     # Set up state variables
-    fos_ip_addr = input_params['credential']['fos_ip_addr']
-    fos_user_name = input_params['credential']['fos_user_name']
-    fos_password = input_params['credential']['fos_password']
-    https = input_params['credential']['https']
+    fos_ip_addr = input_params["credential"]["fos_ip_addr"]
+    fos_user_name = input_params["credential"]["fos_user_name"]
+    fos_password = input_params["credential"]["fos_password"]
+    https = input_params["credential"]["https"]
     ssh_hostkeymust = True
-    if 'ssh_hostkeymust' in input_params['credential']:
-        ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
-    throttle = input_params['throttle']
-    timeout = input_params['timeout']
-    vfid = input_params['vfid']
-    wwn = input_params['wwn']
+    if "ssh_hostkeymust" in input_params["credential"]:
+        ssh_hostkeymust = input_params["credential"]["ssh_hostkeymust"]
+    throttle = input_params["throttle"]
+    timeout = input_params["timeout"]
+    vfid = input_params["vfid"]
+    wwn = input_params["wwn"]
     result = {"changed": False}
 
     if vfid is None:
         vfid = 128
 
-    ret_code, auth, fos_version = login(fos_ip_addr,
-                           fos_user_name, fos_password,
-                           https, throttle, result, timeout)
+    ret_code, auth, fos_version = login(fos_ip_addr, fos_user_name, fos_password, https, throttle, result, timeout)
     if ret_code != 0:
         module.exit_json(**result)
 
     facts = {}
 
-    facts['ssh_hostkeymust'] = ssh_hostkeymust
+    facts["ssh_hostkeymust"] = ssh_hostkeymust
 
     ret_code, response = defined_get(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
     if ret_code != 0:
@@ -211,5 +210,5 @@ def main():
     module.exit_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

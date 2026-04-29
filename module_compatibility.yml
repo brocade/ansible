@@ -1,9 +1,5 @@
----
-
-# Copyright 2019-2025 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
 # Note: Please set 'BROCADE_VERSION_PATH' environment variable
 # to the version file 'versioning.rst'
@@ -12,18 +8,18 @@
 # in the Linux system
 # export BROCADE_VERSION_PATH=~/.ansible/collections/ansible_collections/brocade/fos/versioning.rst
 
-- hosts: san_eng_zone_seed_san_a
-  gather_facts: False
+- name: Check module compatibility with switch version
+  hosts: san_eng_zone_seed_san_a
+  gather_facts: false
 
   vars:
     credential:
-      fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: "{{fos_user_name}}"
-      fos_password: "{{fos_password}}"
-      https: "{{fos_https}}"
+      fos_ip_addr: "{{ fos_ip_addr }}"
+      fos_user_name: "{{ fos_user_name }}"
+      fos_password: "{{ fos_password }}"
+      https: "{{ fos_https }}"
 
   tasks:
-
-  - name: check module(s) are compatible with the given switch version
-    brocade_module_compatibility:
-      credential: "{{credential}}"
+    - name: Check module(s) are compatible with the given switch version
+      brocade_module_compatibility:
+        credential: "{{ credential }}"
