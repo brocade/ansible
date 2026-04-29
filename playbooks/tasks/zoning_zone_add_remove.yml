@@ -1,59 +1,69 @@
----
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
-# Copyright 2019 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
-
-- hosts: san_eng_zone_seed_san_a
-  gather_facts: False
-  collections:
-    - brocade.fos
+- name: Add and remove zones
+  hosts: san_eng_zone_seed_san_a
+  gather_facts: false
 
   vars:
     credential:
-      fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: "{{fos_user_name}}"
-      fos_password: "{{fos_password}}"
-      https: "{{fos_https}}"
+      fos_ip_addr: "{{ fos_ip_addr }}"
+      fos_user_name: "{{ fos_user_name }}"
+      fos_password: "{{ fos_password }}"
+      https: "{{ fos_https }}"
     aliases:
-      - name: Host1
+      - name: alias_host_1
         members:
-          - cc:99:99:99:99:99:99:99
+          - aa:bb:cc:dd:ee:ff:11:24
     zones:
-      - name: Zone3
+      - name: zone_3
         members:
-          - cc:99:99:99:99:99:99:99
+          - aa:bb:cc:dd:ee:ff:11:24
         principal_members:
-          - cc:cc:cc:cc:99:99:99:99
-      - name: Zone4
+          - aa:bb:cc:dd:ee:ff:11:26
+      - name: zone_4
         members:
-          - cc:88:88:88:88:88:88:88
+          - aa:bb:cc:dd:ee:ff:11:23
         principal_members:
-          - cc:cc:cc:cc:88:88:88:88
+          - aa:bb:cc:dd:ee:ff:11:25
     cfgs:
-      - name: cfg1
+      - name: cfg_1
         members:
-          - Zone4
+          - zone_4
 
   tasks:
+    - name: >
+        After zoning_zone.yml, add cc:99:99:99:99:99:99:99 and remove
+        aa:11:11:11:11:11:11:11/aa:22:22:22:22:22:22:22 from Host1 by
+        specifying the final member list
+      brocade_zoning_alias:
+        credential: "{{ credential }}"
+        vfid: -1
+        aliases: "{{ aliases }}"
 
-  - name: after zoning_zone.yml, add cc:99:99:99:99:99:99:99 and remove aa:11:11:11:11:11:11:11/aa:22:22:22:22:22:22:22 from Host1 by specifying the final member list
-    brocade_zoning_alias:
-      credential: "{{credential}}"
-      vfid: -1
-      aliases: "{{aliases}}"
+    - name: >
+        After zoning_zone.yml, add aa:bb:cc:dd:ee:ff:11:24 and remove
+        aa:bb:cc:dd:ee:ff:11:1a/aa:bb:cc:dd:ee:ff:11:1b from alias_host_1 by
+        specifying the final member list
+      brocade_zoning_alias:
+        credential: "{{ credential }}"
+        vfid: -1
+        aliases: "{{ aliases }}"
 
-  - name: after zoning_zone.yml, add cc:99:99:99:99:99:99:99/cc:cc:cc:cc:99:99:99:99 and remove aa:44:44:44:44:44:44:44/aa:55:55:55:55:55:55:55/aa:aa:aa:aa:bb:bb:bb:bb/aa:aa:aa:aa:cc:cc:cc:cc from Zone3 by specifying the final member list. Also, create Zone4.
-    brocade_zoning_zone:
-      credential: "{{credential}}"
-      vfid: -1
-      zones: "{{zones}}"
+    - name: >
+        After zoning_zone.yml, add aa:bb:cc:dd:ee:ff:11:24/aa:bb:cc:dd:ee:ff:11:26
+        and remove aa:bb:cc:dd:ee:ff:11:1c/aa:bb:cc:dd:ee:ff:11:1d/
+        aa:bb:cc:dd:ee:ff:11:1e/aa:bb:cc:dd:ee:ff:11:1f from zone_3 by
+        specifying the final member list. Also, create zone_4.
+      brocade_zoning_zone:
+        credential: "{{ credential }}"
+        vfid: -1
+        zones: "{{ zones }}"
 
-  - name: after zoning_zone.yml, add Zone4 and remove Zone1/Zone2. And leave cfg1 enabled
-    brocade_zoning_cfg:
-      credential: "{{credential}}"
-      vfid: -1
-      cfgs: "{{cfgs}}"
-      active_cfg: cfg1
+    - name: After zoning_zone.yml, add zone_4 and remove zone_1/zone_2. And leave
+        cfg_1 enabled
+      brocade_zoning_cfg:
+        credential: "{{ credential }}"
+        vfid: -1
+        cfgs: "{{ cfgs }}"
+        active_cfg: cfg_1

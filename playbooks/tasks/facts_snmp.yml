@@ -1,61 +1,39 @@
----
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
-# Copyright 2019 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
-
-- hosts: san_eng_zone_seed_san_a
-  gather_facts: False
-  collections:
-    - brocade.fos
+- name: Gather SNMP facts
+  hosts: san_eng_zone_seed_san_a
+  gather_facts: false
 
   vars:
     credential:
-      fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: "{{fos_user_name}}"
-      fos_password: "{{fos_password}}"
-      https: "{{fos_https}}"
+      fos_ip_addr: "{{ fos_ip_addr }}"
+      fos_user_name: "{{ fos_user_name }}"
+      fos_password: "{{ fos_password }}"
+      https: "{{ fos_https }}"
 
   tasks:
+    - name: Snmp system values
+      brocade_singleton_obj_facts:
+        credential: "{{ credential }}"
+        vfid: -1
+        module_name: "brocade-snmp"
+        obj_name: "system"
 
-  - name: snmp system values
-    brocade_singleton_obj_facts:
-      credential: "{{credential}}"
-      vfid: -1
-      module_name: "brocade-snmp"
-      obj_name: "system"
+    - name: SNMP system values
+      brocade_singleton_obj_facts:
+        credential: "{{ credential }}"
+        vfid: -1
+        module_name: "brocade-snmp"
+        obj_name: "system"
 
-  - name: gather v1 account
-    brocade_list_obj_facts:
-      credential: "{{credential}}"
-      vfid: -1
-      module_name: "brocade-snmp"
-      list_name: "v1-account"
+    - name: Gather v3 traps
+      brocade_list_obj_facts:
+        credential: "{{ credential }}"
+        vfid: -1
+        module_name: "brocade-snmp"
+        list_name: "v3-trap"
 
-  - name: gather v1 traps
-    brocade_list_obj_facts:
-      credential: "{{credential}}"
-      vfid: -1
-      module_name: "brocade-snmp"
-      list_name: "v1-trap"
-
-  - name: gather v3 account
-    brocade_list_obj_facts:
-      credential: "{{credential}}"
-      vfid: -1
-      module_name: "brocade-snmp"
-      list_name: "v3-account"
-
-  - name: gather v3 traps
-    brocade_list_obj_facts:
-      credential: "{{credential}}"
-      vfid: -1
-      module_name: "brocade-snmp"
-      list_name: "v3-trap"
-
-  - name: print accumulative ansible_facts gathered
-    debug:
-      var: ansible_facts
-
+    - name: Print accumulative ansible_facts gathered
+      ansible.builtin.debug:
+        var: ansible_facts

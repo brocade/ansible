@@ -1,11 +1,11 @@
-FOS-ansible Introduction
+FOS-Ansible Introduction
 ========================
 
 This repository provides reference example Modules & Playbooks for
 Ansible to manage Fibre Channel switches running different FOS versions.
 Please refer CHANGELOG.rst for release specific details.
 
-Installation from github.com
+Installation from Github.com
 ----------------------------
 
 Step1: clone the repository
@@ -61,7 +61,7 @@ Step 4: add the following to the variables for the host.
 
    ansible_connection: local
    fos_ip_addr: <IP address of FOS switch>
-   fos_user_name: admin
+   fos_user_name: user_name
    fos_password: <FOS password for admin>
    https: <False/True/self>
 
@@ -138,48 +138,48 @@ contained BBB and CCC before the execution of the playbook, the result
 of the playbook will contain Aliases AAA, BBB, and CCC. CCC is not
 removed even though it is not mentioned in the playbook.
 
-Here is an example of a simple playbook of Alias to create Host1 Alias
-with two members and Target2 Alias with one member.
+Here is an example of a simple playbook of Alias to create alias_host_1 Alias
+with two members and alias_target_1 Alias with one member.
 
 ::
 
      - name: Create aliases
        brocade_zoning_alias:
          credential:
-           fos_ip_addr: 10.10.10.10
-           fos_user_name: admin
-           fos_password: password
+           fos_ip_addr: 198.51.100.1
+           fos_user_name: user_name
+           fos_password: user_password
            https: False
          vfid: -1
          aliases:
-           - name: Host1
+           - name: alias_host_1
              members:
-               - aa:11:11:11:11:11:11:11
-               - aa:22:22:22:22:22:22:22
-           - name: Target2
+               - aa:bb:cc:dd:ee:ff:11:1a
+               - aa:bb:cc:dd:ee:ff:11:1b
+           - name: alias_target_1
              members:
-               - aa:44:44:44:44:44:44:44
+               - aa:bb:cc:dd:ee:ff:11:1c
 
 Alias, Zone, or CFG entry is deleted only if aliases_to_delete,
 zones_to_delete or cfgs_to_delete variable is provided with a list of
 Alises, Zones or CFGs to delete.
 
-Here is an example of a simple playbook of Alias to delete Host1 and
-Target2.
+Here is an example of a simple playbook of Alias to delete alias_host_1 and
+alias_target_1.
 
 ::
 
      - name: Delete aliases
        brocade_zoning_alias:
          credential:
-           fos_ip_addr: 10.10.10.10
-           fos_user_name: admin
-           fos_password: password
+           fos_ip_addr: 198.51.100.1
+           fos_user_name: user_name
+           fos_password: user_password
            https: False
          vfid: -1
          aliases_to_delete:
-           - name: Host1
-           - name: Target2
+           - name: alias_host_1
+           - name: alias_target_1
 
 Please refer to tasks/zoning_zone_delete.yml for additional reference.
 
@@ -221,15 +221,6 @@ Zoning database will revert back to pre-task state.
 
 An optional active_cfg variable is only applicable to brocade_zoning_cfg
 module. The variable is used to specify a CFG to be enabled.
-
-Since Zoning modules are additive for entries by default, it is not
-necessary that the full Zoning database is refered in the playbooks.
-However, maintaining a full database in a playbook may be beneficial for
-certain use cases. To help, PyFOS based zoning_to_yml.py is provided to
-dump the existing FOS Zoning database in yml format. The screen output
-can be saved to a file and referenced in playbooks. Please refer to
-github.com/brocade/pyfos for PyFOS details and tasks/zonedb.yml and
-tasks/zoning_act.yml for reference.
 
 Yang module/object specific Ansible modules
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -290,10 +281,6 @@ within Ansible playbook.
 | brocade_security_user_config.py   | update login accounts             |
 +-----------------------------------+-----------------------------------+
 | brocade_snmp_system.py            | update snmp system attributes     |
-+-----------------------------------+-----------------------------------+
-| brocade_snmp_v1_account.py        | update snmp v1 account            |
-+-----------------------------------+-----------------------------------+
-| brocade_snmp_v1_trap.py           | update snmp v1 trap               |
 +-----------------------------------+-----------------------------------+
 | brocade_snmp_v3_account.py        | update snmp v3 account            |
 +-----------------------------------+-----------------------------------+
@@ -497,9 +484,9 @@ by:
      - name: chassis configuration
        brocade_singleton_obj:
          credential:
-           fos_ip_addr: 10.10.10.10
-           fos_user_name: admin
-           fos_password: password
+           fos_ip_addr: 198.51.100.1
+           fos_user_name: user_name
+           fos_password: user_password
            https: False
          vfid: -1
          module_name: "brocade_chassis"
@@ -538,15 +525,15 @@ playbooks can be created to create, update, or delete the object.
 
 All the Yang REST FOS models are published in github.com/brocade/yang.
 
-For example, brocade-snmp module contains an object named v1-account.
-And v1-account object contains a key named index and a string type leaf
+For example, brocade-snmp module contains an object named v3-account.
+And v3-account object contains a key named index and a string type leaf
 named community-name, among other attributes.
 
 ::
 
    module brocade-snmp {
        container brocade-snmp {
-           list v1-account {
+           list v3-account {
                key "index";
                leaf index {
                }
@@ -564,7 +551,7 @@ index of 1, and ZYX for index of 2:
    brocade-snmp or brocade_snmp. “-” and "_" are interchangable as
    module_name.
 3) provide the list_name to match the Yang REST FOS object name -
-   v1-account or v1_account. As with module_name, “-” and "_" are
+   v3-account or v3_account. As with module_name, “-” and "_" are
    interchangable as list_name.
 4) provide an array within entries. Only key and community_string are
    being referenced for the moment. Since Ansible variable should not
@@ -581,13 +568,13 @@ index of 1, and ZYX for index of 2:
      - name: snmp configuration
        brocade_list_obj:
          credential:
-           fos_ip_addr: 10.10.10.10
-           fos_user_name: admin
-           fos_password: password
+           fos_ip_addr: 198.51.100.1
+           fos_user_name: user_name
+           fos_password: user_password
            https: False
          vfid: -1
          module_name: "brocade_snmp"
-         obj_name: "v1_account"
+         obj_name: "v3_account"
          all_entries: False
          entries:
            - index: 1
@@ -609,17 +596,108 @@ brocade_fibrechannel_switch fibrechannel_switch
 brocade-interface           fibrechannel
 brocade_logging             syslog_server
 brocade-name-server         fibrechannel-name-server
-brocade-snmp                v1-account
-brocade-snmp                v1-trap
 brocade-snmp                v3-account
 brocade-snmp                v3-trap
 brocade_security            user_config
 brocade-security            ipfilter-rule
 =========================== ========================
 
+Running Playbooks with Ansible Vault
+-------------------------------------
+
+Ansible Vault allows you to encrypt sensitive data such as credentials,
+passwords, and API keys. This section explains how to run playbooks with
+encrypted variables using ``ansible-playbook`` CLI.
+
+Creating Encrypted Variables File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Step 1: Create an encrypted secrets file using ``ansible-vault create``:
+
+::
+
+   ansible-vault create secrets.yml
+
+This command will:
+
+1. **Prompt for a new vault password** - Enter a strong password and remember it
+2. **Confirm the password** - Re-enter the same password
+3. **Open your default editor** (vi/vim/nano) to add content
+
+Step 2: Add your credentials to the file.
+
+Add the sensitive variables that you want to protect:
+
+::
+
+   # secrets.yml - Store sensitive credentials here
+
+   # FOS switch credentials
+   credential:
+     fos_ip_addr: "198.51.100.1"
+     fos_user_name: "user_name"
+     fos_password: "user_password"
+     https: "true"
+
+   # Additional sensitive variables (as needed by your playbooks)
+   fwdl_remote_server_password: "fwdl_remote_server_password"
+
+Step 3: Save and exit. The file is now encrypted with your vault password.
+
+Integrating with san-inventory
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Instead of storing credentials directly in your ``san-inventory`` file, you can
+reference vault-encrypted variables. Modify your ``san-inventory`` file to use
+variable references:
+
+**Updated san-inventory (remove sensitive data):**
+
+::
+
+   The sensitive variables (``credential`` dictionary)
+   are now stored in the encrypted ``secrets.yml`` file instead. Run playbooks with:
+
+Running Playbooks with Vault
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Any playbook can use vault-encrypted variables. The following variables are commonly
+used across playbooks and can be stored in your encrypted secrets file:
+
+**Required variables (used by all playbooks):**
+
+- ``credential`` - Dictionary containing switch login credentials
+  - ``fos_ip_addr`` - Switch IP address
+  - ``fos_user_name`` - Login username
+  - ``fos_password`` - Login password
+  - ``https`` - HTTPS mode (True/False/self)
+
+**Optional variables (add as needed by specific playbooks):**
+
+::
+
+   # fwdl_remote_server_password  - Remote server password (e.g., firmware download, backup)
+   # snmp_community       - SNMP community string
+   # syslog_password      - Syslog server credentials
+   # ldap_bind_password   - LDAP authentication password
+   # radius_secret        - RADIUS shared secret
+
+**Running playbook with vault password prompt:**
+
+::
+
+   ansible-playbook <your_playbook>.yml -e @secrets.yml --ask-vault-pass
+
+Documentation
+-------------
+Documentation can be generated by following the instructions mentioned
+in the ./docs/documentation.rst
+or from the link below:
+https://github.com/brocade/ansible/blob/master/docs/documentation.rst
+
 Contact
 -------
 
 ::
 
-   automation.bsn@broadcom.com
+   Automation.BSN@broadcom.com

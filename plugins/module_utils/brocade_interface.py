@@ -1,12 +1,11 @@
-# Copyright 2019 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
 
-from __future__ import (absolute_import, division, print_function)
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_url import url_get_to_dict, url_patch, full_url_get
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import yang_to_human, human_to_yang, str_to_human
+from __future__ import absolute_import, division, print_function
+
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_url import full_url_get, url_get_to_dict, url_patch
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import human_to_yang, str_to_human, yang_to_human
 
 __metaclass__ = type
 
@@ -46,7 +45,7 @@ zero_one_attributes = [
     "port-autodisable-enabled",
     "non-dfe-enabled",
     "trunk-port-enabled",
-    ]
+]
 
 
 def to_human_fc(port_config):
@@ -136,6 +135,7 @@ def to_human_fc(port_config):
         elif port_config["max_speed"] == "0":
             port_config["max_speed"] = "Auto"
 
+
 def to_fos_fc(port_config, result):
     human_to_yang(port_config)
 
@@ -143,9 +143,9 @@ def to_fos_fc(port_config, result):
     # convert boolean to 0/1 integer
     # convert the rest to boolean string
     if "enabled-state" in port_config:
-        if port_config["enabled-state"] == True:
+        if port_config["enabled-state"] is True:
             port_config["enabled-state"] = "2"
-        elif port_config["enabled-state"] == False:
+        elif port_config["enabled-state"] is False:
             port_config["enabled-state"] = "6"
         else:
             result["failed"] = True
@@ -155,7 +155,7 @@ def to_fos_fc(port_config, result):
     for attrib in zero_one_attributes:
         if attrib in port_config:
             if isinstance(port_config[attrib], bool):
-                if port_config[attrib] == False:
+                if port_config[attrib] is False:
                     port_config[attrib] = "0"
                 else:
                     port_config[attrib] = "1"
@@ -166,7 +166,7 @@ def to_fos_fc(port_config, result):
 
     for k, v in port_config.items():
         if isinstance(v, bool):
-            if v == True:
+            if v is True:
                 port_config[k] = "true"
             else:
                 port_config[k] = "false"
@@ -257,51 +257,46 @@ def to_fos_fc(port_config, result):
 
 def fc_port_get(fos_ip_addr, is_https, auth, vfid, result, timeout):
     """
-        retrieve existing port configurations
+    retrieve existing port configurations
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :return: code to indicate failure or success
-        :rtype: int
-        :return: list of dict of port configurations
-        :rtype: list
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :return: code to indicate failure or success
+    :rtype: int
+    :return: list of dict of port configurations
+    :rtype: list
     """
-    full_fc_port_url, validate_certs = full_url_get(is_https,
-                                                    fos_ip_addr,
-                                                    REST_FC)
+    full_fc_port_url, validate_certs = full_url_get(is_https, fos_ip_addr, REST_FC)
 
-    return url_get_to_dict(fos_ip_addr, is_https, auth, vfid,
-                           result, full_fc_port_url, timeout)
+    return url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, full_fc_port_url, timeout)
 
 
 def fc_port_patch(fos_ip_addr, is_https, auth, vfid, result, ports, timeout):
     """
-        update existing port configurations
+    update existing port configurations
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :param ports: list of ports and associated attributes for update
-        :type ports: list
-        :return: code to indicate failure or success
-        :rtype: int
-        :return: list of dict of port configurations
-        :rtype: list
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :param ports: list of ports and associated attributes for update
+    :type ports: list
+    :return: code to indicate failure or success
+    :rtype: int
+    :return: list of dict of port configurations
+    :rtype: list
     """
-    full_fc_port_url, validate_certs = full_url_get(is_https,
-                                                    fos_ip_addr,
-                                                    REST_FC)
+    full_fc_port_url, validate_certs = full_url_get(is_https, fos_ip_addr, REST_FC)
 
     fc_port_str = ""
 
@@ -313,12 +308,10 @@ def fc_port_patch(fos_ip_addr, is_https, auth, vfid, result, ports, timeout):
         for k, v in port.items():
             if k != "name":
                 k = k.replace("_", "-")
-                fc_port_str = fc_port_str + "<" + k + ">" +\
-                    str(v) + "</" + k + ">"
+                fc_port_str = fc_port_str + "<" + k + ">" + str(v) + "</" + k + ">"
 
         fc_port_str = fc_port_str + "</fibrechannel>"
 
     result["fc_port_str"] = fc_port_str
 
-    return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                     full_fc_port_url, fc_port_str, timeout)
+    return url_patch(fos_ip_addr, is_https, auth, vfid, result, full_fc_port_url, fc_port_str, timeout)

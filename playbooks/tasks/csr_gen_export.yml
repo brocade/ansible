@@ -1,22 +1,16 @@
----
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
-# Copyright 2019 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
-
-- hosts: san_eng_zone_seed_san_a
-  gather_facts: False
-  collections:
-    - brocade.fos
+- name: Generate and export CSR
+  hosts: san_eng_zone_seed_san_a
+  gather_facts: false
 
   vars:
     credential:
-      fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: "{{fos_user_name}}"
-      fos_password: "{{fos_password}}"
-      https: "{{fos_https}}"
+      fos_ip_addr: "{{ fos_ip_addr }}"
+      fos_user_name: "{{ fos_user_name }}"
+      fos_password: "{{ fos_password }}"
+      https: "{{ fos_https }}"
     generate_inputs:
       certificate_entity: csr
       certificate_type: https
@@ -24,10 +18,10 @@
       state_name: CA
       locality_name: SJ
       organization_name: Broadcom
-      domain_name: 10.155.107.74
+      domain_name: 203.0.113.10
     action_inputs:
       remote_user_name: user_name
-      remote_host_ip: host_ip
+      remote_host_ip: "198.51.100.254"
       remote_user_password: password
       remote_directory: diretory
       protocol: scp
@@ -36,16 +30,14 @@
       operation: export
 
   tasks:
+    - name: CSR generation. Existing CSR is not compared. This task will always change.
+      brocade_security_security_certificate_generate:
+        credential: "{{ credential }}"
+        vfid: -1
+        generate_inputs: "{{ generate_inputs }}"
 
-  - name: CSR generation. Existing CSR is not compared. This task will always change.
-    brocade_security_security_certificate_generate:
-      credential: "{{credential}}"
-      vfid: -1
-      generate_inputs: "{{generate_inputs}}"
-
-
-  - name: CSR export. Existing CSR is not compared. This task will always change.
-    brocade_security_security_certificate_action:
-      credential: "{{credential}}"
-      vfid: -1
-      action_inputs: "{{action_inputs}}"
+    - name: CSR export. Existing CSR is not compared. This task will always change.
+      brocade_security_security_certificate_action:
+        credential: "{{ credential }}"
+        vfid: -1
+        action_inputs: "{{ action_inputs }}"

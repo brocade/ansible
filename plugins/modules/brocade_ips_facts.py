@@ -1,21 +1,19 @@
 #!/usr/bin/python
-
-# Copyright 2025 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import str_to_yang, str_to_human
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import exit_after_login, login, logout
 from ansible_collections.brocade.fos.plugins.module_utils.brocade_objects import list_get, to_human_list
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_yang import str_to_human, str_to_yang
 
 __metaclass__ = type
 
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 
 module: brocade_ips_facts
 short_description: Brocade IP storage facts gathering
@@ -80,11 +78,11 @@ options:
         choices:
             - all
             - vrf
-            - vlan            
-            - staticArp            
-            - staticRoute            
+            - vlan
+            - staticArp
+            - staticRoute
             - lag
-            - configuration            
+            - configuration
             - interface
             - arpTable
             - routeTable
@@ -92,7 +90,7 @@ options:
         default: all
         type: list
 
-'''
+"""
 
 
 EXAMPLES = """
@@ -100,8 +98,8 @@ EXAMPLES = """
   vars:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: admin
-      fos_password: password
+      fos_user_name: user_name
+      fos_password: user_password
       https: self
 
   tasks:
@@ -110,13 +108,13 @@ EXAMPLES = """
     brocade_ips_facts:
       credential: "{{credential}}"
       vfid: "{{ips_fid}}"
-      gather_subset:        
+      gather_subset:
         - vrf
-        - vlan            
-        - staticArp            
-        - staticRoute            
+        - vlan
+        - staticArp
+        - staticRoute
         - lag
-        - configuration            
+        - configuration
         - interface
         - arpTable
         - routeTable
@@ -162,50 +160,51 @@ def main():
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict', options=dict(
-            fos_ip_addr=dict(required=True, type='str'),
-            fos_user_name=dict(required=True, type='str'),
-            fos_password=dict(required=True, type='str', no_log=True),
-            https=dict(required=True, type='str'),
-            ssh_hostkeymust=dict(required=False, type='bool'))),
-        vfid=dict(required=False, type='int'),
-        throttle=dict(required=False, type='int'),
-        timeout=dict(required=False, type='int'),
-        gather_subset=dict(required=True, type='list'))
-
-    module = AnsibleModule(
-        argument_spec=argument_spec,
-        supports_check_mode=False
+        credential=dict(
+            required=True,
+            type="dict",
+            options=dict(
+                fos_ip_addr=dict(required=True, type="str"),
+                fos_user_name=dict(required=True, type="str"),
+                fos_password=dict(required=True, type="str", no_log=True),
+                https=dict(required=True, type="str"),
+                ssh_hostkeymust=dict(required=False, type="bool"),
+            ),
+        ),
+        vfid=dict(required=False, type="int"),
+        throttle=dict(required=False, type="int"),
+        timeout=dict(required=False, type="int"),
+        gather_subset=dict(required=True, type="list"),
     )
+
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
     input_params = module.params
 
     # Set up state variables
-    fos_ip_addr = input_params['credential']['fos_ip_addr']
-    fos_user_name = input_params['credential']['fos_user_name']
-    fos_password = input_params['credential']['fos_password']
-    https = input_params['credential']['https']
+    fos_ip_addr = input_params["credential"]["fos_ip_addr"]
+    fos_user_name = input_params["credential"]["fos_user_name"]
+    fos_password = input_params["credential"]["fos_password"]
+    https = input_params["credential"]["https"]
     ssh_hostkeymust = True
-    if 'ssh_hostkeymust' in input_params['credential']:
-        ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
-    throttle = input_params['throttle']
-    timeout = input_params['timeout']
-    vfid = input_params['vfid']
-    gather_subset = input_params['gather_subset']
+    if "ssh_hostkeymust" in input_params["credential"]:
+        ssh_hostkeymust = input_params["credential"]["ssh_hostkeymust"]
+    throttle = input_params["throttle"]
+    timeout = input_params["timeout"]
+    vfid = input_params["vfid"]
+    gather_subset = input_params["gather_subset"]
     result = {"changed": False}
 
     if vfid is None:
         vfid = 128
 
-    ret_code, auth, fos_version = login(fos_ip_addr,
-                                        fos_user_name, fos_password,
-                                        https, throttle, result, timeout)
+    ret_code, auth, fos_version = login(fos_ip_addr, fos_user_name, fos_password, https, throttle, result, timeout)
     if ret_code != 0:
         module.exit_json(**result)
 
     facts = {}
 
-    facts['ssh_hostkeymust'] = ssh_hostkeymust
+    facts["ssh_hostkeymust"] = ssh_hostkeymust
 
     if gather_subset is not None:
         for subset in gather_subset:
@@ -216,7 +215,7 @@ def main():
                 module.exit_json(**result)
 
     for area in valid_areas:
-        if (gather_subset is None or area in gather_subset or "all" in gather_subset):
+        if gather_subset is None or area in gather_subset or "all" in gather_subset:
             get_list = True
             module_name = ""
 
@@ -260,20 +259,27 @@ def main():
             module_name = str_to_human(module_name)
             if get_list:  # maintaining the structure for future development if any
                 list_name = str_to_human(list_name)
-                ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
-                                              module_name, list_name, fos_version,
-                                              https, auth, vfid, result,
-                                              ssh_hostkeymust, timeout)
+                ret_code, response = list_get(
+                    fos_user_name,
+                    fos_password,
+                    fos_ip_addr,
+                    module_name,
+                    list_name,
+                    fos_version,
+                    https,
+                    auth,
+                    vfid,
+                    result,
+                    ssh_hostkeymust,
+                    timeout,
+                )
                 if ret_code != 0:
                     result[module_name + "_" + list_name + "_get"] = ret_code
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
                 obj_list = response["Response"][str_to_yang(list_name)]
                 if not isinstance(obj_list, list):
-                    if obj_list is None:
-                        obj_list = []
-                    else:
-                        obj_list = [obj_list]
+                    obj_list = [] if obj_list is None else [obj_list]
 
                 to_human_list(module_name, list_name, obj_list, result)
                 facts[area] = obj_list
@@ -284,5 +290,5 @@ def main():
     module.exit_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -1,17 +1,23 @@
 namespace: brocade
 name: fos
-version: 2.0.2
-readme: README.md
+version: 2.1.0
+readme: README.rst
 authors:
   - Brocade Automation Team <Automation.BSN@broadcom.com>
-description: Collection of modules to manage Brocade FOS FC switches
+description: Collection of modules to manage Brocade FOS Fibre Channel (FC) switches
 license:
-  - GPL-2.0-or-later
+  - GPL-3.0-or-later
+  - BSD-2-Clause
+# license_file: COPYING
 tags:
   - brocade
   - fos
   - storage
+  - san
+  - fibre_channel
+  - fc
 dependencies: {}
 repository: https://github.com/brocade/ansible
-documentation: https://github.com/brocade/ansible
+documentation: https://galaxy.ansible.com/ui/repo/published/brocade/fos/docs/
+homepage: https://github.com/brocade/ansible
 issues: https://github.com/brocade/ansible/issues

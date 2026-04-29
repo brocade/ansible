@@ -1,22 +1,16 @@
----
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
-# Copyright 2019 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
-
-- hosts: san_eng_zone_seed_san_a
-  gather_facts: False
-  collections:
-    - brocade.fos
+- name: Configure port groups and N-Port map with load balancing on
+  hosts: san_eng_zone_seed_san_a
+  gather_facts: false
 
   vars:
     credential:
-      fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: "{{fos_user_name}}"
-      fos_password: "{{fos_password}}"
-      https: "{{fos_https}}"
+      fos_ip_addr: "{{ fos_ip_addr }}"
+      fos_user_name: "{{ fos_user_name }}"
+      fos_password: "{{ fos_password }}"
+      https: "{{ fos_https }}"
 
     all_port_groups_with_n_ports:
       - port_group_id: "0"
@@ -60,27 +54,26 @@
           f_port:
             - "0/36"
             - "0/37"
-   
+
   tasks:
+    - name: Port group configuration with n-port
+      brocade_access_gateway_port_group:
+        credential: "{{ credential }}"
+        vfid: -1
+        port_groups: "{{ all_port_groups_with_n_ports }}"
 
-  - name: port group configuration with n-port
-    brocade_access_gateway_port_group:
-      credential: "{{credential}}"
-      vfid: -1
-      port_groups: "{{all_port_groups_with_n_ports}}"
+    - name: Port group mode
+      brocade_access_gateway_port_group:
+        credential: "{{ credential }}"
+        vfid: -1
+        port_groups: "{{ all_port_groups_with_mode }}"
 
-  - name: port group mode
-    brocade_access_gateway_port_group:
-      credential: "{{credential}}"
-      vfid: -1
-      port_groups: "{{all_port_groups_with_mode}}"
+    - name: Pause to make sure ports are configured
+      ansible.builtin.pause:
+        seconds: 15
 
-  # pause for 15 seconds to make sure fabric is stable for
-  # zoning commit
-  - pause: seconds=15
-
-  - name: port group f-port configuration
-    brocade_access_gateway_port_group:
-      credential: "{{credential}}"
-      vfid: -1
-      port_groups: "{{all_port_groups_with_f_ports}}"
+    - name: Port group f-port configuration
+      brocade_access_gateway_port_group:
+        credential: "{{ credential }}"
+        vfid: -1
+        port_groups: "{{ all_port_groups_with_f_ports }}"

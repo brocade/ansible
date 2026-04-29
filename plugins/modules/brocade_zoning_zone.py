@@ -1,16 +1,14 @@
 #!/usr/bin/python
-
-# Copyright 2019-2025 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 
 module: brocade_zoning_zone
 short_description: Brocade Fibre Channel zone configuration
@@ -46,7 +44,7 @@ options:
                 type: str
             https:
                 description:
-                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS,
                   or False for HTTP
                 choices:
                     - True
@@ -59,7 +57,7 @@ options:
         required: true
     vfid:
         description:
-        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG.
         type: int
         required: false
     throttle:
@@ -103,7 +101,7 @@ options:
         required: true
         type: list
 
-'''
+"""
 
 
 EXAMPLES = """
@@ -113,27 +111,27 @@ EXAMPLES = """
   vars:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: admin
-      fos_password: password
+      fos_user_name: user_name
+      fos_password: user_password
       https: False
     zones:
-      - name: NewZoneName
+      - name: zone_new_1
         members:
-          - Host1
-          - Target1
-          - Target2
-      - name: NewZoneName2
+          - alias_host_1
+          - alias_target_1
+          - alias_target_2
+      - name: zone_new_2
         members:
-          - Host1
-          - Target2
-      - name: NewZoneNameP
+          - alias_host_1
+          - alias_target_2
+      - name: zone_new_p
         members:
-          - 11:22:33:44:55:66:77:88
+          - aa:bb:cc:dd:ee:ff:11:15
         principal_members:
-          - 22:22:33:44:55:66:77:88
+          - aa:bb:cc:dd:ee:ff:11:16
     zones_to_delete:
-      - name: NewZoneNameP
-      - name: NewZoneName2
+      - name: zone_new_p
+      - name: zone_new_2
 
   tasks:
 
@@ -163,8 +161,15 @@ Brocade Fibre Channel zone configuration
 
 
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible_collections.brocade.fos.plugins.module_utils.brocade_zoning import zoning_common, zone_post, zone_delete, zone_get, zone_process_diff, zone_process_diff_to_delete
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_connection import login, logout
+from ansible_collections.brocade.fos.plugins.module_utils.brocade_zoning import (
+    zone_delete,
+    zone_get,
+    zone_post,
+    zone_process_diff,
+    zone_process_diff_to_delete,
+    zoning_common,
+)
 
 
 def main():
@@ -173,58 +178,77 @@ def main():
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict', options=dict(
-            fos_ip_addr=dict(required=True, type='str'),
-            fos_user_name=dict(required=True, type='str'),
-            fos_password=dict(required=True, type='str', no_log=True),
-            https=dict(required=True, type='str'),
-            ssh_hostkeymust=dict(required=False, type='bool'))),
-        vfid=dict(required=False, type='int'),
-        throttle=dict(required=False, type='int'),
-        timeout=dict(required=False, type='int'),
-        zones=dict(required=False, type='list'),
-        members_add_only=dict(required=False, type='bool'),
-        members_remove_only=dict(required=False, type='bool'),
-        zones_to_delete=dict(required=False, type='list'))
-
-    module = AnsibleModule(
-        argument_spec=argument_spec,
-        supports_check_mode=True
+        credential=dict(
+            required=True,
+            type="dict",
+            options=dict(
+                fos_ip_addr=dict(required=True, type="str"),
+                fos_user_name=dict(required=True, type="str"),
+                fos_password=dict(required=True, type="str", no_log=True),
+                https=dict(required=True, type="str"),
+                ssh_hostkeymust=dict(required=False, type="bool"),
+            ),
+        ),
+        vfid=dict(required=False, type="int"),
+        throttle=dict(required=False, type="int"),
+        timeout=dict(required=False, type="int"),
+        zones=dict(required=False, type="list"),
+        members_add_only=dict(required=False, type="bool"),
+        members_remove_only=dict(required=False, type="bool"),
+        zones_to_delete=dict(required=False, type="list"),
     )
+
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
 
     input_params = module.params
 
     # Set up state variables
-    fos_ip_addr = input_params['credential']['fos_ip_addr']
-    fos_user_name = input_params['credential']['fos_user_name']
-    fos_password = input_params['credential']['fos_password']
-    https = input_params['credential']['https']
-    throttle = input_params['throttle']
-    timeout = input_params['timeout']
-    vfid = input_params['vfid']
-    zones = input_params['zones']
-    members_add_only = input_params['members_add_only']
-    members_remove_only = input_params['members_remove_only']
-    zones_to_delete = input_params['zones_to_delete']
+    fos_ip_addr = input_params["credential"]["fos_ip_addr"]
+    fos_user_name = input_params["credential"]["fos_user_name"]
+    fos_password = input_params["credential"]["fos_password"]
+    https = input_params["credential"]["https"]
+    throttle = input_params["throttle"]
+    timeout = input_params["timeout"]
+    vfid = input_params["vfid"]
+    zones = input_params["zones"]
+    members_add_only = input_params["members_add_only"]
+    members_remove_only = input_params["members_remove_only"]
+    zones_to_delete = input_params["zones_to_delete"]
     result = {"changed": False}
 
     if vfid is None:
         vfid = 128
 
-    ret_code, auth, fos_version = login(fos_ip_addr,
-                           fos_user_name, fos_password,
-                           https, throttle, result, timeout)
+    ret_code, auth, fos_version = login(fos_ip_addr, fos_user_name, fos_password, https, throttle, result, timeout)
     if ret_code != 0:
         module.exit_json(**result)
 
-    zoning_common(fos_ip_addr, https, fos_version, auth, vfid, result, module, zones,
-                  members_add_only, members_remove_only, zones_to_delete, "zone",
-                  zone_process_diff, zone_process_diff_to_delete, zone_get,
-                  zone_post, zone_delete, None, False, timeout)
+    zoning_common(
+        fos_ip_addr,
+        https,
+        fos_version,
+        auth,
+        vfid,
+        result,
+        module,
+        zones,
+        members_add_only,
+        members_remove_only,
+        zones_to_delete,
+        "zone",
+        zone_process_diff,
+        zone_process_diff_to_delete,
+        zone_get,
+        zone_post,
+        zone_delete,
+        None,
+        False,
+        timeout,
+    )
 
     ret_code = logout(fos_ip_addr, https, auth, result, timeout)
     module.exit_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

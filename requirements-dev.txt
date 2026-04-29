@@ -1,0 +1,9 @@
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
+
+# Dev/sanity requirements -- includes base collection dependencies
+-r requirements.txt
+
+# Linting tools for tests/sanity/code_sanity.py
+ruff==0.15.6
+ansible-lint==6.17.2
