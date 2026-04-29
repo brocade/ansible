@@ -1,10 +1,9 @@
-# Copyright 2019 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
 
 import paramiko
+
 
 def ssh_and_configure(login, password, ipaddr, hostkeymust, cmdstr, expected):
     ssh = paramiko.SSHClient()
@@ -16,7 +15,7 @@ def ssh_and_configure(login, password, ipaddr, hostkeymust, cmdstr, expected):
     except paramiko.ssh_exception.AuthenticationException:
         return -1, "invalid name/password"
     except Exception as e:
-        return -2, "skiiping due to error" + str(e)
+        return -2, "skipping due to error" + str(e)
 
     e_stdin, e_stdout, e_stderr = ssh.exec_command(cmdstr)
     e_resp = e_stdout.read().decode()

@@ -17,4 +17,5 @@ Welcome to FOS-ansible documentation!
    generated_rst/versioning
    generated_rst/CHANGELOG
    generated_rst/CONTRIBUTING
+   generated_rst/licenses
 

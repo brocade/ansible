@@ -1,101 +1,91 @@
----
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
-# Copyright 2019 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
-
-- hosts: san_eng_zone_seed_san_a
-  gather_facts: False
+- name: Configure zones
+  hosts: san_eng_zone_seed_san_a
+  gather_facts: false
 
   vars:
     credential:
-      fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: "{{fos_user_name}}"
-      fos_password: "{{fos_password}}"
-      https: "{{fos_https}}"
+      fos_ip_addr: "{{ fos_ip_addr }}"
+      fos_user_name: "{{ fos_user_name }}"
+      fos_password: "{{ fos_password }}"
+      https: "{{ fos_https }}"
     aliases:
-      - name: Host1
+      - name: alias_host_1
         members:
-          - aa:11:11:11:11:11:11:11
-          - aa:22:22:22:22:22:22:22
-      - name: Target2
+          - aa:bb:cc:dd:ee:ff:11:1a
+          - aa:bb:cc:dd:ee:ff:11:1b
+      - name: alias_target_1
         members:
-          - aa:44:44:44:44:44:44:44      
-      - name: Target3
+          - aa:bb:cc:dd:ee:ff:11:1c
+      - name: alias_target_2
         members:
-          - aa:55:55:55:55:55:55:55
-      - name: Target4
+          - aa:bb:cc:dd:ee:ff:11:1d
+      - name: alias_target_3
         members:
-          - aa:bb:cc:dd:AA:BB:CC:DD
+          - aa:bb:cc:dd:ee:ff:11:20
     aliases_to_delete:
-      - name: Target3
-      - name: Target4
+      - name: alias_target_2
+      - name: alias_target_3
     zones:
-      - name: Zone1
+      - name: zone_1
         members:
-          - Host1
-          - Target2
-          - Target3
-      - name: Zone2
+          - alias_host_1
+          - alias_target_1
+      - name: zone_2
         members:
-          - Host1
-          - Target3
-          - Target4
-      - name: Zone3
+          - alias_host_1
+          - alias_target_2
+      - name: zone_3
         members:
-          - aa:44:44:44:44:44:44:44
-          - aa:55:55:55:55:55:55:55
+          - aa:bb:cc:dd:ee:ff:11:1c
+          - aa:bb:cc:dd:ee:ff:11:1d
         principal_members:
-          - aa:aa:aa:aa:bb:bb:bb:bb
-          - aa:aa:aa:aa:cc:cc:cc:cc
+          - aa:bb:cc:dd:ee:ff:11:1a
+          - aa:bb:cc:dd:ee:ff:11:1b
     zones_to_delete:
-      - name: Zone2
-      - name: Zone3
+      - name: zone_2
+      - name: zone_3
     cfgs:
-      - name: cfg1
+      - name: cfg_1
         members:
-          - Zone1
-          - Zone2
-      - name: cfg2
+          - zone_1
+      - name: cfg_2
         members:
-          - Zone2
-          - zone3
-      - name: cfg3
+          - zone_2
+      - name: cfg_3
         members:
-          - Zone1
-          - Zone3
+          - zone_3
     cfgs_to_delete:
-      - name: cfg2
-      - name: cfg3
+      - name: cfg_2
+      - name: cfg_3
 
   tasks:
+    - name: Create aliases
+      brocade_zoning_alias:
+        credential: "{{ credential }}"
+        vfid: -1
+        aliases: "{{ aliases }}"
+          # aliases_to_delete: "{{ aliases_to_delete }}"
 
-  - name: Create aliases
-    brocade_zoning_alias:
-      credential: "{{credential}}"
-      vfid: -1
-      aliases: "{{aliases}}"
-#      aliases_to_delete: "{{aliases_to_delete}}"
+    - name: Create zones
+      brocade_zoning_zone:
+        credential: "{{ credential }}"
+        vfid: -1
+        zones: "{{ zones }}"
+          # zones_to_delete: "{{ zones_to_delete }}"
 
-  - name: Create zones
-    brocade_zoning_zone:
-      credential: "{{credential}}"
-      vfid: -1
-      zones: "{{zones}}"
-#      zones_to_delete: "{{zones_to_delete}}"
+    - name: Create cfgs
+      brocade_zoning_cfg:
+        credential: "{{ credential }}"
+        vfid: -1
+        cfgs: "{{ cfgs }}"
+          # cfgs_to_delete: "{{ cfgs_to_delete }}"
+        active_cfg: cfg_1
 
-  - name: Create cfgs
-    brocade_zoning_cfg:
-      credential: "{{credential}}"
-      vfid: -1
-      cfgs: "{{cfgs}}"
-#      cfgs_to_delete: "{{cfgs_to_delete}}"
-      active_cfg: cfg1
-
-  - name: Default zoning
-    brocade_zoning_default_zone:
-      credential: "{{credential}}"
-      vfid: -1
-      default_zone_access: allaccess
+    - name: Default zoning
+      brocade_zoning_default_zone:
+        credential: "{{ credential }}"
+        vfid: -1
+        default_zone_access: allaccess

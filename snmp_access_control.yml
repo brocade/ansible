@@ -1,33 +1,29 @@
----
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
-# Copyright 2021 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
-
-
-- hosts: san_eng_zone_seed_san_a
-  gather_facts: False
+- name: Configure SNMP access control
+  hosts: san_eng_zone_seed_san_a
+  gather_facts: false
 
   vars:
     credential:
-      fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: "{{fos_user_name}}"
-      fos_password: "{{fos_password}}"
-      https: "{{fos_https}}"
+      fos_ip_addr: "{{ fos_ip_addr }}"
+      fos_user_name: "{{ fos_user_name }}"
+      fos_password: "{{ fos_password }}"
+      https: "{{ fos_https }}"
 
   tasks:
 
-  - name: access control for snmp
-    brocade_list_obj:
-      credential: "{{credential}}"
-      vfid: -1
-      module_name: "brocade_snmp"
-      list_name: "access_control"
-      entries: 
-        - index: 1 
-          host: "10.10.10.11"
-          access_level: "ro"
-        - index: 2
-          host: "10.10.10.10"
-          access_level: "rw"
+    - name: Access control for snmp
+      brocade_list_obj:
+        credential: "{{ credential }}"
+        vfid: -1
+        module_name: "brocade_snmp"
+        list_name: "access_control"
+        entries:
+          - index: 1
+            host: "198.51.100.2"
+            access_level: "ro"
+          - index: 2
+            host: "198.51.100.1"
+            access_level: "rw"

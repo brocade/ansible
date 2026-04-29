@@ -1,21 +1,17 @@
 #!/usr/bin/python
-
-# Copyright 2019-2025 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'status': ['preview'],
-                    'supported_by': 'certified'}
+ANSIBLE_METADATA = {"metadata_version": "1.1", "status": ["preview"], "supported_by": "certified"}
 
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 
 module: brocade_fibrechannel_logical_switch_fibrechannel_logical_switch
 short_description: Brocade Logical Switch Configuration
@@ -72,7 +68,7 @@ options:
           be present.
         required: true
 
-'''
+"""
 
 
 EXAMPLES = """
@@ -82,8 +78,8 @@ EXAMPLES = """
   vars:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: admin
-      fos_password: xxxx
+      fos_user_name: user_name
+      fos_password: user_password
       https: False
 
   tasks:
@@ -120,8 +116,8 @@ Brocade Fibre Channel Logical Switch Configuration
 """
 
 
-from ansible.module_utils.brocade_objects import list_helper
 from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.brocade_objects import list_helper
 
 
 def main():
@@ -130,39 +126,57 @@ def main():
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict', options=dict(
-            fos_ip_addr=dict(required=True, type='str'),
-            fos_user_name=dict(required=True, type='str'),
-            fos_password=dict(required=True, type='str', no_log=True),
-            https=dict(required=True, type='str'),
-            ssh_hostkeymust=dict(required=False, type='bool'))),
-        vfid=dict(required=False, type='int'),
-        throttle=dict(required=False, type='int'),
-        timeout=dict(required=False, type='int'),
-        all_entries=dict(required=False, type='bool'),
-        logical_switches=dict(required=True, type='list'))
-
-    module = AnsibleModule(
-        argument_spec=argument_spec,
-        supports_check_mode=True
+        credential=dict(
+            required=True,
+            type="dict",
+            options=dict(
+                fos_ip_addr=dict(required=True, type="str"),
+                fos_user_name=dict(required=True, type="str"),
+                fos_password=dict(required=True, type="str", no_log=True),
+                https=dict(required=True, type="str"),
+                ssh_hostkeymust=dict(required=False, type="bool"),
+            ),
+        ),
+        vfid=dict(required=False, type="int"),
+        throttle=dict(required=False, type="int"),
+        timeout=dict(required=False, type="int"),
+        all_entries=dict(required=False, type="bool"),
+        logical_switches=dict(required=True, type="list"),
     )
+
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
 
     input_params = module.params
 
     # Set up state variables
-    fos_ip_addr = input_params['credential']['fos_ip_addr']
-    fos_user_name = input_params['credential']['fos_user_name']
-    fos_password = input_params['credential']['fos_password']
-    https = input_params['credential']['https']
-    throttle = input_params['throttle']
-    timeout = input_params['timeout']
-    all_entries = input_params['all_entries']
-    vfid = input_params['vfid']
-    logical_switches = input_params['logical_switches']
+    fos_ip_addr = input_params["credential"]["fos_ip_addr"]
+    fos_user_name = input_params["credential"]["fos_user_name"]
+    fos_password = input_params["credential"]["fos_password"]
+    https = input_params["credential"]["https"]
+    throttle = input_params["throttle"]
+    timeout = input_params["timeout"]
+    all_entries = input_params["all_entries"]
+    vfid = input_params["vfid"]
+    logical_switches = input_params["logical_switches"]
     result = {"changed": False}
 
-    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_fibrechannel_logical_switch", "fibrechannel_logical_switch", logical_switches, all_entries, result, timeout)
+    list_helper(
+        module,
+        fos_ip_addr,
+        fos_user_name,
+        fos_password,
+        https,
+        True,
+        throttle,
+        vfid,
+        "brocade_fibrechannel_logical_switch",
+        "fibrechannel_logical_switch",
+        logical_switches,
+        all_entries,
+        result,
+        timeout,
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
