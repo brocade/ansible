@@ -1,14 +1,14 @@
-# Copyright 2019 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
 
-from __future__ import (absolute_import, division, print_function)
-import time
+from __future__ import absolute_import, division, print_function
+
 import os
-import ansible.module_utils.urls as ansible_urls
+import time
+
 import ansible.module_utils.six.moves.urllib.error as urllib_error
+import ansible.module_utils.urls as ansible_urls
 from ansible.module_utils.brocade_xml import bsn_xmltodict
 from ansible.module_utils.brocade_yang import str_to_yang
 
@@ -32,6 +32,7 @@ ERROR_GENERIC = -1
 ERROR_LIST_EMPTY = -2
 ERROR_SERVER_BUSY = -3
 
+
 def full_url_get(is_https, fos_ip_addr, path):
     if isinstance(is_https, bool):
         if is_https:
@@ -46,30 +47,31 @@ def full_url_get(is_https, fos_ip_addr, path):
         # by default, return HTTP
         return HTTP + fos_ip_addr + str_to_yang(path), False
 
-def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout):
 
+def url_post(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout):
     retcode, post_resp = url_post_resp(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout)
 
     return retcode
 
+
 def url_post_resp(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout):
     """
-        general function to post for a given url
+    general function to post for a given url
 
-        :param fos_ip_addr: fos switch ip address
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTPS or HTTP
-        :type fos_password: Bool
-        :param auth: return authorization struct at the time of login
-        :type auth: dict
-        :param result: dict to store execution results in
-        :type result: dict
-        :param url: full url
-        :type url: str
-        :param body: body to post
-        :type body: str
-        :return: 0 for success or -1 for failure
-        :rtype: int
+    :param fos_ip_addr: fos switch ip address
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTPS or HTTP
+    :type fos_password: Bool
+    :param auth: return authorization struct at the time of login
+    :type auth: dict
+    :param result: dict to store execution results in
+    :type result: dict
+    :param url: full url
+    :type url: str
+    :param body: body to post
+    :type body: str
+    :return: 0 for success or -1 for failure
+    :rtype: int
     """
     not_used, validate_certs = full_url_get(is_https, "", "")
 
@@ -102,22 +104,22 @@ def url_post_resp(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout)
 
 def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout):
     """
-        general function to patch for a given url
+    general function to patch for a given url
 
-        :param fos_ip_addr: fos switch ip address
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTPS or HTTP
-        :type fos_password: Bool
-        :param auth: return authorization struct at the time of login
-        :type auth: dict
-        :param result: dict to store execution results in
-        :type auth: dict
-        :param url: full url
-        :type url: str
-        :param body: body to post
-        :type body: str
-        :return: 0 for success or -1 for failure
-        :rtype: int
+    :param fos_ip_addr: fos switch ip address
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTPS or HTTP
+    :type fos_password: Bool
+    :param auth: return authorization struct at the time of login
+    :type auth: dict
+    :param result: dict to store execution results in
+    :type auth: dict
+    :param url: full url
+    :type url: str
+    :param body: body to post
+    :type body: str
+    :return: 0 for success or -1 for failure
+    :rtype: int
     """
     not_used, validate_certs = full_url_get(is_https, "", "")
 
@@ -141,22 +143,22 @@ def url_patch(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout):
 
 def url_delete(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout):
     """
-        general function to delete for a given url
+    general function to delete for a given url
 
-        :param fos_ip_addr: fos switch ip address
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTPS or HTTP
-        :type fos_password: Bool
-        :param auth: return authorization struct at the time of login
-        :type auth: dict
-        :param result: dict to store execution results in
-        :type result: dict
-        :param url: full url
-        :type url: str
-        :param body: body to post
-        :type body: str
-        :return: 0 for success or -1 for failure
-        :rtype: int
+    :param fos_ip_addr: fos switch ip address
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTPS or HTTP
+    :type fos_password: Bool
+    :param auth: return authorization struct at the time of login
+    :type auth: dict
+    :param result: dict to store execution results in
+    :type result: dict
+    :param url: full url
+    :type url: str
+    :param body: body to post
+    :type body: str
+    :return: 0 for success or -1 for failure
+    :rtype: int
     """
     not_used, validate_certs = full_url_get(is_https, "", "")
 
@@ -175,6 +177,7 @@ def url_delete(fos_ip_addr, is_https, auth, vfid, result, url, body, timeout):
 
     return 0
 
+
 messages_404 = [
     "No entries found",
     "No syslog servers are configured",
@@ -188,8 +191,8 @@ messages_404 = [
     "LDAP configuration does not exist.",
     "Role Map Configuration does not exist",
     "No public keys found",
-    "No device was found"
-    ]
+    "No device was found",
+]
 
 empty_messages_400 = [
     "Not supported on this platform",
@@ -197,8 +200,8 @@ empty_messages_400 = [
     "Extension not supported on this platform",
     "No entries in the FDMI database",
     "No licenses installed",
-    "cannot find required parameter User group"
-    ]
+    "cannot find required parameter User group",
+]
 
 
 def known_empty_message(errs):
@@ -214,6 +217,7 @@ def known_empty_message(errs):
 
 
 CHASSIS_NOT_READY = "Chassis is not ready for management"
+
 
 def chassis_not_ready_message(errs):
     if isinstance(errs, list):
@@ -234,20 +238,24 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout, credent
     root_dict["errors"]["error"] = {}
     root_dict["errors"]["error"]["error-message"] = {}
 
-    if credential == None:   
-        myheaders={
-            "Authorization": auth["auth"],
-            'Content-Type': 'application/yang-data+xml'}
+    if credential is None:
+        myheaders = {"Authorization": auth["auth"], "Content-Type": "application/yang-data+xml"}
     else:
         myheaders = credential
 
-    if timeout == None:
+    if timeout is None:
         timeout = DEFAULT_TO
 
     try:
-        get_resp = ansible_urls.open_url(url, body,
-                                         headers=myheaders,
-                                         method=method, timeout=timeout, validate_certs=validate_certs, follow_redirects=False)
+        get_resp = ansible_urls.open_url(
+            url,
+            body,
+            headers=myheaders,
+            method=method,
+            timeout=timeout,
+            validate_certs=validate_certs,
+            follow_redirects=False,
+        )
     except urllib_error.HTTPError as e:
         e_data = e.read()
         if len(e_data) > 0:
@@ -290,31 +298,41 @@ def url_helper(url, body, method, auth, result, validate_certs, timeout, credent
         else:
             result["failed"] = True
             result["msg"] = method + " failed"
-
         return ERROR_GENERIC, ret_val, None, None
+    except urllib_error.URLError as e:
+        result[method + "_url"] = url
+        result["failed"] = True
+        result["msg"] = f"{method} failed. {e}"
+        return ERROR_GENERIC, ERROR_GENERIC, None, None
 
     result[method + "_url"] = url
 
-    return 0, 0, None, get_resp,
+    return (
+        0,
+        0,
+        None,
+        get_resp,
+    )
+
 
 def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url, timeout):
     """
-        retrieve existing url content and return dict
+    retrieve existing url content and return dict
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :param url: url for FOS REST API
-        :type url: str
-        :return: code to indicate failure or success
-        :rtype: int
-        :return: list of dict of port configurations
-        :rtype: list
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :param url: url for FOS REST API
+    :type url: str
+    :return: code to indicate failure or success
+    :rtype: int
+    :return: list of dict of port configurations
+    :rtype: list
     """
     not_used, validate_certs = full_url_get(is_https, "", "")
 
@@ -345,25 +363,24 @@ def url_get_to_dict(fos_ip_addr, is_https, auth, vfid, result, url, timeout):
     return 0, root_dict
 
 
-def url_patch_single_object(fos_ip_addr, is_https, auth, vfid,
-                            result, url, obj_name, diff_attributes, timeout):
+def url_patch_single_object(fos_ip_addr, is_https, auth, vfid, result, url, obj_name, diff_attributes, timeout):
     """
-        update existing switch configurations
+    update existing switch configurations
 
-        :param fos_ip_addr: ip address of FOS switch
-        :type fos_ip_addr: str
-        :param is_https: indicate to use HTTP or HTTPS
-        :type is_https: bool
-        :param auth: authorization struct from login
-        :type auth: dict
-        :param result: dict to keep track of execution msgs
-        :type result: dict
-        :param diff_attributes: list of attributes for update
-        :type ports: dict
-        :return: code to indicate failure or success
-        :rtype: int
-        :return: dict of key/value attributes of an object
-        :rtype: dict
+    :param fos_ip_addr: ip address of FOS switch
+    :type fos_ip_addr: str
+    :param is_https: indicate to use HTTP or HTTPS
+    :type is_https: bool
+    :param auth: authorization struct from login
+    :type auth: dict
+    :param result: dict to keep track of execution msgs
+    :type result: dict
+    :param diff_attributes: list of attributes for update
+    :type ports: dict
+    :return: code to indicate failure or success
+    :rtype: int
+    :return: dict of key/value attributes of an object
+    :rtype: dict
     """
     diff_str = ""
 
@@ -374,11 +391,9 @@ def url_patch_single_object(fos_ip_addr, is_https, auth, vfid,
             for k1, v1 in v.items():
                 if isinstance(v1, list):
                     for elem in v1:
-                        diff_str = diff_str + "<" + k1 + ">" +\
-                            str(elem) + "</" + k1 + ">\n"
+                        diff_str = diff_str + "<" + k1 + ">" + str(elem) + "</" + k1 + ">\n"
                 else:
-                    diff_str = diff_str + "<" + k1 + ">" + str(v1) +\
-                        "</" + k1 + ">\n"
+                    diff_str = diff_str + "<" + k1 + ">" + str(v1) + "</" + k1 + ">\n"
             diff_str = diff_str + "</" + k + ">\n"
         else:
             diff_str = diff_str + "<" + k + ">" + str(v) + "</" + k + ">\n"
@@ -388,5 +403,4 @@ def url_patch_single_object(fos_ip_addr, is_https, auth, vfid,
     result["url"] = url
     result["diff_str"] = diff_str
 
-    return url_patch(fos_ip_addr, is_https, auth, vfid, result,
-                     url, diff_str, timeout)
+    return url_patch(fos_ip_addr, is_https, auth, vfid, result, url, diff_str, timeout)

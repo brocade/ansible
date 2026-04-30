@@ -8,7 +8,7 @@ To build documentation
 
     .. code::
 
-       pip install -r docs/requirements.txt
+       pip install -r requirements.txt
 
 #. Trigger a build using the Makefile located under the docs directory
 
@@ -18,7 +18,7 @@ To build documentation
         make html
 
     .. tip::
-        To fail the documentation on warnings with traceback use 
+        To fail the documentation on warnings with traceback use
 
         .. code::
 

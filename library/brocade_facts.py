@@ -1,16 +1,14 @@
 #!/usr/bin/python
-
-# Copyright 2019-2025 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 
 module: brocade_facts
 short_description: Brocade Fibre Channel facts gathering
@@ -100,8 +98,6 @@ options:
             - brocade_security_user_config
             - brocade_security_password_cfg
             - brocade_security_security_certificate
-            - brocade_snmp_v1_account
-            - brocade_snmp_v1_trap
             - brocade_snmp_v3_account
             - brocade_snmp_v3_trap
             - brocade_maps_maps_config
@@ -112,7 +108,7 @@ options:
         default: all
         type: list
 
-'''
+"""
 
 
 EXAMPLES = """
@@ -120,8 +116,8 @@ EXAMPLES = """
   vars:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: admin
-      fos_password: password
+      fos_user_name: user_name
+      fos_password: user_password
       https: False
 
   tasks:
@@ -151,8 +147,6 @@ EXAMPLES = """
         - brocade_security_ipfilter_rule
         - brocade_security_ipfilter_policy
         - brocade_security_user_config
-        - brocade_snmp_v1_account
-        - brocade_snmp_v1_trap
         - brocade_snmp_v3_account
         - brocade_snmp_v3_trap
         - brocade_maps_maps_config
@@ -182,12 +176,17 @@ Brocade Fibre Channel gather FOS facts
 """
 
 
-from ansible.module_utils.brocade_connection import login, logout, exit_after_login
-from ansible.module_utils.brocade_zoning import defined_get, effective_get, to_human_zoning
-from ansible.module_utils.brocade_objects import singleton_get, list_get, to_human_singleton, to_human_list, get_moduleName
-from ansible.module_utils.brocade_yang import str_to_yang
 from ansible.module_utils.basic import AnsibleModule
-
+from ansible.module_utils.brocade_connection import exit_after_login, login, logout
+from ansible.module_utils.brocade_objects import (
+    get_moduleName,
+    list_get,
+    singleton_get,
+    to_human_list,
+    to_human_singleton,
+)
+from ansible.module_utils.brocade_yang import str_to_yang
+from ansible.module_utils.brocade_zoning import defined_get, effective_get, to_human_zoning
 
 valid_areas = [
     "brocade_access_gateway_port_group",
@@ -228,8 +227,9 @@ valid_areas = [
     "brocade_maps_rule",
     "brocade_maps_maps_policy",
     "brocade_security_sec_crypto_cfg_template_action",
-    "brocade_security_ldap_role_map"
-    ]
+    "brocade_security_ldap_role_map",
+]
+
 
 def main():
     """
@@ -237,50 +237,53 @@ def main():
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict', options=dict(
-            fos_ip_addr=dict(required=True, type='str'),
-            fos_user_name=dict(required=True, type='str'),
-            fos_password=dict(required=True, type='str', no_log=True),
-            https=dict(required=True, type='str'),
-            ssh_hostkeymust=dict(required=False, type='bool'))),
-        vfid=dict(required=False, type='int'),
+        credential=dict(
+            required=True,
+            type="dict",
+            options=dict(
+                fos_ip_addr=dict(required=True, type="str"),
+                fos_user_name=dict(required=True, type="str"),
+                fos_password=dict(required=True, type="str", no_log=True),
+                https=dict(required=True, type="str"),
+                ssh_hostkeymust=dict(required=False, type="bool"),
+            ),
+        ),
+        vfid=dict(required=False, type="int"),
+        throttle=dict(required=False, type="int"),
+        timeout=dict(required=False, type="int"),
+        gather_subset=dict(required=True, type="list"),
         throttle=dict(required=False, type='int'),
         timeout=dict(required=False, type='int'),
-        gather_subset=dict(required=True, type='list'))
-
-    module = AnsibleModule(
-        argument_spec=argument_spec,
-        supports_check_mode=False
     )
+
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
     input_params = module.params
 
     # Set up state variables
-    fos_ip_addr = input_params['credential']['fos_ip_addr']
-    fos_user_name = input_params['credential']['fos_user_name']
-    fos_password = input_params['credential']['fos_password']
-    https = input_params['credential']['https']
+    fos_ip_addr = input_params["credential"]["fos_ip_addr"]
+    fos_user_name = input_params["credential"]["fos_user_name"]
+    fos_password = input_params["credential"]["fos_password"]
+    https = input_params["credential"]["https"]
     ssh_hostkeymust = True
-    if 'ssh_hostkeymust' in input_params['credential']:
-        ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
-    throttle = input_params['throttle']
-    timeout = input_params['timeout']
-    vfid = input_params['vfid']
-    gather_subset = input_params['gather_subset']
+    if "ssh_hostkeymust" in input_params["credential"]:
+        ssh_hostkeymust = input_params["credential"]["ssh_hostkeymust"]
+    throttle = input_params["throttle"]
+    timeout = input_params["timeout"]
+    vfid = input_params["vfid"]
+    gather_subset = input_params["gather_subset"]
     result = {"changed": False}
 
     if vfid is None:
         vfid = 128
 
-    ret_code, auth, fos_version = login(fos_ip_addr,
-                           fos_user_name, fos_password,
-                           https, throttle, result, timeout)
+    ret_code, auth, fos_version = login(fos_ip_addr, fos_user_name, fos_password, https, throttle, result, timeout)
     if ret_code != 0:
         module.exit_json(**result)
 
     facts = {}
 
-    facts['ssh_hostkeymust'] = ssh_hostkeymust
+    facts["ssh_hostkeymust"] = ssh_hostkeymust
 
     if gather_subset is not None:
         for subset in gather_subset:
@@ -291,7 +294,7 @@ def main():
                 module.exit_json(**result)
 
     for area in valid_areas:
-        if (gather_subset is None or area in gather_subset or "all" in gather_subset):
+        if gather_subset is None or area in gather_subset or "all" in gather_subset:
             get_list = False
             get_singleton = False
             module_name = ""
@@ -447,10 +450,20 @@ def main():
 
             module_name = get_moduleName(fos_version, module_name)
             if get_singleton:
-                ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
-                                                   module_name, obj_name, fos_version,
-                                                   https, auth, vfid, result,
-                                                   ssh_hostkeymust, timeout)
+                ret_code, response = singleton_get(
+                    fos_user_name,
+                    fos_password,
+                    fos_ip_addr,
+                    module_name,
+                    obj_name,
+                    fos_version,
+                    https,
+                    auth,
+                    vfid,
+                    result,
+                    ssh_hostkeymust,
+                    timeout,
+                )
                 if ret_code != 0:
                     result[module_name + "_" + obj_name + "_get"] = ret_code
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
@@ -461,60 +474,56 @@ def main():
 
                 facts[area] = obj
             elif get_list:
-                ret_code, response = list_get(fos_user_name, fos_password, fos_ip_addr,
-                                              module_name, list_name, fos_version,
-                                              https, auth, vfid, result,
-                                              ssh_hostkeymust, timeout)
+                ret_code, response = list_get(
+                    fos_user_name,
+                    fos_password,
+                    fos_ip_addr,
+                    module_name,
+                    list_name,
+                    fos_version,
+                    https,
+                    auth,
+                    vfid,
+                    result,
+                    ssh_hostkeymust,
+                    timeout,
+                )
                 if ret_code != 0:
                     result[module_name + "_" + list_name + "_get"] = ret_code
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
                 obj_list = response["Response"][str_to_yang(list_name)]
                 if not isinstance(obj_list, list):
-                    if obj_list is None:
-                        obj_list = []
-                    else:
-                        obj_list = [obj_list]
+                    obj_list = [] if obj_list is None else [obj_list]
 
                 to_human_list(module_name, list_name, obj_list, result)
                 facts[area] = obj_list
             elif area == "brocade_zoning":
-                ret_code, response = defined_get(
-                    fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
+                ret_code, response = defined_get(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
                 if ret_code != 0:
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
                 zoning = {}
-                zoning["defined-configuration"] = (
-                    response["Response"]["defined-configuration"]
-                )
+                zoning["defined-configuration"] = response["Response"].get("defined-configuration") or {}
 
                 to_human_zoning(zoning["defined-configuration"])
 
-                ret_code, response = effective_get(
-                    fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
+                ret_code, response = effective_get(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
                 if ret_code != 0:
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-                zoning["effective-configuration"] = (
-                    response["Response"]["effective-configuration"]
-                )
+                zoning["effective-configuration"] = response["Response"].get("effective-configuration") or {}
 
                 to_human_zoning(zoning["effective-configuration"])
 
                 facts[area] = zoning
             elif area == "brocade_zoning_simple":
-                ret_code, response = defined_get(
-                    fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
+                ret_code, response = defined_get(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
                 if ret_code != 0:
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
                 zoning = {}
-                zoning["defined-configuration"] = {
-                    "aliases": [],
-                    "zones": [],
-                    "cfgs": []
-                }
+                zoning["defined-configuration"] = {"aliases": [], "zones": [], "cfgs": []}
 
                 if response["Response"]["defined-configuration"]["cfg"] is not None:
                     r_cfgs = response["Response"]["defined-configuration"]["cfg"]
@@ -525,12 +534,8 @@ def main():
                         if not isinstance(cfg["member-zone"]["zone-name"], list):
                             cfg_members = [cfg["member-zone"]["zone-name"]]
                         zoning["defined-configuration"]["cfgs"].append(
-                            {
-                                "name": cfg["cfg-name"],
-                                "members": cfg_members
-                            }
+                            {"name": cfg["cfg-name"], "members": cfg_members}
                         )
-
 
                 if response["Response"]["defined-configuration"]["alias"] is not None:
                     r_aliases = response["Response"]["defined-configuration"]["alias"]
@@ -541,10 +546,7 @@ def main():
                         if not isinstance(alias["member-entry"]["alias-entry-name"], list):
                             alias_members = [alias["member-entry"]["alias-entry-name"]]
                         zoning["defined-configuration"]["aliases"].append(
-                            {
-                                "name": alias["alias-name"],
-                                "members": alias_members
-                            }
+                            {"name": alias["alias-name"], "members": alias_members}
                         )
 
                 if response["Response"]["defined-configuration"]["zone"] is not None:
@@ -560,28 +562,18 @@ def main():
                             if not isinstance(zone["member-entry"]["principal-entry-name"], list):
                                 pzone_members = [zone["member-entry"]["principal-entry-name"]]
                             zoning["defined-configuration"]["zones"].append(
-                                {
-                                    "name": zone["zone-name"],
-                                    "members": zone_members,
-                                    "principal_members": pzone_members
-                                }
+                                {"name": zone["zone-name"], "members": zone_members, "principal_members": pzone_members}
                             )
                         else:
                             zoning["defined-configuration"]["zones"].append(
-                                {
-                                    "name": zone["zone-name"],
-                                    "members": zone_members
-                                }
+                                {"name": zone["zone-name"], "members": zone_members}
                             )
 
-                ret_code, response = effective_get(
-                    fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
+                ret_code, response = effective_get(fos_ip_addr, https, fos_version, auth, vfid, result, timeout)
                 if ret_code != 0:
                     exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
 
-                zoning["effective-configuration"] = (
-                    response["Response"]["effective-configuration"]
-                )
+                zoning["effective-configuration"] = response["Response"].get("effective-configuration") or {}
 
                 to_human_zoning(zoning["effective-configuration"])
 
@@ -593,5 +585,5 @@ def main():
     module.exit_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
