@@ -1,16 +1,14 @@
 #!/usr/bin/python
-
-# Copyright 2019-2025 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 
 module: brocade_logging_syslog
 short_description: Brocade Fibre Channel loggig syslog server configuration
@@ -41,7 +39,7 @@ options:
                 type: str
             https:
                 description:
-                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS,
                   or False for HTTP
                 choices:
                     - True
@@ -54,7 +52,7 @@ options:
         required: true
     vfid:
         description:
-        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG.
         type: int
         required: false
     throttle:
@@ -86,8 +84,8 @@ options:
           All writable attributes supported
           by BSN REST API with - replaced with _.
         required: true
-        type: list 
-'''
+        type: list
+"""
 
 
 EXAMPLES = """
@@ -97,8 +95,8 @@ EXAMPLES = """
   vars:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: admin
-      fos_password: xxxx
+      fos_user_name: user_name
+      fos_password: user_password
       https: False
 
   tasks:
@@ -110,7 +108,7 @@ EXAMPLES = """
       syslog_servers:
         - port: 514
           secure_mode: False
-          server: "10.155.2.151"
+          server: "203.0.113.10"
 
 """
 
@@ -130,8 +128,8 @@ Brocade Fibre Channel syslog server configuration
 """
 
 
-from ansible.module_utils.brocade_objects import list_helper
 from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.brocade_objects import list_helper
 
 
 def main():
@@ -140,42 +138,62 @@ def main():
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict', options=dict(
-            fos_ip_addr=dict(required=True, type='str'),
-            fos_user_name=dict(required=True, type='str'),
-            fos_password=dict(required=True, type='str', no_log=True),
-            https=dict(required=True, type='str'),
-            ssh_hostkeymust=dict(required=False, type='bool'))),
-        vfid=dict(required=False, type='int'),
+        credential=dict(
+            required=True,
+            type="dict",
+            options=dict(
+                fos_ip_addr=dict(required=True, type="str"),
+                fos_user_name=dict(required=True, type="str"),
+                fos_password=dict(required=True, type="str", no_log=True),
+                https=dict(required=True, type="str"),
+                ssh_hostkeymust=dict(required=False, type="bool"),
+            ),
+        ),
+        vfid=dict(required=False, type="int"),
+        throttle=dict(required=False, type="int"),
+        timeout=dict(required=False, type="int"),
+        syslog_servers=dict(required=True, type="list"),
+        all_entries=dict(required=False, type="bool"),
         throttle=dict(required=False, type='int'),
         timeout=dict(required=False, type='int'),
-        syslog_servers=dict(required=True, type='list'),
-        all_entries=dict(required=False, type='bool'))
-
-    module = AnsibleModule(
-        argument_spec=argument_spec,
-        supports_check_mode=True
     )
+
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=True)
 
     input_params = module.params
 
     # Set up state variables
-    fos_ip_addr = input_params['credential']['fos_ip_addr']
-    fos_user_name = input_params['credential']['fos_user_name']
-    fos_password = input_params['credential']['fos_password']
-    https = input_params['credential']['https']
-    throttle = input_params['throttle']
-    timeout = input_params['timeout']
-    vfid = input_params['vfid']
-    syslog_servers = input_params['syslog_servers']
+    fos_ip_addr = input_params["credential"]["fos_ip_addr"]
+    fos_user_name = input_params["credential"]["fos_user_name"]
+    fos_password = input_params["credential"]["fos_password"]
+    https = input_params["credential"]["https"]
+    throttle = input_params["throttle"]
+    timeout = input_params["timeout"]
+    vfid = input_params["vfid"]
+    syslog_servers = input_params["syslog_servers"]
     result = {"changed": False}
-    all_entries = input_params['all_entries']
+    all_entries = input_params["all_entries"]
 
-    if all_entries == None:
+    if all_entries is None:
         all_entries = False
 
-    list_helper(module, fos_ip_addr, fos_user_name, fos_password, https, True, throttle, vfid, "brocade_logging", "syslog_server", syslog_servers, all_entries, result, timeout)
+    list_helper(
+        module,
+        fos_ip_addr,
+        fos_user_name,
+        fos_password,
+        https,
+        True,
+        throttle,
+        vfid,
+        "brocade_logging",
+        "syslog_server",
+        syslog_servers,
+        all_entries,
+        result,
+        timeout,
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

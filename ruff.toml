@@ -1,0 +1,27 @@
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
+
+# Ruff configuration (rc file; pyproject.toml not required)
+target-version = "py311"
+line-length = 120
+indent-width = 4
+
+output-format = "grouped"
+show-fixes = true
+
+exclude = [
+    ".git"
+]
+
+[lint]
+select = ["E", "E501", "F", "W", "I", "B", "SIM", "N", "Q", "PTH"]
+# Ansible modules require DOCUMENTATION/EXAMPLES/RETURN before imports for ansible-doc.
+ignore = ["E402"]
+
+[lint.flake8-quotes]
+inline-quotes = "double"
+
+[format]
+indent-style = "space"
+quote-style = "double"
+line-ending = "lf"

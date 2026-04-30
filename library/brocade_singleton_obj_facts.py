@@ -1,16 +1,14 @@
 #!/usr/bin/python
-
-# Copyright 2019-2025 Broadcom. All rights reserved.
-# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
-# GNU General Public License v3.0+
-# (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# Copyright 2019-2026 Broadcom. All rights reserved.
+# The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries
 
 
-from __future__ import (absolute_import, division, print_function)
+from __future__ import absolute_import, division, print_function
+
 __metaclass__ = type
 
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 
 module: brocade_singleton_obj_facts
 short_description: Brocade Fibre Channel generic facts gathering for singleton objects
@@ -41,7 +39,7 @@ options:
                 type: str
             https:
                 description:
-                - Encryption to use. True for HTTPS, self for self-signed HTTPS, 
+                - Encryption to use. True for HTTPS, self for self-signed HTTPS,
                   or False for HTTP
                 choices:
                     - True
@@ -54,7 +52,7 @@ options:
         required: true
     vfid:
         description:
-        - VFID of the switch. Use -1 for FOS without VF enabled or AG. 
+        - VFID of the switch. Use -1 for FOS without VF enabled or AG.
         type: int
         required: false
     throttle:
@@ -81,7 +79,7 @@ options:
         required: true
         type: str
 
-'''
+"""
 
 
 EXAMPLES = """
@@ -89,8 +87,8 @@ EXAMPLES = """
   vars:
     credential:
       fos_ip_addr: "{{fos_ip_addr}}"
-      fos_user_name: admin
-      fos_password: password
+      fos_user_name: user_name
+      fos_password: user_password
       https: False
 
   tasks:
@@ -124,10 +122,10 @@ Brocade Fibre Channel generic facts gathering for singleton objects
 """
 
 
-from ansible.module_utils.brocade_connection import login, logout, exit_after_login
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.brocade_connection import exit_after_login, login, logout
 from ansible.module_utils.brocade_objects import singleton_get, to_human_singleton
 from ansible.module_utils.brocade_yang import str_to_human, str_to_yang
-from ansible.module_utils.basic import AnsibleModule
 
 
 def main():
@@ -136,57 +134,70 @@ def main():
     """
 
     argument_spec = dict(
-        credential=dict(required=True, type='dict', options=dict(
-            fos_ip_addr=dict(required=True, type='str'),
-            fos_user_name=dict(required=True, type='str'),
-            fos_password=dict(required=True, type='str', no_log=True),
-            https=dict(required=True, type='str'),
-            ssh_hostkeymust=dict(required=False, type='bool'))),
-        vfid=dict(required=False, type='int'),
+        credential=dict(
+            required=True,
+            type="dict",
+            options=dict(
+                fos_ip_addr=dict(required=True, type="str"),
+                fos_user_name=dict(required=True, type="str"),
+                fos_password=dict(required=True, type="str", no_log=True),
+                https=dict(required=True, type="str"),
+                ssh_hostkeymust=dict(required=False, type="bool"),
+            ),
+        ),
+        vfid=dict(required=False, type="int"),
+        throttle=dict(required=False, type="int"),
+        timeout=dict(required=False, type="int"),
+        module_name=dict(required=True, type="str"),
+        obj_name=dict(required=True, type="str"),
         throttle=dict(required=False, type='int'),
         timeout=dict(required=False, type='int'),
-        module_name=dict(required=True, type='str'),
-        obj_name=dict(required=True, type='str'))
-
-    module = AnsibleModule(
-        argument_spec=argument_spec,
-        supports_check_mode=False
     )
+
+    module = AnsibleModule(argument_spec=argument_spec, supports_check_mode=False)
 
     input_params = module.params
 
     # Set up state variables
-    fos_ip_addr = input_params['credential']['fos_ip_addr']
-    fos_user_name = input_params['credential']['fos_user_name']
-    fos_password = input_params['credential']['fos_password']
-    https = input_params['credential']['https']
+    fos_ip_addr = input_params["credential"]["fos_ip_addr"]
+    fos_user_name = input_params["credential"]["fos_user_name"]
+    fos_password = input_params["credential"]["fos_password"]
+    https = input_params["credential"]["https"]
     ssh_hostkeymust = True
-    if 'ssh_hostkeymust' in input_params['credential']:
-        ssh_hostkeymust = input_params['credential']['ssh_hostkeymust']
-    throttle = input_params['throttle']
-    timeout = input_params['timeout']
-    vfid = input_params['vfid']
-    module_name = str_to_human(input_params['module_name'])
-    obj_name = str_to_human(input_params['obj_name'])
+    if "ssh_hostkeymust" in input_params["credential"]:
+        ssh_hostkeymust = input_params["credential"]["ssh_hostkeymust"]
+    throttle = input_params["throttle"]
+    timeout = input_params["timeout"]
+    vfid = input_params["vfid"]
+    module_name = str_to_human(input_params["module_name"])
+    obj_name = str_to_human(input_params["obj_name"])
     result = {"changed": False}
 
     if vfid is None:
         vfid = 128
 
-    ret_code, auth, fos_version = login(fos_ip_addr,
-                           fos_user_name, fos_password,
-                           https, throttle, result, timeout)
+    ret_code, auth, fos_version = login(fos_ip_addr, fos_user_name, fos_password, https, throttle, result, timeout)
     if ret_code != 0:
         module.exit_json(**result)
 
     facts = {}
 
-    facts['ssh_hostkeymust'] = ssh_hostkeymust
+    facts["ssh_hostkeymust"] = ssh_hostkeymust
 
-    ret_code, response = singleton_get(fos_user_name, fos_password, fos_ip_addr,
-                                  module_name, obj_name, fos_version,
-                                  https, auth, vfid, result,
-                                  ssh_hostkeymust, timeout)
+    ret_code, response = singleton_get(
+        fos_user_name,
+        fos_password,
+        fos_ip_addr,
+        module_name,
+        obj_name,
+        fos_version,
+        https,
+        auth,
+        vfid,
+        result,
+        ssh_hostkeymust,
+        timeout,
+    )
     if ret_code != 0:
         result["singleton_get"] = ret_code
         exit_after_login(fos_ip_addr, https, auth, result, module, timeout)
@@ -206,5 +217,5 @@ def main():
     module.exit_json(**result)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
